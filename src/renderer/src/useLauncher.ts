@@ -24,7 +24,14 @@ export function useAccounts(state: LauncherState | null): { accounts: AccountsSt
     if (!gameRunning) {
       return
     }
-    const timer = setInterval(() => void reload(), ONLINE_REFRESH_MS)
+    // One read at a time: a slow database must not pile requests up, nor let an old answer land over a newer one.
+    let reading = false
+    const timer = setInterval(() => {
+      if (!reading) {
+        reading = true
+        void reload().finally(() => (reading = false))
+      }
+    }, ONLINE_REFRESH_MS)
     return () => clearInterval(timer)
   }, [gameRunning, reload])
   return { accounts, reload }
