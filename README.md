@@ -13,6 +13,15 @@ Early development. The launcher finds the server, the client, Java and MySQL; st
 data; shows their terminals; and launches the game. See [docs/roadmap.md](docs/roadmap.md) for what comes next and
 [docs/how-it-works.md](docs/how-it-works.md) for how it runs the servers.
 
+## Download
+
+Windows builds are on the [Releases](https://github.com/FayneDre/echoes-of-atreia-launcher/releases) page: an installer, or a portable
+exe that runs without installing. They are not signed, so Windows SmartScreen warns the first time: *More info*, then *Run anyway*.
+
+The launcher drives a server and a client already installed: Java 25 or later, MySQL as a Windows service, the
+[server](https://github.com/FayneDre/aion-server-playerbots) and the Aion 4.8 client. It finds the server through `AION_SERVER_HOME` or
+the folder chosen in its Installation panel, and the client in a folder next to it, or the one chosen.
+
 ## Development
 
 Requires Node.js 24 or later.
@@ -24,6 +33,7 @@ npm run typecheck  # TypeScript, no build
 npm run test:unit  # Vitest, the logic that needs no window
 npm run test:e2e   # builds, then drives the real window with Playwright, against fake servers
 npm test           # all three
+npm run dist       # the Windows installer and portable exe, in dist/
 ```
 
 The launcher finds the server through the `AION_SERVER_HOME` environment variable, or the folder chosen in its Installation panel.

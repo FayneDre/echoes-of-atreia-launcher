@@ -3,6 +3,7 @@
   "productName": "Echoes of Atreia",
   "version": "0.1.0",
   "description": "All-in-one launcher for a self-hosted Aion 4.8 server populated by AI-driven bots: install, play and back up your characters.",
+  "author": "Echoes of Atreia contributors",
   "license": "GPL-3.0-or-later",
   "private": true,
   "main": "./out/main/index.js",
@@ -13,11 +14,33 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:e2e": "electron-vite build && playwright test",
-    "test": "npm run typecheck && npm run test:unit && npm run test:e2e"
+    "test": "npm run typecheck && npm run test:unit && npm run test:e2e",
+    "dist": "electron-vite build && electron-builder --win"
   },
-  "dependencies": {
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+  "build": {
+    "appId": "io.github.faynedre.echoes-of-atreia",
+    "productName": "Echoes of Atreia",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "Echoes-of-Atreia-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Echoes-of-Atreia-${version}-portable.${ext}"
+    }
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
@@ -26,7 +49,10 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.2.1",
     "electron": "^45.2.2",
+    "electron-builder": "^26.18.0",
     "electron-vite": "^6.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vitest": "^5.1.0"
