@@ -36,7 +36,7 @@ async function select(page: Page, title: string): Promise<void> {
 
 async function save(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Save', exact: true }).click()
-  await expect(page.getByRole('status').filter({ hasText: 'Saved.' })).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: 'Saved.' })).toBeVisible({ timeout: 10_000 })
 }
 
 test('sets a whole group at once, or each of its settings', async () => {
@@ -166,7 +166,28 @@ test('refuses a value the server would not take', async () => {
   await app.close()
 })
 
-test('asks for a restart when the settings change while the game server runs', async () => {
+test('applies the settings at once when the game server runs, without asking for a restart', async () => {
+  const { app, page } = await openSettings()
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Start the servers' }).click()
+  await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })
+
+  await page.getByRole('button', { name: 'Server settings' }).click()
+  await select(page, 'Glory Points (GP)')
+  await page.getByLabel('Glory Points (GP) — All').fill('2')
+  await save(page)
+  await expect.poll(() => readFileSync(join(install.serverRoot, 'game-server', 'log', 'server_console.log'), 'utf8')).toContain('configuration reloaded')
+  await expect(page.getByTestId('restart-needed')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Stop the servers' }).click()
+  await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped', { timeout: READY_TIMEOUT })
+  await app.close()
+})
+
+test('asks for a restart when the game server cannot read the settings again', async () => {
+  // A game server from before the admin channel.
+  writeFileSync(join(install.serverRoot, 'game-server', 'no-admin'), '')
   const { app, page } = await openSettings()
   await page.getByRole('button', { name: 'Home' }).click()
   await page.getByRole('button', { name: 'Start the servers' }).click()

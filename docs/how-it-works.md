@@ -121,3 +121,16 @@ the count that blocks a host, but a database on another machine would count them
 executable, run as plain Node, plays Java (`ECHOES_FAKE_JAVA` → `tests/fixtures/fake-java.mjs`) and the client (`ECHOES_FAKE_CLIENT`):
 the fakes move their log aside and write a new one, listen on their configured ports, and the game server refuses to start without the
 other two and stops on `shutdown.request`. Everything else is the real code.
+
+## The admin channel (phase 4)
+
+The launcher asks the running game server through files, as it asks it to stop (`shutdown.request`): it writes `game-server/admin/<id>.tmp`,
+renames it `<id>.request` (one line: the command and its words), and waits for `<id>.response`, whose first line is `ok` or `error <why>`
+and the rest data. The server reads the folder twice a second. No port and no key: whoever can write in the server's folder can already replace
+the jar. A server without the channel never answers; the launcher gives up after a few seconds.
+
+- `reload-config`: sent after a save when the game server is ready; the rates are read at each gain, so they apply at once. If it is not
+  answered, the "restart needed" banner shows as before.
+- `destinations`: the server's teleport list (location, map, x y z, name); the interface offers each name once.
+- `teleport <character id> <map> <x> <y> <z>`: for the character picked on the Account page; the server refuses one that is not in game.
+  It goes through the server because it holds the character in memory and would write it back over a change made in the database.

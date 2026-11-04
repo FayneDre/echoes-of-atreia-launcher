@@ -104,3 +104,37 @@ test('asks for the password again when it was changed on the server', async () =
   await expect(page.getByTestId('character-Aeris')).toBeVisible()
   await app.close()
 })
+
+test('teleports the character played, through the game server', async () => {
+  const { app, page } = await openAccount()
+  await signIn(page, 'player1', 'secret')
+  await page.getByTestId('character-Aeris').click()
+  await expect(page.getByTestId('teleport')).toContainText('Start the servers and log in')
+
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Start the servers' }).click()
+  await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
+  await page.getByRole('button', { name: 'Account', exact: true }).click()
+
+  // Each name once, and a search narrows the list.
+  const places = page.getByLabel('Places')
+  await expect(places.getByRole('option')).toHaveText(['Pandaemonium', 'Sanctum'])
+  await page.getByLabel('Search a place').fill('sanc')
+  await expect(places.getByRole('option')).toHaveText(['Sanctum'])
+  await places.selectOption({ label: 'Sanctum' })
+  await page.getByRole('button', { name: 'Teleport', exact: true }).click()
+  await expect(page.getByRole('status').filter({ hasText: 'Done' })).toBeVisible()
+  const log = join(install.serverRoot, 'game-server', 'log', 'server_console.log')
+  await expect.poll(() => readFileSync(log, 'utf8')).toContain('teleport 101 110010000 1 2 3')
+
+  // A character that is not in game is told so.
+  await page.getByTestId('character-Borin').click()
+  await page.getByLabel('Places').selectOption({ label: 'Sanctum' })
+  await page.getByRole('button', { name: 'Teleport', exact: true }).click()
+  await expect(page.getByRole('alert')).toContainText('not in game')
+
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Stop the servers' }).click()
+  await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped', { timeout: 30_000 })
+  await app.close()
+})

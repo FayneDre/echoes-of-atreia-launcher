@@ -142,6 +142,12 @@ export class AccountService {
     })
   }
 
+  /** The character picked on the active account, whether or not it is still on the account: the game server tells if it is in game. */
+  get selectedCharacterId(): number | null {
+    const active = this.settings.current.activeAccount
+    return (active && this.settings.current.selectedCharacters?.[active]) || null
+  }
+
   async selectCharacter(characterId: number): Promise<void> {
     const active = this.settings.current.activeAccount
     if (active) {

@@ -46,6 +46,14 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('accounts:select-character', (_event, id: unknown) =>
     Number.isInteger(id) ? accounts.selectCharacter(id as number) : undefined
   )
+  ipcMain.handle('game:destinations', () => launcher.listDestinations())
+  ipcMain.handle('game:teleport', (_event, destinationId: unknown) => {
+    const character = accounts.selectedCharacterId
+    if (!character) {
+      return { code: 'no-character' }
+    }
+    return Number.isInteger(destinationId) ? launcher.teleport(character, destinationId as number) : { code: 'admin-failed' }
+  })
   ipcMain.handle('backups:list', () => backups.list())
   ipcMain.handle('backups:create', () =>
     launcher.withActivity('backup', async () => {

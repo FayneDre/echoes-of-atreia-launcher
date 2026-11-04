@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { AccountsState, CharacterSummary, Problem } from '../../../shared/types'
 import { hasMessage, useI18n } from '../i18n'
+import { TeleportPanel } from './TeleportPanel'
 import { ProblemText } from './ProblemText'
 
 function SignInForm(props: { name?: string; onDone: () => void; onCancel?: () => void }): React.JSX.Element {
@@ -85,7 +86,7 @@ function CharacterCard(props: { character: CharacterSummary; selected: boolean; 
   )
 }
 
-export function AccountPage(props: { accounts: AccountsState | null; reload: () => Promise<void> }): React.JSX.Element {
+export function AccountPage(props: { accounts: AccountsState | null; gameReady: boolean; reload: () => Promise<void> }): React.JSX.Element {
   const { t } = useI18n()
   const [adding, setAdding] = useState(false)
   const { accounts } = props
@@ -95,6 +96,7 @@ export function AccountPage(props: { accounts: AccountsState | null; reload: () 
   }
 
   const active = accounts.active
+  const selectedCharacter = accounts.characters.find((character) => character.id === accounts.selectedCharacterId)
   const needsPassword = accounts.problem?.code === 'password-needed'
   const showSignIn = adding || accounts.accounts.length === 0
 
@@ -188,6 +190,7 @@ export function AccountPage(props: { accounts: AccountsState | null; reload: () 
                       />
                     ))}
                   </div>
+                  {selectedCharacter && <TeleportPanel character={selectedCharacter} gameReady={props.gameReady} />}
                 </>
               )}
             </>

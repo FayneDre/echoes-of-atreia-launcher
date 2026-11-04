@@ -221,5 +221,15 @@ export const fr: Record<MessageKey, string> = {
   'problem.backup-failed': 'La sauvegarde a échoué.',
   'problem.restore-failed': 'La restauration a échoué.',
   'problem.servers-running': "Arrête d'abord les serveurs.",
-  'problem.launcher-busy': 'Le launcher est occupé à autre chose : réessaie dans un instant.'
+  'problem.launcher-busy': 'Le launcher est occupé à autre chose : réessaie dans un instant.',
+  'problem.game-not-ready': "Le serveur de jeu n'est pas prêt : démarre d'abord les serveurs.",
+  'problem.no-character': "Choisis d'abord un personnage.",
+  'problem.not-in-game': "Ce personnage n'est pas en jeu : connecte-toi avec lui, puis réessaie.",
+  'problem.admin-failed': "Le serveur de jeu ne l'a pas fait. Est-il à jour ? Déploie la dernière version.",
+  'teleport.title': 'Téléporter {name}',
+  'teleport.needsServer': 'Démarre les serveurs et connecte-toi avec le personnage pour le téléporter.',
+  'teleport.search': 'Chercher un lieu',
+  'teleport.destinations': 'Lieux',
+  'teleport.go': 'Téléporter',
+  'teleport.done': 'Fait : le personnage est en route.'
 }

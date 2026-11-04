@@ -3,6 +3,7 @@ import {
   REQUIRED_JAVA,
   SERVER_IDS,
   type Activity,
+  type DestinationSummary,
   type FolderKind,
   type InstallState,
   type LauncherState,
@@ -14,6 +15,7 @@ import {
 } from '../shared/types'
 import { launchClient } from './client'
 import { findClientNear, isClientFolder, readServerLayout, type ServerLayout } from './server/installation'
+import { adminRequest, parseDestinations } from './server/adminChannel'
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
 import { readServerSettings, writeServerSettings } from './server/serverSettings'
@@ -268,17 +270,60 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     return this.layout ? readServerSettings(this.layout.servers.game.dir) : Promise.resolve(null)
   }
 
-  /** Saves the values; a game server that runs reads them at its next start, and the interface says so. */
+  /**
+   * Saves the values. A game server that is ready is asked to read them again at once; one that cannot be asked (started or too old for it, or
+   * not answering) reads them at its next start, and the interface says so.
+   */
   async saveServerSettings(values: Record<string, number>): Promise<boolean> {
     if (!this.layout) {
       return false
     }
     await writeServerSettings(this.layout.servers.game.dir, values)
     if (this.servers.game?.hasProcess) {
-      this.restartNeeded = true
+      const applied = this.servers.game.current.status === 'ready' && (await adminRequest(this.layout.servers.game.dir, 'reload-config', 4000)).ok
+      this.restartNeeded = !applied
       this.publish()
     }
     return true
+  }
+
+  /** Where the game server can send a character, by name, each name once. */
+  async listDestinations(): Promise<DestinationSummary[] | Problem> {
+    const answer = await this.askGame('destinations')
+    if ('code' in answer) {
+      return answer
+    }
+    const seen = new Set<string>()
+    return parseDestinations(answer)
+      .filter((destination) => !seen.has(destination.name) && seen.add(destination.name))
+      .map(({ id, name }) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }
+
+  /** Sends a character to a destination of the list. The game server does it, as it holds the character in memory. */
+  async teleport(characterId: number, destinationId: number): Promise<Problem | null> {
+    const asked = await this.askGame('destinations')
+    if ('code' in asked) {
+      return asked
+    }
+    const destination = parseDestinations(asked).find((candidate) => candidate.id === destinationId)
+    if (!destination) {
+      return { code: 'admin-failed', detail: 'unknown destination' }
+    }
+    const { mapId, x, y, z } = destination
+    const answer = await adminRequest(this.layout!.servers.game.dir, `teleport ${characterId} ${mapId} ${x} ${y} ${z}`)
+    if (answer.ok) {
+      return null
+    }
+    return answer.error === 'not in game' ? { code: 'not-in-game' } : { code: 'admin-failed', detail: answer.error }
+  }
+
+  private async askGame(command: string): Promise<string[] | Problem> {
+    if (!this.layout || this.servers.game?.current.status !== 'ready') {
+      return { code: 'game-not-ready' }
+    }
+    const answer = await adminRequest(this.layout.servers.game.dir, command)
+    return answer.ok ? answer.lines : { code: 'admin-failed', detail: answer.error }
   }
 
   setQuitRequested(requested: boolean): void {

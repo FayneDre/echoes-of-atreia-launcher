@@ -33,6 +33,10 @@ export type ProblemCode =
   | 'restore-failed'
   | 'servers-running'
   | 'launcher-busy'
+  | 'game-not-ready'
+  | 'no-character'
+  | 'not-in-game'
+  | 'admin-failed'
 
 /** A code the interface translates, and what the system said, shown as is. */
 export interface Problem {
@@ -135,3 +139,9 @@ export type FolderKind = 'server' | 'client'
 export type QuitAnswer = 'stop' | 'leave' | 'cancel'
 
 export const REQUIRED_JAVA = 25
+
+/** A place the game server can send a character to, as it names it. */
+export interface DestinationSummary {
+  id: number
+  name: string
+}

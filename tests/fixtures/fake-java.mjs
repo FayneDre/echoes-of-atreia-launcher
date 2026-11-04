@@ -2,11 +2,15 @@
 // class names, doing what the launcher relies on: it moves its old console log aside and writes a new one, listens on the port its
 // config names, and the game server refuses to start without the login and chat servers, registers a little later, and stops on
 // shutdown.request. Files in the server folder change how it behaves: fail-on-start makes it crash at once, slow-start opens its port
-// 20 s late (a game server still loading its data), slow-register registers 20 s late (one loading its world).
-import { existsSync, mkdirSync, appendFileSync, readFileSync, renameSync, rmSync } from 'node:fs'
+// 20 s late (a game server still loading its data), slow-register registers 20 s late (one loading its world), no-admin makes the game
+// server ignore the admin folder (a build from before it). Otherwise the game server answers the requests of `admin/`: reload-config,
+// destinations, and teleport, which only character 101 (in game in the fake database) accepts.
+import { existsSync, mkdirSync, appendFileSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { connect, createServer } from 'node:net'
 import { join } from 'node:path'
 
+const TAB = String.fromCharCode(9)
+const NEWLINE = String.fromCharCode(10)
 const args = process.argv.slice(2)
 if (args.includes('-version')) {
   process.stderr.write('openjdk version "25.0.1" 2025-10-21\n')
@@ -77,7 +81,38 @@ async function main() {
 
   if (kind === 'game') {
     setTimeout(() => log('Connected to login server'), existsSync('slow-register') ? 20_000 : 800)
+    mkdirSync('admin', { recursive: true })
     setInterval(() => {
+      if (!existsSync('no-admin')) {
+        for (const name of readdirSync('admin').filter((n) => n.endsWith('.request'))) {
+          const command = readFileSync(join('admin', name), 'utf8').trim()
+          rmSync(join('admin', name), { force: true })
+          const [verb, ...words] = command.split(/\s+/)
+          let answer = 'error unknown command'
+          if (verb === 'reload-config') {
+            log('Admin channel: configuration reloaded')
+            answer = 'ok'
+          } else if (verb === 'destinations') {
+            const place = (...fields) => fields.join(TAB)
+            answer = [
+              'ok',
+              place(7, 110010000, 1, 2, 3, 'Sanctum'),
+              place(8, 210010000, 4, 5, 6, 'Pandaemonium'),
+              place(9, 110010000, 7, 8, 9, 'Sanctum')
+            ].join(NEWLINE)
+          } else if (verb === 'teleport') {
+            if (words[0] === '101') {
+              log(`Admin channel: teleport ${words.join(' ')}`)
+              answer = 'ok'
+            } else {
+              answer = 'error not in game'
+            }
+          }
+          const id = name.slice(0, -'.request'.length)
+          writeFileSync(join('admin', id + '.tmp'), answer + NEWLINE)
+          renameSync(join('admin', id + '.tmp'), join('admin', id + '.response'))
+        }
+      }
       if (existsSync('shutdown.request')) {
         rmSync('shutdown.request', { force: true })
         log('Shutdown requested: saving players')

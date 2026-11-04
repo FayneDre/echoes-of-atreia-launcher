@@ -218,7 +218,17 @@ export const en = {
   'problem.backup-failed': 'The backup failed.',
   'problem.restore-failed': 'The restore failed.',
   'problem.servers-running': 'Stop the servers first.',
-  'problem.launcher-busy': 'The launcher is busy with something else: try again in a moment.'
+  'problem.launcher-busy': 'The launcher is busy with something else: try again in a moment.',
+  'problem.game-not-ready': 'The game server is not ready: start the servers first.',
+  'problem.no-character': 'Choose a character first.',
+  'problem.not-in-game': 'This character is not in game: log in with it, then try again.',
+  'problem.admin-failed': 'The game server did not do it. Is it up to date? Deploy the latest build.',
+  'teleport.title': 'Teleport {name}',
+  'teleport.needsServer': 'Start the servers and log in with the character to teleport it.',
+  'teleport.search': 'Search a place',
+  'teleport.destinations': 'Places',
+  'teleport.go': 'Teleport',
+  'teleport.done': 'Done: the character is on its way.'
 }
 
 export type MessageKey = keyof typeof en
