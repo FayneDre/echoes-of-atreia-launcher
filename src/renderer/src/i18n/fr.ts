@@ -9,6 +9,7 @@ export const fr: Record<MessageKey, string> = {
   'nav.home': 'Accueil',
   'nav.settings': 'Réglages du serveur',
   'nav.account': 'Compte',
+  'nav.backups': 'Sauvegardes',
 
   'settings.intro':
     'Valeurs des comptes normaux, écrites dans le config/mygs.properties du serveur de jeu (jamais dans ses fichiers par défaut) et appliquées à son démarrage.',
@@ -109,6 +110,24 @@ export const fr: Record<MessageKey, string> = {
   'account.playing': 'Personnage : {name}',
   'account.noMap': 'Carte inconnue',
 
+  'backups.intro':
+    "Copies des bases des comptes et des personnages, conservées dans le dossier backups du serveur. Une sauvegarde peut se faire serveurs démarrés (ce que le serveur de jeu n'a pas encore sauvegardé n'y est pas). Une restauration demande des serveurs arrêtés, et sauvegarde d'abord l'état actuel.",
+  'backups.create': 'Sauvegarder maintenant',
+  'backups.creating': 'Sauvegarde en cours…',
+  'backups.restoring': 'Restauration en cours…',
+  'backups.created': 'Sauvegarde faite.',
+  'backups.restored': 'Sauvegarde restaurée.',
+  'backups.openFolder': 'Ouvrir le dossier',
+  'backups.none': 'Aucune sauvegarde pour le moment.',
+  'backups.restore': 'Restaurer',
+  'backups.remove': 'Supprimer',
+  'backups.kind.manual': 'Sauvegarde',
+  'backups.kind.before-restore': 'Avant une restauration',
+  'backups.restoreConfirm':
+    "Restaurer la sauvegarde du {date} ? Les comptes et personnages actuels seront remplacés par elle ; ils sont sauvegardés d'abord.",
+  'backups.removeConfirm': 'Supprimer la sauvegarde du {date} ? Ce sera définitif.',
+  'backups.stopFirst': 'Arrête les serveurs pour restaurer une sauvegarde.',
+
   'race.ELYOS': 'Élyséen',
   'race.ASMODIANS': 'Asmodien',
   'class.WARRIOR': 'Guerrier',
@@ -197,5 +216,10 @@ export const fr: Record<MessageKey, string> = {
   'problem.password-wrong': 'Mot de passe incorrect.',
   'problem.password-needed': "Le mot de passe enregistré n'ouvre plus ce compte : saisis-le à nouveau.",
   'problem.database-unreachable': 'La base de données ne répond pas. MySQL est-il démarré (page Accueil) ?',
-  'problem.encryption-unavailable': 'Windows ne peut pas chiffrer le mot de passe sur cet ordinateur : il ne peut donc pas être retenu.'
+  'problem.encryption-unavailable': 'Windows ne peut pas chiffrer le mot de passe sur cet ordinateur : il ne peut donc pas être retenu.',
+  'problem.mysql-tools-missing': "mysqldump ou mysql est introuvable : ils sont fournis avec MySQL, dans son dossier bin.",
+  'problem.backup-failed': 'La sauvegarde a échoué.',
+  'problem.restore-failed': 'La restauration a échoué.',
+  'problem.servers-running': "Arrête d'abord les serveurs.",
+  'problem.launcher-busy': 'Le launcher est occupé à autre chose : réessaie dans un instant.'
 }

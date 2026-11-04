@@ -213,6 +213,22 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     )
   }
 
+  /**
+   * Runs a backup or a restore as the launcher's activity, so it never crosses a start or a stop; a restore also needs every server stopped,
+   * or a running game server would write its characters back over the restored ones.
+   */
+  async withActivity(activity: 'backup' | 'restore', work: () => Promise<Problem | null>): Promise<Problem | null> {
+    if (activity === 'restore' && this.anyRunning) {
+      return { code: 'servers-running' }
+    }
+    let result: Problem | null = { code: 'launcher-busy' }
+    await this.run(activity, async () => {
+      result = await work()
+      return result === null
+    })
+    return result
+  }
+
   forceStop(id: ServerId): Promise<boolean> {
     return this.servers[id]?.forceStop() ?? Promise.resolve(true)
   }

@@ -8,6 +8,7 @@ export const en = {
   'nav.home': 'Home',
   'nav.settings': 'Server settings',
   'nav.account': 'Account',
+  'nav.backups': 'Backups',
 
   'settings.intro':
     'Values for regular accounts, written to the game server’s config/mygs.properties (never to its default files) and applied when it starts.',
@@ -108,6 +109,24 @@ export const en = {
   'account.playing': 'Playing: {name}',
   'account.noMap': 'Unknown map',
 
+  'backups.intro':
+    'Copies of the accounts and characters databases, kept in the server’s backups folder. A backup can be made while the servers run (what the game server has not saved yet is not in it). A restore needs them stopped, and first backs up what is there now.',
+  'backups.create': 'Back up now',
+  'backups.creating': 'Backing up…',
+  'backups.restoring': 'Restoring…',
+  'backups.created': 'Backup made.',
+  'backups.restored': 'Backup restored.',
+  'backups.openFolder': 'Open the folder',
+  'backups.none': 'No backup yet.',
+  'backups.restore': 'Restore',
+  'backups.remove': 'Delete',
+  'backups.kind.manual': 'Backup',
+  'backups.kind.before-restore': 'Before a restore',
+  'backups.restoreConfirm':
+    'Restore the backup of {date}? The accounts and characters there now are replaced by it; they are backed up first.',
+  'backups.removeConfirm': 'Delete the backup of {date}? This cannot be undone.',
+  'backups.stopFirst': 'Stop the servers to restore a backup.',
+
   'race.ELYOS': 'Elyos',
   'race.ASMODIANS': 'Asmodian',
   'class.WARRIOR': 'Warrior',
@@ -194,7 +213,12 @@ export const en = {
   'problem.password-wrong': 'Wrong password.',
   'problem.password-needed': 'The saved password no longer opens this account: type it again.',
   'problem.database-unreachable': 'The database does not answer. Is MySQL started (Home page)?',
-  'problem.encryption-unavailable': 'Windows cannot encrypt the password on this computer, so it cannot be kept.'
+  'problem.encryption-unavailable': 'Windows cannot encrypt the password on this computer, so it cannot be kept.',
+  'problem.mysql-tools-missing': 'mysqldump or mysql was not found: they come with MySQL, in its bin folder.',
+  'problem.backup-failed': 'The backup failed.',
+  'problem.restore-failed': 'The restore failed.',
+  'problem.servers-running': 'Stop the servers first.',
+  'problem.launcher-busy': 'The launcher is busy with something else: try again in a moment.'
 }
 
 export type MessageKey = keyof typeof en

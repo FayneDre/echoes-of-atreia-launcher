@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
-import type { AccountsState, FolderKind, LauncherState, LogBatch, Problem, QuitAnswer, ServerId, ServerSettings } from '../shared/types'
+import type { AccountsState, BackupSummary, FolderKind, LauncherState, LogBatch, Problem, QuitAnswer, ServerId, ServerSettings } from '../shared/types'
 
 function subscribe<T>(channel: string, listener: (value: T) => void): () => void {
   const handler = (_event: IpcRendererEvent, value: T): void => listener(value)
@@ -23,6 +23,11 @@ const launcherApi = {
   switchAccount: (name: string): Promise<void> => ipcRenderer.invoke('accounts:switch', name),
   forgetAccount: (name: string): Promise<void> => ipcRenderer.invoke('accounts:forget', name),
   selectCharacter: (id: number): Promise<void> => ipcRenderer.invoke('accounts:select-character', id),
+  listBackups: (): Promise<BackupSummary[]> => ipcRenderer.invoke('backups:list'),
+  createBackup: (): Promise<Problem | null> => ipcRenderer.invoke('backups:create'),
+  restoreBackup: (id: string): Promise<Problem | null> => ipcRenderer.invoke('backups:restore', id),
+  removeBackup: (id: string): Promise<void> => ipcRenderer.invoke('backups:remove', id),
+  openBackupFolder: (): Promise<void> => ipcRenderer.invoke('backups:open-folder'),
   getServerSettings: (): Promise<ServerSettings | null> => ipcRenderer.invoke('launcher:get-server-settings'),
   saveServerSettings: (values: Record<string, number>): Promise<boolean> => ipcRenderer.invoke('launcher:save-server-settings', values),
   chooseFolder: (kind: FolderKind): Promise<void> => ipcRenderer.invoke('launcher:choose-folder', kind),

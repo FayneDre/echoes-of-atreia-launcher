@@ -655,6 +655,66 @@ button.small {
   color: var(--bad);
 }
 
+.backups-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.backup-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.backup-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.backup {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.backup:last-child {
+  border-bottom: none;
+}
+
+.backup-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.backup-date {
+  font-weight: 600;
+}
+
+.backup-databases {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.tag-manual {
+  background: #1d3550;
+  color: var(--elyos);
+}
+
+.tag-safety {
+  background: #3d3220;
+  color: var(--asmodian);
+}
+
 .footer {
   padding: 8px 20px;
   color: var(--text-muted);

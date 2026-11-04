@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process'
+import { dirname } from 'node:path'
 import type { MysqlState, Problem } from '../../shared/types'
 import { isPortOpen } from '../system/network'
 import { waitFor } from './wait'
@@ -31,6 +32,23 @@ async function findService(): Promise<string | null> {
   )
   const name = stdout.trim()
   return /^[\w.-]+$/.test(name) ? name : null
+}
+
+/**
+ * The folder of the MySQL programs (`mysqldump`, `mysql`): the one the service's own `mysqld.exe` is in. Null when there is no service or
+ * its path cannot be read; the tools are then looked for on the PATH.
+ */
+export async function findMysqlBinDir(): Promise<string | null> {
+  if (process.platform !== 'win32') {
+    return null
+  }
+  const { stdout } = await runPowerShell(
+    `Get-CimInstance Win32_Service | Where-Object { $_.Name -match 'mysql|mariadb' } | ` +
+      `Sort-Object { $_.State -ne 'Running' }, Name | Select-Object -First 1 -ExpandProperty PathName`
+  )
+  const executable = stdout.trim().match(/^"([^"]+)"|^(\S+)/)
+  const path = executable?.[1] ?? executable?.[2]
+  return path ? dirname(path) : null
 }
 
 /**

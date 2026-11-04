@@ -28,6 +28,11 @@ export type ProblemCode =
   | 'password-needed'
   | 'database-unreachable'
   | 'encryption-unavailable'
+  | 'mysql-tools-missing'
+  | 'backup-failed'
+  | 'restore-failed'
+  | 'servers-running'
+  | 'launcher-busy'
 
 /** A code the interface translates, and what the system said, shown as is. */
 export interface Problem {
@@ -65,7 +70,7 @@ export interface InstallState {
  * What the launcher is doing. A stop may interrupt a start (the game server takes minutes to load), so the two are told apart; anything
  * else waits for `idle`.
  */
-export type Activity = 'detecting' | 'idle' | 'starting' | 'stopping' | 'mysql'
+export type Activity = 'detecting' | 'idle' | 'starting' | 'stopping' | 'mysql' | 'backup' | 'restore'
 
 export interface LauncherState {
   install: InstallState
@@ -96,6 +101,16 @@ export interface CharacterSummary {
   online: boolean
   /** Set when the character is waiting to be deleted. */
   deleting: boolean
+}
+
+/** A copy of the server's databases, in a folder of its own under the server's `backups`. */
+export interface BackupSummary {
+  /** The folder's name, which is its date: `2026-11-04_21-30-05`. */
+  id: string
+  createdAt: string
+  /** Made by the person, or by the launcher just before a restore replaced what was there. */
+  kind: 'manual' | 'before-restore'
+  databases: { name: string; bytes: number }[]
 }
 
 /** The accounts the launcher keeps, and the one in use with its characters. */

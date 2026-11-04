@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
 import { SERVER_IDS, type FolderKind, type QuitAnswer, type ServerId } from '../shared/types'
 import { AccountService } from './accounts/accountService'
+import { BackupService } from './backup/backupService'
 import { Launcher } from './launcher'
 import { validValues } from './server/serverSettings'
 import { SettingsStore } from './settings'
@@ -15,6 +16,7 @@ if (userDataDir) {
 const settings = new SettingsStore()
 const launcher = new Launcher(settings)
 const accounts = new AccountService(settings, () => launcher.currentLayout)
+const backups = new BackupService(() => launcher.currentLayout)
 
 const isText = (value: unknown, maxLength: number): value is string =>
   typeof value === 'string' && value.length > 0 && value.length <= maxLength
@@ -44,6 +46,23 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('accounts:select-character', (_event, id: unknown) =>
     Number.isInteger(id) ? accounts.selectCharacter(id as number) : undefined
   )
+  ipcMain.handle('backups:list', () => backups.list())
+  ipcMain.handle('backups:create', () =>
+    launcher.withActivity('backup', async () => {
+      const result = await backups.create()
+      return 'code' in result ? result : null
+    })
+  )
+  ipcMain.handle('backups:restore', (_event, id: unknown) =>
+    typeof id === 'string' ? launcher.withActivity('restore', () => backups.restore(id)) : { code: 'restore-failed' }
+  )
+  ipcMain.handle('backups:remove', (_event, id: unknown) => (typeof id === 'string' ? backups.remove(id) : undefined))
+  ipcMain.handle('backups:open-folder', async () => {
+    const folder = await backups.folderPath()
+    if (folder) {
+      await shell.openPath(folder)
+    }
+  })
   ipcMain.handle('launcher:get-server-settings', () => launcher.getServerSettings())
   ipcMain.handle('launcher:save-server-settings', (_event, value: unknown) => {
     const values = validValues(value)

@@ -90,6 +90,24 @@ A connection is opened for each question and closed after it.
 - The world's bots live on reserved accounts (900000 and up) and are never listed: only the signed-in account's characters are.
 - The end-to-end tests read a JSON file instead of the databases (`ECHOES_FAKE_DB`).
 
+## Backups
+
+`src/main/backup/backupService.ts`. `mysqldump` copies both databases, each with the credentials its server uses, into
+`<server>/backups/<date>/`: one `.sql` per database, then `backup.json` last (a folder without it is a backup that did not finish, and is
+not offered). `mysql` reads one back. Both come from the folder of the MySQL service's `mysqld.exe`, else the PATH.
+
+- **Credentials go through an option file** (`--defaults-extra-file`, first on the line), removed once the tool is done: never on a command
+  line, where any program can read it, nor in `MYSQL_PWD`, which recent MySQL no longer reads.
+- **The servers' user has rights on its databases only.** So `--no-tablespaces` (else PROCESS is asked), and, read from the tool's own
+  help because an option it does not know makes it fail: `--set-gtid-purged=OFF` (GTIDs are on, and `--single-transaction` then flushes
+  the tables, which asks for RELOAD) and `--skip-masking-policies` (recent MySQL reads a system table for them). Found on the development
+  PC's MySQL 26.7, whose first real backup failed without them.
+- **A backup can be made while the servers run** (`--single-transaction` reads one instant without locking them out; what the game server
+  has not saved yet is not in it). **A restore needs them stopped** — a running game server would write its characters back over the
+  restored ones — and first backs up what is there (kind `before-restore`), so a restore can itself be undone.
+- A backup's id is its folder name, checked against the date pattern before anything is read or removed.
+- The end-to-end tests play both tools with `tests/fixtures/mysql-tools/` (`ECHOES_FAKE_MYSQL_TOOLS`).
+
 ## MySQL
 
 Up when its port answers. Started and stopped through its Windows service (`sc start|stop`), a running one first when there are several,

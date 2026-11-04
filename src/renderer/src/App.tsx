@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AccountPage } from './components/AccountPage'
+import { BackupsPage } from './components/BackupsPage'
 import { InstallPanel } from './components/InstallPanel'
 import { QuitDialog } from './components/QuitDialog'
 import { ServersPanel } from './components/ServersPanel'
@@ -8,12 +9,13 @@ import { TerminalPanel } from './components/TerminalPanel'
 import { LANGUAGES, useI18n, type MessageKey } from './i18n'
 import { useAccounts, useLauncherState } from './useLauncher'
 
-type Page = 'home' | 'account' | 'settings'
+type Page = 'home' | 'account' | 'settings' | 'backups'
 
 const PAGES: { id: Page; label: MessageKey }[] = [
   { id: 'home', label: 'nav.home' },
   { id: 'account', label: 'nav.account' },
-  { id: 'settings', label: 'nav.settings' }
+  { id: 'settings', label: 'nav.settings' },
+  { id: 'backups', label: 'nav.backups' }
 ]
 
 export function App(): React.JSX.Element {
@@ -86,6 +88,11 @@ export function App(): React.JSX.Element {
       {state && (
         <main className="content content-single" hidden={page !== 'settings'}>
           <SettingsPage state={state} />
+        </main>
+      )}
+      {state && (
+        <main className="content content-single" hidden={page !== 'backups'}>
+          <BackupsPage state={state} visible={page === 'backups'} />
         </main>
       )}
 

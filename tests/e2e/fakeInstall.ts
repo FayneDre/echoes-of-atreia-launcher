@@ -146,8 +146,16 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
   )
   write(
     join(serverRoot, 'game-server', 'config', 'network', 'database.properties'),
-    `database.url = jdbc:mysql://127.0.0.1:${ports.mysql}/aion_gs?characterEncoding=UTF-8\n`
+    `database.url = jdbc:mysql://127.0.0.1:${ports.mysql}/aion_gs?characterEncoding=UTF-8\ndatabase.user = root\n`
   )
+  write(
+    join(serverRoot, 'login-server', 'config', 'network', 'database.properties'),
+    `database.url = jdbc:mysql://127.0.0.1:${ports.mysql}/aion_ls?characterEncoding=UTF-8\ndatabase.user = aion\n` +
+      'database.password = p"a\\ss #word\n'
+  )
+  // The two databases the fake mysqldump and mysql read and write.
+  write(join(root, 'mysql-data', 'aion_ls.sql'), 'accounts v1\n')
+  write(join(root, 'mysql-data', 'aion_gs.sql'), 'characters v1\n')
   // The default files of the settings the launcher edits, with the server's own values.
   write(join(serverRoot, 'game-server', 'config', 'main', 'rates.properties'), RATES.map(([key, value]) => `gameserver.rates.${key} = ${value}\n`).join(''))
   write(
@@ -206,7 +214,9 @@ export async function launchWith(install: FakeInstall): Promise<{ app: ElectronA
       AION_SERVER_HOME: install.serverRoot,
       ECHOES_FAKE_JAVA: resolve('tests/fixtures/fake-java.mjs'),
       ECHOES_FAKE_CLIENT: resolve('tests/fixtures/fake-client.mjs'),
-      ECHOES_FAKE_DB: install.database
+      ECHOES_FAKE_DB: install.database,
+      ECHOES_FAKE_MYSQL_TOOLS: resolve('tests/fixtures/mysql-tools'),
+      ECHOES_FAKE_MYSQL_DATA: join(install.root, 'mysql-data')
     }
   })
   const page = await app.firstWindow()

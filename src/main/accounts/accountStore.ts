@@ -34,7 +34,7 @@ export function passwordHash(password: string): string {
   return createHash('sha1').update(password, 'utf8').digest('base64')
 }
 
-interface DatabaseAddress {
+export interface DatabaseAddress {
   host: string
   port: number
   database: string
@@ -51,7 +51,8 @@ export function databaseOf(url: string | undefined): { host: string; port: numbe
   return { host: match[1]!, port: match[2] ? Number(match[2]) : 3306, database: match[3]! }
 }
 
-async function addressOf(serverDir: string): Promise<DatabaseAddress | null> {
+/** The database a server uses and its credentials, from its `config` (overrides included). */
+export async function addressOf(serverDir: string): Promise<DatabaseAddress | null> {
   const config = await readServerConfig(serverDir)
   const location = databaseOf(config.get('database.url'))
   if (!location) {
