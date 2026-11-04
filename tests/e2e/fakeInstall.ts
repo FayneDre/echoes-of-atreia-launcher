@@ -70,6 +70,19 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
     join(serverRoot, 'game-server', 'config', 'network', 'database.properties'),
     `database.url = jdbc:mysql://127.0.0.1:${ports.mysql}/aion_gs?characterEncoding=UTF-8\n`
   )
+  // The default files of the settings the launcher edits, as the server ships them (cut down).
+  write(
+    join(serverRoot, 'game-server', 'config', 'main', 'rates.properties'),
+    ['solo', 'group', 'quest', 'gathering', 'crafting', 'pvp'].map((source) => `gameserver.rates.xp.${source} = 1.0, 2.0\n`).join('') +
+      'gameserver.rates.ap.pvp.gain = 1.0, 2.0\ngameserver.rates.ap.pvp.loss = 1.0, 1.0\ngameserver.rates.ap.pve = 1.0, 2.0\n' +
+      'gameserver.rates.ap.quest = 1.0, 2.0\ngameserver.rates.ap.dredgion = 1.0, 2.0\ngameserver.rates.gp.gain = 1.0, 2.0\n'
+  )
+  write(
+    join(serverRoot, 'game-server', 'config', 'main', 'ranking.properties'),
+    'gameserver.topranking.gp_loss.STAR1_OFFICER = 9\ngameserver.topranking.gp_loss.SUPREME_COMMANDER = 219\n'
+  )
+  write(join(serverRoot, 'game-server', 'config', 'main', 'gameserver.properties'), 'gameserver.character.creation.mode = 0\n')
+  write(join(serverRoot, 'game-server', 'config', 'mygs.properties'), '# local overrides\ndatabase.user = aion\n')
   write(join(clientRoot, 'bin64', 'aion.bin'), '')
 
   let mysql: Server | null = null

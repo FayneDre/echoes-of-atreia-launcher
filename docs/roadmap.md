@@ -1,7 +1,7 @@
 # Roadmap
 
 Status: in progress: phases 0 and 1 done (start, client launch and stop checked by the tester on the real servers, 4 November); phase 2
-next.
+built, unverified in game (rates and the daily loss taking effect after a restart); phase 3 next.
 
 How phase 1 works, and why: [how-it-works.md](how-it-works.md).
 

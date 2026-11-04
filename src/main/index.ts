@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
 import { SERVER_IDS, type FolderKind, type QuitAnswer, type ServerId } from '../shared/types'
 import { Launcher } from './launcher'
+import { validSettings } from './server/serverSettings'
 
 // Lets the end-to-end tests run against a throwaway profile instead of the player's own.
 const userDataDir = process.env['ECHOES_USER_DATA_DIR']
@@ -26,6 +27,11 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('launcher:mysql-start', () => launcher.startMysql())
   ipcMain.handle('launcher:mysql-stop', () => launcher.stopMysql())
   ipcMain.handle('launcher:play', () => launcher.play())
+  ipcMain.handle('launcher:get-server-settings', () => launcher.getServerSettings())
+  ipcMain.handle('launcher:save-server-settings', (_event, value: unknown) => {
+    const settings = validSettings(value)
+    return settings ? launcher.saveServerSettings(settings) : false
+  })
   ipcMain.handle('launcher:choose-folder', async (_event, kind: unknown) => {
     if (kind !== 'server' && kind !== 'client') {
       return

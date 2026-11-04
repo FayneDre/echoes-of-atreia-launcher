@@ -49,6 +49,23 @@ connects to the other two while it starts.
   next start of the launcher, found by port and by the main class on their command line.
 - **One launcher at a time**: a second one only brings the first to the front, since both would believe they own the servers.
 
+## Server settings
+
+`src/main/server/serverSettings.ts`. The launcher writes only the game server's `config/mygs.properties`, the overrides the server reads
+on top of its default files (`Config.java`: `new Properties(defaults)`, so an override also wins for the per-rank keys read by pattern).
+Updating the server therefore never conflicts with the player's settings.
+
+- **Rates are multipliers of the defaults**, applied to every membership level: the defaults are `1.0, 2.0` (regular, premium), so x3
+  writes `3.0, 6.0`. XP covers the six level-XP sources; AP the four gains (`ap.pvp.loss`, the cost of a PvP death, stays as it is); GP
+  its gain.
+- **Daily Glory Point loss** is one percentage applied to each rank's `gameserver.topranking.gp_loss.<RANK>`, rounded to whole points;
+  it is read back from the rank that loses the most, the only one that keeps the percentage exact.
+- **Both factions** is `gameserver.character.creation.mode` 1, else 0.
+- A value back to the default is **removed** from the file rather than written. Every other line is kept byte for byte: the file is read
+  and written as ISO-8859-1, as Java reads it, replaced in one step, and its version from before the launcher's first change is kept
+  beside it as `mygs.properties.before-launcher`.
+- Settings saved while the game server runs apply at its next start; the launcher says so until it stops or starts again.
+
 ## MySQL
 
 Up when its port answers. Started and stopped through its Windows service (`sc start|stop`), a running one first when there are several,

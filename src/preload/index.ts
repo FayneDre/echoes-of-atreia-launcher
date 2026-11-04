@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
-import type { FolderKind, LauncherState, LogBatch, QuitAnswer, ServerId } from '../shared/types'
+import type { FolderKind, LauncherState, LogBatch, QuitAnswer, ServerId, ServerSettings } from '../shared/types'
 
 function subscribe<T>(channel: string, listener: (value: T) => void): () => void {
   const handler = (_event: IpcRendererEvent, value: T): void => listener(value)
@@ -18,6 +18,8 @@ const launcherApi = {
   startMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-start'),
   stopMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-stop'),
   play: (): Promise<boolean> => ipcRenderer.invoke('launcher:play'),
+  getServerSettings: (): Promise<ServerSettings | null> => ipcRenderer.invoke('launcher:get-server-settings'),
+  saveServerSettings: (settings: ServerSettings): Promise<boolean> => ipcRenderer.invoke('launcher:save-server-settings', settings),
   chooseFolder: (kind: FolderKind): Promise<void> => ipcRenderer.invoke('launcher:choose-folder', kind),
   answerQuit: (answer: QuitAnswer): Promise<void> => ipcRenderer.invoke('launcher:quit-answer', answer),
   onState: (listener: (state: LauncherState) => void): (() => void) => subscribe('launcher:state', listener),

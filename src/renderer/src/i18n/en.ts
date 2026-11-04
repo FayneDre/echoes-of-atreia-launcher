@@ -4,6 +4,26 @@ export const en = {
   'home.tagline': 'Atreia is never empty.',
   'footer.disclaimer': 'Unofficial fan project, not affiliated with or endorsed by NCSoft.',
 
+  'nav.label': 'Pages',
+  'nav.home': 'Home',
+  'nav.settings': 'Server settings',
+
+  'settings.intro':
+    'Rates multiply the official ones (x1 is the official rate). They are written to the game server’s config/mygs.properties, never to its default files, and apply when it starts.',
+  'settings.xp': 'Experience (XP)',
+  'settings.ap': 'Abyss Points (AP)',
+  'settings.gp': 'Glory Points (GP) gained',
+  'settings.gpLoss': 'Daily Glory Point loss',
+  'settings.gpLossHint':
+    'Every day at noon, each Abyss officer rank loses Glory Points (9 to 219 by rank): 100 % is the official loss, 0 % turns it off.',
+  'settings.bothFactions': 'Characters of both factions on one account',
+  'settings.official': 'Official values',
+  'settings.save': 'Save',
+  'settings.saved': 'Saved.',
+  'settings.saveFailed': 'The settings could not be saved.',
+  'settings.restartNeeded': 'Restart the servers to apply the new settings.',
+  'settings.noServer': 'Choose the server folder on the Home page first.',
+
   'section.servers': 'Servers',
   'section.terminals': 'Terminals',
   'section.install': 'Installation',

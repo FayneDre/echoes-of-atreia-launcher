@@ -5,6 +5,26 @@ export const fr: Record<MessageKey, string> = {
   'home.tagline': "Atreia n'est plus jamais vide.",
   'footer.disclaimer': 'Projet de fan non officiel, sans lien avec NCSoft ni approuvé par NCSoft.',
 
+  'nav.label': 'Pages',
+  'nav.home': 'Accueil',
+  'nav.settings': 'Réglages du serveur',
+
+  'settings.intro':
+    'Les taux multiplient les taux officiels (x1 est le taux officiel). Ils sont écrits dans le config/mygs.properties du serveur de jeu, jamais dans ses fichiers par défaut, et s’appliquent à son démarrage.',
+  'settings.xp': 'Expérience (XP)',
+  'settings.ap': 'Points abyssaux (PA)',
+  'settings.gp': "Points d'honneur gagnés",
+  'settings.gpLoss': "Perte quotidienne des points d'honneur",
+  'settings.gpLossHint':
+    "Chaque jour à midi, chaque grade d'officier des Abysses perd des points d'honneur (de 9 à 219 selon le grade) : 100 % est la perte officielle, 0 % la supprime.",
+  'settings.bothFactions': 'Personnages des deux factions sur un même compte',
+  'settings.official': 'Valeurs officielles',
+  'settings.save': 'Enregistrer',
+  'settings.saved': 'Enregistré.',
+  'settings.saveFailed': "Les réglages n'ont pas pu être enregistrés.",
+  'settings.restartNeeded': 'Redémarre les serveurs pour appliquer les nouveaux réglages.',
+  'settings.noServer': "Choisis d'abord le dossier du serveur sur la page Accueil.",
+
   'section.servers': 'Serveurs',
   'section.terminals': 'Terminaux',
   'section.install': 'Installation',

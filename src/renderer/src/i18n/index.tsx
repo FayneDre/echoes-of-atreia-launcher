@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { en, type MessageKey } from './en'
 import { fr } from './fr'
 
+export type { MessageKey }
+
 export const LANGUAGES = ['fr', 'en'] as const
 export type Language = (typeof LANGUAGES)[number]
 

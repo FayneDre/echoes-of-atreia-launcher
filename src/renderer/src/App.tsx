@@ -1,13 +1,18 @@
+import { useState } from 'react'
 import { InstallPanel } from './components/InstallPanel'
 import { QuitDialog } from './components/QuitDialog'
 import { ServersPanel } from './components/ServersPanel'
+import { SettingsPage } from './components/SettingsPage'
 import { TerminalPanel } from './components/TerminalPanel'
 import { LANGUAGES, useI18n } from './i18n'
 import { useLauncherState } from './useLauncher'
 
+type Page = 'home' | 'settings'
+
 export function App(): React.JSX.Element {
   const { language, setLanguage, t } = useI18n()
   const state = useLauncherState()
+  const [page, setPage] = useState<Page>('home')
 
   return (
     <div className="app">
@@ -16,6 +21,14 @@ export function App(): React.JSX.Element {
           <h1 className="title">Echoes of Atreia</h1>
           <p className="tagline">{t('home.tagline')}</p>
         </div>
+        <nav className="nav" aria-label={t('nav.label')}>
+          <button type="button" aria-current={page === 'home' ? 'page' : undefined} onClick={() => setPage('home')}>
+            {t('nav.home')}
+          </button>
+          <button type="button" aria-current={page === 'settings' ? 'page' : undefined} onClick={() => setPage('settings')}>
+            {t('nav.settings')}
+          </button>
+        </nav>
         <div className="language-switch" role="group" aria-label={t('language.label')}>
           {LANGUAGES.map((code) => (
             <button key={code} type="button" aria-pressed={language === code} onClick={() => setLanguage(code)}>
@@ -25,13 +38,24 @@ export function App(): React.JSX.Element {
         </div>
       </header>
 
-      {state && (
+      {state?.restartNeeded && (
+        <p className="banner" role="status" data-testid="restart-needed">
+          {t('settings.restartNeeded')}
+        </p>
+      )}
+
+      {state && page === 'home' && (
         <main className="content">
           <div className="column">
             <ServersPanel state={state} />
             <InstallPanel state={state} />
           </div>
           <TerminalPanel />
+        </main>
+      )}
+      {state && page === 'settings' && (
+        <main className="content content-single">
+          <SettingsPage state={state} />
         </main>
       )}
 

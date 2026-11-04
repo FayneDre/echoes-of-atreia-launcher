@@ -297,6 +297,88 @@ button.small {
   word-break: break-all;
 }
 
+.nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  margin-right: 16px;
+}
+
+.nav button {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.nav button[aria-current='page'] {
+  border-color: var(--elyos);
+  color: var(--text);
+}
+
+.banner {
+  margin: 0;
+  padding: 8px 20px;
+  background: #3d3220;
+  border-bottom: 1px solid var(--asmodian);
+  color: var(--asmodian);
+}
+
+.content-single {
+  grid-template-columns: minmax(0, 720px);
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.settings-page {
+  align-self: start;
+}
+
+.muted {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.rate-input,
+.range-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rate-input input {
+  width: 90px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-sunken);
+  color: var(--text);
+  font: inherit;
+}
+
+.range-input output {
+  width: 48px;
+  text-align: right;
+}
+
+.hint {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.success {
+  margin-top: 8px;
+  color: var(--ok);
+}
+
 .footer {
   padding: 8px 20px;
   color: var(--text-muted);

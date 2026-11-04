@@ -9,12 +9,14 @@ import {
   type LogBatch,
   type Problem,
   type ServerId,
+  type ServerSettings,
   type ServerState
 } from '../shared/types'
 import { launchClient } from './client'
 import { findClientNear, isClientFolder, readServerLayout, type ServerLayout } from './server/installation'
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
+import { readServerSettings, writeServerSettings } from './server/serverSettings'
 import { loadSettings, saveSettings, type Settings } from './settings'
 import { javaCommand, javaMajorVersion } from './system/java'
 
@@ -32,6 +34,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   private activity: Activity = 'detecting'
   private stopRequested = false
   private quitRequested = false
+  private restartNeeded = false
   private problem: Problem | undefined
 
   getState(): LauncherState {
@@ -44,6 +47,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       servers,
       activity: this.activity,
       quitRequested: this.quitRequested,
+      restartNeeded: this.restartNeeded,
       problem: this.problem
     }
   }
@@ -115,7 +119,13 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     if (this.layout) {
       for (const id of SERVER_IDS) {
         const server = new ServerProcess(this.layout.servers[id])
-        server.on('state', () => this.publish())
+        server.on('state', (state) => {
+          // A game server that stops, or starts again, reads the settings anew.
+          if (id === 'game' && (state.status === 'stopped' || state.status === 'starting')) {
+            this.restartNeeded = false
+          }
+          this.publish()
+        })
         server.on('lines', (lines) => this.emit('lines', { server: id, lines }))
         this.servers[id] = server
       }
@@ -226,6 +236,24 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     this.problem = problem ?? undefined
     this.publish()
     return problem === null
+  }
+
+  /** The game server's settings as the launcher offers them, or null without a server installation. */
+  getServerSettings(): Promise<ServerSettings | null> {
+    return this.layout ? readServerSettings(this.layout.servers.game.dir) : Promise.resolve(null)
+  }
+
+  /** Saves the settings; a game server that runs reads them at its next start, and the interface says so. */
+  async saveServerSettings(settings: ServerSettings): Promise<boolean> {
+    if (!this.layout) {
+      return false
+    }
+    await writeServerSettings(this.layout.servers.game.dir, settings)
+    if (this.servers.game?.hasProcess) {
+      this.restartNeeded = true
+      this.publish()
+    }
+    return true
   }
 
   setQuitRequested(requested: boolean): void {
