@@ -1,52 +1,207 @@
 import { useEffect, useState } from 'react'
-import { SETTING_LIMITS, type LauncherState, type ServerSettings } from '../../../shared/types'
-import { useI18n, type MessageKey } from '../i18n'
+import {
+  isAllowed,
+  LIMITS,
+  SETTING_GROUPS,
+  type ServerSettings,
+  type SettingDefinition,
+  type SettingGroup
+} from '../../../shared/settingsCatalog'
+import type { LauncherState } from '../../../shared/types'
+import { hasMessage, useI18n, type MessageKey } from '../i18n'
 
-const OFFICIAL: ServerSettings = { xpRate: 1, apRate: 1, gpRate: 1, gpDailyLossPercent: 100, bothFactions: false }
-
+type Values = Record<string, number>
 type Feedback = 'saved' | 'failed' | null
 
-function RateField(props: {
-  id: string
-  label: MessageKey
-  value: number
+// The labels of the catalog: checked to exist in every language by a unit test, so the cast only spares the type system a template literal.
+const groupLabel = (group: SettingGroup): MessageKey => `group.${group.id}` as MessageKey
+const settingLabel = (definition: SettingDefinition): MessageKey => `setting.${definition.id}` as MessageKey
+
+function formatOfficial(definition: SettingDefinition, value: number): string {
+  switch (definition.kind) {
+    case 'multiplier':
+      return `x${value}`
+    case 'percent':
+      return `${value} %`
+    default:
+      return String(value)
+  }
+}
+
+function NumberInput(props: {
+  label: string
+  definition: SettingDefinition
+  value: number | null
+  placeholder?: string
   onChange: (value: number) => void
 }): React.JSX.Element {
-  const { t } = useI18n()
+  const { definition } = props
+  const limits = LIMITS[definition.kind]
+  const step = definition.kind === 'multiplier' ? 0.5 : 1
   return (
-    <div className="setting-row">
-      <label htmlFor={props.id}>{t(props.label)}</label>
-      <div className="rate-input">
-        <span aria-hidden="true">x</span>
-        <input
-          id={props.id}
-          type="number"
-          min={SETTING_LIMITS.rate.min}
-          max={SETTING_LIMITS.rate.max}
-          step={0.5}
-          value={props.value}
-          onChange={(event) => props.onChange(event.currentTarget.valueAsNumber)}
-        />
-      </div>
-    </div>
+    <span className="value-input">
+      {definition.kind === 'multiplier' && <span aria-hidden="true">x</span>}
+      <input
+        type="number"
+        aria-label={props.label}
+        min={limits.min}
+        max={limits.max}
+        step={step}
+        value={props.value === null || Number.isNaN(props.value) ? '' : props.value}
+        placeholder={props.placeholder}
+        onChange={(event) => props.onChange(event.currentTarget.valueAsNumber)}
+      />
+      {definition.kind === 'percent' && <span aria-hidden="true">%</span>}
+    </span>
   )
 }
 
-function isValid(settings: ServerSettings): boolean {
-  const rateOk = (rate: number): boolean => Number.isFinite(rate) && rate >= SETTING_LIMITS.rate.min && rate <= SETTING_LIMITS.rate.max
-  return rateOk(settings.xpRate) && rateOk(settings.apRate) && rateOk(settings.gpRate)
+/** The value every setting of the group shares, or null when they differ. */
+function sharedValue(settings: SettingDefinition[], values: Values): number | null {
+  const distinct = new Set(settings.map((definition) => values[definition.id]))
+  return distinct.size === 1 ? [...distinct][0]! : null
+}
+
+/**
+ * The share of their official values the group's settings stand at, or null when they do not all stand at the same one. Read from the setting with
+ * the largest official value, the only one whose rounding to whole points keeps the share exact.
+ */
+function sharedPercent(settings: SettingDefinition[], values: Values, official: Values): number | null {
+  const largest = settings.reduce((best, definition) => (official[definition.id]! > official[best.id]! ? definition : best), settings[0]!)
+  if (!official[largest.id]) {
+    return null
+  }
+  const percent = Math.round((values[largest.id]! / official[largest.id]!) * 100)
+  const consistent = settings.every((definition) => Math.round((official[definition.id]! * percent) / 100) === values[definition.id])
+  return consistent ? percent : null
+}
+
+function GroupView(props: {
+  group: SettingGroup
+  values: Values
+  official: Values
+  onChange: (changes: Values) => void
+}): React.JSX.Element | null {
+  const { t } = useI18n()
+  const [open, setOpen] = useState(false)
+  const { group, values, official } = props
+  // Only what this server's files have.
+  const settings = group.settings.filter((definition) => official[definition.id] !== undefined)
+  if (settings.length === 0) {
+    return null
+  }
+  const title = t(groupLabel(group))
+  const changed = settings.filter((definition) => values[definition.id] !== official[definition.id]).length
+  // Not every group needs one.
+  const hintKey = `hint.${group.id}`
+  const hint = hasMessage(hintKey) ? t(hintKey) : null
+
+  const setAll = (value: number): void => props.onChange(Object.fromEntries(settings.map((definition) => [definition.id, value])))
+  const setPercent = (percent: number): void =>
+    props.onChange(
+      Object.fromEntries(
+        settings.map((definition) => [
+          definition.id,
+          Number.isFinite(percent) ? Math.round((official[definition.id]! * percent) / 100) : Number.NaN
+        ])
+      )
+    )
+
+  let globalField: React.JSX.Element | null = null
+  if (group.globalField === 'same-value') {
+    globalField = (
+      <NumberInput
+        label={`${title} — ${t('settings.all')}`}
+        definition={settings[0]!}
+        value={sharedValue(settings, values)}
+        placeholder={t('settings.mixed')}
+        onChange={setAll}
+      />
+    )
+  } else if (group.globalField === 'percent-of-official') {
+    globalField = (
+      <NumberInput
+        label={`${title} — ${t('settings.all')}`}
+        definition={{ id: `${group.id}.percent`, key: '', kind: 'percent' }}
+        value={sharedPercent(settings, values, official)}
+        placeholder={t('settings.mixed')}
+        onChange={setPercent}
+      />
+    )
+  }
+
+  return (
+    <section className="setting-group" data-testid={`group-${group.id}`}>
+      <div className="group-header">
+        <button type="button" className="group-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+          <span className="chevron" aria-hidden="true">
+            {open ? '▾' : '▸'}
+          </span>
+          {title}
+        </button>
+        {changed > 0 && <span className="group-changed">{t('settings.changed', { count: changed })}</span>}
+        {globalField && (
+          <span className="group-global">
+            <span className="muted-inline">{t('settings.all')}</span>
+            {globalField}
+          </span>
+        )}
+      </div>
+      {open && (
+        <div className="group-body">
+          {hint && <p className="hint">{hint}</p>}
+          {settings.map((definition) => {
+            const value = values[definition.id]!
+            const label = `${title} — ${t(settingLabel(definition))}`
+            const modified = value !== official[definition.id]
+            return (
+              <div key={definition.id} className={modified ? 'setting-row modified' : 'setting-row'}>
+                <span className="setting-label">{t(settingLabel(definition))}</span>
+                {definition.kind === 'toggle' ? (
+                  <input
+                    type="checkbox"
+                    aria-label={label}
+                    checked={value === 1}
+                    onChange={(event) => props.onChange({ [definition.id]: event.currentTarget.checked ? 1 : 0 })}
+                  />
+                ) : (
+                  <span className="setting-control">
+                    <NumberInput
+                      label={label}
+                      definition={definition}
+                      value={value}
+                      onChange={(next) => props.onChange({ [definition.id]: next })}
+                    />
+                    {definition.kind === 'points' && <span className="muted-inline">{t('settings.pointsPerDay')}</span>}
+                    <span className="official">{t('settings.officialValue', { value: formatOfficial(definition, official[definition.id]!) })}</span>
+                  </span>
+                )}
+              </div>
+            )
+          })}
+          <button type="button" className="small" onClick={() => props.onChange(Object.fromEntries(settings.map((d) => [d.id, official[d.id]!])))}>
+            {t('settings.official')}
+          </button>
+        </div>
+      )}
+    </section>
+  )
 }
 
 export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Element {
   const { t } = useI18n()
   const [settings, setSettings] = useState<ServerSettings | null>(null)
+  const [values, setValues] = useState<Values>({})
   const [feedback, setFeedback] = useState<Feedback>(null)
   const serverRoot = state.install.serverFound ? state.install.serverRoot : null
 
   useEffect(() => {
     setSettings(null)
     if (serverRoot) {
-      void window.launcher.getServerSettings().then(setSettings)
+      void window.launcher.getServerSettings().then((loaded) => {
+        setSettings(loaded)
+        setValues(loaded?.values ?? {})
+      })
     }
   }, [serverRoot])
 
@@ -62,12 +217,15 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
     return <section className="panel settings-page" aria-busy="true" />
   }
 
-  const change = (next: Partial<ServerSettings>): void => {
-    setSettings({ ...settings, ...next })
+  const definitions = SETTING_GROUPS.flatMap((group) => group.settings).filter((definition) => settings.official[definition.id] !== undefined)
+  const valid = definitions.every((definition) => isAllowed(definition, values[definition.id]))
+
+  const change = (changes: Values): void => {
+    setValues({ ...values, ...changes })
     setFeedback(null)
   }
   const save = async (): Promise<void> => {
-    setFeedback((await window.launcher.saveServerSettings(settings)) ? 'saved' : 'failed')
+    setFeedback((await window.launcher.saveServerSettings(values)) ? 'saved' : 'failed')
   }
 
   return (
@@ -75,42 +233,15 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
       <h2 id="settings-title">{t('nav.settings')}</h2>
       <p className="muted">{t('settings.intro')}</p>
 
-      <RateField id="xp-rate" label="settings.xp" value={settings.xpRate} onChange={(xpRate) => change({ xpRate })} />
-      <RateField id="ap-rate" label="settings.ap" value={settings.apRate} onChange={(apRate) => change({ apRate })} />
-      <RateField id="gp-rate" label="settings.gp" value={settings.gpRate} onChange={(gpRate) => change({ gpRate })} />
-
-      <div className="setting-row">
-        <label htmlFor="gp-loss">{t('settings.gpLoss')}</label>
-        <div className="range-input">
-          <input
-            id="gp-loss"
-            type="range"
-            min={SETTING_LIMITS.gpDailyLossPercent.min}
-            max={SETTING_LIMITS.gpDailyLossPercent.max}
-            step={10}
-            value={settings.gpDailyLossPercent}
-            onChange={(event) => change({ gpDailyLossPercent: event.currentTarget.valueAsNumber })}
-          />
-          <output htmlFor="gp-loss">{settings.gpDailyLossPercent} %</output>
-        </div>
-      </div>
-      <p className="hint">{t('settings.gpLossHint')}</p>
-
-      <div className="setting-row">
-        <label htmlFor="both-factions">{t('settings.bothFactions')}</label>
-        <input
-          id="both-factions"
-          type="checkbox"
-          checked={settings.bothFactions}
-          onChange={(event) => change({ bothFactions: event.currentTarget.checked })}
-        />
-      </div>
+      {SETTING_GROUPS.map((group) => (
+        <GroupView key={group.id} group={group} values={values} official={settings.official} onChange={change} />
+      ))}
 
       <div className="actions">
-        <button type="button" onClick={() => change(OFFICIAL)}>
-          {t('settings.official')}
+        <button type="button" onClick={() => change(settings.official)}>
+          {t('settings.allOfficial')}
         </button>
-        <button type="button" className="button-primary" disabled={!isValid(settings)} onClick={() => void save()}>
+        <button type="button" className="button-primary" disabled={!valid} onClick={() => void save()}>
           {t('settings.save')}
         </button>
       </div>

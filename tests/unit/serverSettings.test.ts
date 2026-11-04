@@ -3,12 +3,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { applyPropertyChanges } from '../../src/main/server/properties'
-import { DEFAULT_SETTINGS, readServerSettings, validSettings, writeServerSettings } from '../../src/main/server/serverSettings'
+import { readServerSettings, validValues, writeServerSettings } from '../../src/main/server/serverSettings'
+import { en } from '../../src/renderer/src/i18n/en'
+import { fr } from '../../src/renderer/src/i18n/fr'
+import { ALL_SETTINGS, SETTING_GROUPS } from '../../src/shared/settingsCatalog'
 
 let gameDir: string
 let overrides: string
 
-// The default files as the server ships them, cut down to the keys the launcher sets and one it must leave alone.
+// The default files as the server ships them, cut down: a few of the rates, two of the ranks, the faction mode.
 function writeDefaults(): void {
   mkdirSync(join(gameDir, 'config', 'main'), { recursive: true })
   writeFileSync(
@@ -16,16 +19,8 @@ function writeDefaults(): void {
     [
       'gameserver.rates.xp.solo = 1.0, 2.0',
       'gameserver.rates.xp.group = 1.0, 2.0',
-      'gameserver.rates.xp.quest = 1.0, 2.0',
-      'gameserver.rates.xp.gathering = 1.0, 2.0',
-      'gameserver.rates.xp.crafting = 1.0, 2.0',
-      'gameserver.rates.xp.pvp = 1.0, 2.0',
-      'gameserver.rates.ap.pvp.gain = 1.0, 2.0',
       'gameserver.rates.ap.pvp.loss = 1.0, 1.0',
-      'gameserver.rates.ap.pve = 1.0, 2.0',
-      'gameserver.rates.ap.quest = 1.0, 2.0',
-      'gameserver.rates.ap.dredgion = 1.0, 2.0',
-      'gameserver.rates.gp.gain = 1.0, 2.0',
+      'gameserver.rates.manastone_chances = 75.0, 75.0',
       ''
     ].join('\n')
   )
@@ -46,80 +41,115 @@ afterEach(() => rmSync(gameDir, { recursive: true, force: true }))
 
 const read = (): string => readFileSync(overrides, 'latin1')
 
-describe('server settings', () => {
-  it('reads the official values when nothing overrides them', async () => {
-    expect(await readServerSettings(gameDir)).toEqual(DEFAULT_SETTINGS)
+describe('the catalog', () => {
+  it('has a label for every group and setting, in both languages', () => {
+    const keys = [...SETTING_GROUPS.map((group) => `group.${group.id}`), ...ALL_SETTINGS.map((setting) => `setting.${setting.id}`)]
+    expect(keys.filter((key) => !(key in en))).toEqual([])
+    expect(keys.filter((key) => !(key in fr))).toEqual([])
   })
 
-  it('writes every rate as a multiple of its default, for each membership level, and reads it back', async () => {
-    const settings = { xpRate: 3, apRate: 1.5, gpRate: 2, gpDailyLossPercent: 50, bothFactions: true }
-    await writeServerSettings(gameDir, settings)
+  it('names every setting once', () => {
+    expect(new Set(ALL_SETTINGS.map((setting) => setting.id)).size).toBe(ALL_SETTINGS.length)
+    expect(new Set(ALL_SETTINGS.map((setting) => setting.key)).size).toBe(ALL_SETTINGS.length)
+  })
+})
+
+describe('server settings', () => {
+  it('offers only what the server files have, at their official values for regular accounts', async () => {
+    const settings = await readServerSettings(gameDir)
+    expect(settings.official).toEqual({
+      'xp.solo': 1,
+      'xp.group': 1,
+      'ap.pvp.loss': 1,
+      manastone_chances: 75,
+      'gp_loss.STAR1_OFFICER': 9,
+      'gp_loss.SUPREME_COMMANDER': 219,
+      bothFactions: 0
+    })
+    expect(settings.values).toEqual(settings.official)
+  })
+
+  it('writes each setting as one value, which the server applies to every membership level, and reads it back', async () => {
+    const values = {
+      'xp.solo': 3,
+      'xp.group': 1.5,
+      'ap.pvp.loss': 0,
+      manastone_chances: 100,
+      'gp_loss.STAR1_OFFICER': 5,
+      'gp_loss.SUPREME_COMMANDER': 0,
+      bothFactions: 1
+    }
+    await writeServerSettings(gameDir, values)
 
     const text = read()
-    expect(text).toContain('gameserver.rates.xp.solo = 3.0, 6.0')
-    expect(text).toContain('gameserver.rates.xp.pvp = 3.0, 6.0')
-    expect(text).toContain('gameserver.rates.ap.pve = 1.5, 3.0')
-    expect(text).toContain('gameserver.rates.gp.gain = 2.0, 4.0')
-    expect(text).toContain('gameserver.topranking.gp_loss.STAR1_OFFICER = 5')
-    expect(text).toContain('gameserver.topranking.gp_loss.SUPREME_COMMANDER = 110')
-    expect(text).toContain('gameserver.character.creation.mode = 1')
-    // What a PvP death costs is not a reward: left as it is.
-    expect(text).not.toContain('ap.pvp.loss')
-    expect(await readServerSettings(gameDir)).toEqual(settings)
+    expect(text).toContain('gameserver.rates.xp.solo = 3.0\n')
+    expect(text).toContain('gameserver.rates.xp.group = 1.5\n')
+    expect(text).toContain('gameserver.rates.ap.pvp.loss = 0.0\n')
+    expect(text).toContain('gameserver.rates.manastone_chances = 100.0\n')
+    expect(text).toContain('gameserver.topranking.gp_loss.STAR1_OFFICER = 5\n')
+    expect(text).toContain('gameserver.topranking.gp_loss.SUPREME_COMMANDER = 0\n')
+    expect(text).toContain('gameserver.character.creation.mode = 1\n')
+    expect((await readServerSettings(gameDir)).values).toEqual(values)
   })
 
-  it('turns the daily Glory Point loss off at 0 %', async () => {
-    await writeServerSettings(gameDir, { ...DEFAULT_SETTINGS, gpDailyLossPercent: 0 })
-    expect(read()).toContain('gameserver.topranking.gp_loss.SUPREME_COMMANDER = 0')
-    expect((await readServerSettings(gameDir)).gpDailyLossPercent).toBe(0)
+  it('reads a rate an earlier version wrote for both membership levels by its regular value', async () => {
+    writeFileSync(overrides, 'gameserver.rates.xp.solo = 2.0, 4.0\n', 'latin1')
+    expect((await readServerSettings(gameDir)).values['xp.solo']).toBe(2)
+    await writeServerSettings(gameDir, { 'xp.solo': 2 })
+    expect(read()).toBe('gameserver.rates.xp.solo = 2.0\n')
+  })
+
+  it('leaves alone the settings it was not given', async () => {
+    writeFileSync(overrides, 'gameserver.rates.xp.group = 7.0\n', 'latin1')
+    await writeServerSettings(gameDir, { 'xp.solo': 2 })
+    expect(read()).toContain('gameserver.rates.xp.group = 7.0')
   })
 
   it('keeps the rest of the file byte for byte, replaces a key in place, and backs the first version up once', async () => {
-    const original = Buffer.from(
-      '# réglages locaux\r\ndatabase.user = aion\r\ngameserver.rates.xp.solo = 2.0, 4.0\r\n# fin\r\n',
-      'latin1'
-    )
+    const original = Buffer.from('# réglages locaux\r\ndatabase.user = aion\r\ngameserver.rates.xp.solo = 2.0, 4.0\r\n# fin\r\n', 'latin1')
     writeFileSync(overrides, original)
 
-    await writeServerSettings(gameDir, { ...DEFAULT_SETTINGS, xpRate: 5 })
+    await writeServerSettings(gameDir, { 'xp.solo': 5 })
     const lines = read().split('\r\n')
     expect(lines[0]).toBe('# réglages locaux')
     expect(lines[1]).toBe('database.user = aion')
     // Replaced where it was, not added a second time at the end.
-    expect(lines[2]).toBe('gameserver.rates.xp.solo = 5.0, 10.0')
+    expect(lines[2]).toBe('gameserver.rates.xp.solo = 5.0')
     expect(lines[3]).toBe('# fin')
     expect(read().match(/gameserver\.rates\.xp\.solo/g)).toHaveLength(1)
     expect(read()).not.toMatch(/[^\r]\n/)
 
     const backup = overrides + '.before-launcher'
     expect(readFileSync(backup)).toEqual(original)
-    await writeServerSettings(gameDir, { ...DEFAULT_SETTINGS, xpRate: 7 })
+    await writeServerSettings(gameDir, { 'xp.solo': 7 })
     expect(readFileSync(backup)).toEqual(original)
   })
 
   it('removes what is back to the official value, leaving only the person’s own lines', async () => {
     writeFileSync(overrides, 'database.user = aion\n', 'latin1')
-    await writeServerSettings(gameDir, { ...DEFAULT_SETTINGS, xpRate: 4, bothFactions: true })
-    await writeServerSettings(gameDir, DEFAULT_SETTINGS)
-    expect(read()).not.toContain('gameserver.rates')
-    expect(read()).not.toContain('creation.mode')
-    expect(read()).toContain('database.user = aion')
+    await writeServerSettings(gameDir, { 'xp.solo': 4, bothFactions: 1 })
+    await writeServerSettings(gameDir, (await readServerSettings(gameDir)).official)
+    expect(read()).toBe('database.user = aion\n')
   })
 
   it('creates the overrides file when there is none, and does not back up what did not exist', async () => {
-    await writeServerSettings(gameDir, { ...DEFAULT_SETTINGS, apRate: 2 })
+    await writeServerSettings(gameDir, { 'xp.group': 2 })
     expect(read()).toContain('# Set from the Echoes of Atreia launcher')
     expect(existsSync(overrides + '.before-launcher')).toBe(false)
   })
 
-  it('accepts only settings within what the launcher offers', () => {
-    expect(validSettings(DEFAULT_SETTINGS)).toEqual(DEFAULT_SETTINGS)
-    expect(validSettings({ ...DEFAULT_SETTINGS, xpRate: 0 })).toBeNull()
-    expect(validSettings({ ...DEFAULT_SETTINGS, xpRate: Number.NaN })).toBeNull()
-    expect(validSettings({ ...DEFAULT_SETTINGS, apRate: 1000 })).toBeNull()
-    expect(validSettings({ ...DEFAULT_SETTINGS, gpDailyLossPercent: 101 })).toBeNull()
-    expect(validSettings({ ...DEFAULT_SETTINGS, bothFactions: 'yes' })).toBeNull()
-    expect(validSettings('nonsense')).toBeNull()
+  it('accepts only known settings within what the launcher offers', () => {
+    expect(validValues({ 'xp.solo': 2, manastone_chances: 100, 'gp_loss.GENERAL': 50, bothFactions: 1 })).not.toBeNull()
+    expect(validValues({ 'ap.pvp.loss': 0 })).not.toBeNull()
+    expect(validValues({ 'xp.solo': -1 })).toBeNull()
+    expect(validValues({ 'xp.solo': 101 })).toBeNull()
+    expect(validValues({ 'xp.solo': Number.NaN })).toBeNull()
+    expect(validValues({ manastone_chances: 120 })).toBeNull()
+    expect(validValues({ 'gp_loss.GENERAL': 2.5 })).toBeNull()
+    expect(validValues({ bothFactions: 2 })).toBeNull()
+    expect(validValues({ 'database.user': 1 })).toBeNull()
+    expect(validValues(['xp.solo'])).toBeNull()
+    expect(validValues('nonsense')).toBeNull()
   })
 })
 

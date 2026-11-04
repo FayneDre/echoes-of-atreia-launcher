@@ -100,6 +100,18 @@ export function applyPropertyChanges(text: string, changes: Map<string, string |
     }
   }
 
+  // A header left with nothing under it, every value it introduced being back to its default, goes too, with the blank line before it.
+  const dropTrailingBlanks = (): void => {
+    while (kept.length > 0 && kept.at(-1)!.trim() === '') {
+      kept.pop()
+    }
+  }
+  dropTrailingBlanks()
+  if (kept.at(-1) === header) {
+    kept.pop()
+    dropTrailingBlanks()
+  }
+
   const added = [...changes].filter(([key, value]) => value !== null && !written.has(key))
   if (added.length > 0) {
     if (!kept.includes(header)) {

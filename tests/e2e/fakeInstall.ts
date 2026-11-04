@@ -15,6 +15,36 @@ function freePort(): Promise<number> {
   })
 }
 
+// rates.properties and ranking.properties as the 4.8 server ships them.
+const RATES: [string, string][] = [
+  ['crafting.crit_chances', '15.0, 30.0'],
+  ['crafting.combo_crit_chances', '25.0, 50.0'],
+  ['manastone_chances', '75.0, 75.0'],
+  ['enchantment_stone.base_chances', '65.0, 65.0'],
+  ['enchantment_stone.amplified_chances', '61.0, 61.0'],
+  ['tampering_chances', '65.0, 65.0'],
+  ...['xp.solo', 'xp.group', 'xp.quest', 'xp.gathering', 'xp.crafting', 'xp.pvp', 'skill_xp.gathering', 'skill_xp.crafting'].map(
+    (key): [string, string] => [key, '1.0, 2.0']
+  ),
+  ['ap.pvp.gain', '1.0, 2.0'],
+  ['ap.pvp.loss', '1.0, 1.0'],
+  ...['ap.pve', 'ap.quest', 'ap.dredgion', 'gp.gain', 'dp.pve', 'dp.pvp', 'kinah.quest', 'drop', 'gathering.count'].map(
+    (key): [string, string] => [key, '1.0, 2.0']
+  ),
+  ...['pvparena.discipline', 'pvparena.chaos', 'pvparena.harmony', 'pvparena.glory', 'sell_limit'].map((key): [string, string] => [key, '1.0, 2.0'])
+]
+const GP_LOSS: [string, number][] = [
+  ['STAR1_OFFICER', 9],
+  ['STAR2_OFFICER', 19],
+  ['STAR3_OFFICER', 31],
+  ['STAR4_OFFICER', 51],
+  ['STAR5_OFFICER', 150],
+  ['GENERAL', 171],
+  ['GREAT_GENERAL', 176],
+  ['COMMANDER', 190],
+  ['SUPREME_COMMANDER', 219]
+]
+
 function startBat(mainClass: string): string {
   return `@ECHO off\r\nTITLE test\r\n:START\r\nJAVA -Xms16m -Xmx16m -cp "libs/*" ${mainClass}\r\nPAUSE\r\n`
 }
@@ -70,16 +100,11 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
     join(serverRoot, 'game-server', 'config', 'network', 'database.properties'),
     `database.url = jdbc:mysql://127.0.0.1:${ports.mysql}/aion_gs?characterEncoding=UTF-8\n`
   )
-  // The default files of the settings the launcher edits, as the server ships them (cut down).
-  write(
-    join(serverRoot, 'game-server', 'config', 'main', 'rates.properties'),
-    ['solo', 'group', 'quest', 'gathering', 'crafting', 'pvp'].map((source) => `gameserver.rates.xp.${source} = 1.0, 2.0\n`).join('') +
-      'gameserver.rates.ap.pvp.gain = 1.0, 2.0\ngameserver.rates.ap.pvp.loss = 1.0, 1.0\ngameserver.rates.ap.pve = 1.0, 2.0\n' +
-      'gameserver.rates.ap.quest = 1.0, 2.0\ngameserver.rates.ap.dredgion = 1.0, 2.0\ngameserver.rates.gp.gain = 1.0, 2.0\n'
-  )
+  // The default files of the settings the launcher edits, with the server's own values.
+  write(join(serverRoot, 'game-server', 'config', 'main', 'rates.properties'), RATES.map(([key, value]) => `gameserver.rates.${key} = ${value}\n`).join(''))
   write(
     join(serverRoot, 'game-server', 'config', 'main', 'ranking.properties'),
-    'gameserver.topranking.gp_loss.STAR1_OFFICER = 9\ngameserver.topranking.gp_loss.SUPREME_COMMANDER = 219\n'
+    GP_LOSS.map(([rank, points]) => `gameserver.topranking.gp_loss.${rank} = ${points}\n`).join('')
   )
   write(join(serverRoot, 'game-server', 'config', 'main', 'gameserver.properties'), 'gameserver.character.creation.mode = 0\n')
   write(join(serverRoot, 'game-server', 'config', 'mygs.properties'), '# local overrides\ndatabase.user = aion\n')

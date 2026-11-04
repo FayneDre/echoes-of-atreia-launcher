@@ -19,7 +19,7 @@ const launcherApi = {
   stopMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-stop'),
   play: (): Promise<boolean> => ipcRenderer.invoke('launcher:play'),
   getServerSettings: (): Promise<ServerSettings | null> => ipcRenderer.invoke('launcher:get-server-settings'),
-  saveServerSettings: (settings: ServerSettings): Promise<boolean> => ipcRenderer.invoke('launcher:save-server-settings', settings),
+  saveServerSettings: (values: Record<string, number>): Promise<boolean> => ipcRenderer.invoke('launcher:save-server-settings', values),
   chooseFolder: (kind: FolderKind): Promise<void> => ipcRenderer.invoke('launcher:choose-folder', kind),
   answerQuit: (answer: QuitAnswer): Promise<void> => ipcRenderer.invoke('launcher:quit-answer', answer),
   onState: (listener: (state: LauncherState) => void): (() => void) => subscribe('launcher:state', listener),

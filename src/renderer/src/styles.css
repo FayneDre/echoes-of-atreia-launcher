@@ -346,15 +346,14 @@ button.small {
   border-bottom: 1px solid var(--border);
 }
 
-.rate-input,
-.range-input {
-  display: flex;
+.value-input {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
-.rate-input input {
-  width: 90px;
+.value-input input {
+  width: 86px;
   padding: 5px 8px;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -363,9 +362,72 @@ button.small {
   font: inherit;
 }
 
-.range-input output {
-  width: 48px;
-  text-align: right;
+.setting-group {
+  border-bottom: 1px solid var(--border);
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.group-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-weight: 600;
+}
+
+.chevron {
+  width: 12px;
+  color: var(--text-muted);
+}
+
+.group-changed {
+  color: var(--asmodian);
+  font-size: 12px;
+}
+
+.group-global {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.muted-inline {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.group-body {
+  padding: 0 0 12px 24px;
+}
+
+.group-body .setting-row {
+  padding: 6px 0;
+}
+
+.setting-row.modified .setting-label {
+  color: var(--asmodian);
+}
+
+.setting-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.official {
+  width: 110px;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .hint {

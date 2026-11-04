@@ -55,15 +55,21 @@ connects to the other two while it starts.
 on top of its default files (`Config.java`: `new Properties(defaults)`, so an override also wins for the per-rank keys read by pattern).
 Updating the server therefore never conflicts with the player's settings.
 
-- **Rates are multipliers of the defaults**, applied to every membership level: the defaults are `1.0, 2.0` (regular, premium), so x3
-  writes `3.0, 6.0`. XP covers the six level-XP sources; AP the four gains (`ap.pvp.loss`, the cost of a PvP death, stays as it is); GP
-  its gain.
-- **Daily Glory Point loss** is one percentage applied to each rank's `gameserver.topranking.gp_loss.<RANK>`, rounded to whole points;
-  it is read back from the rank that loses the most, the only one that keeps the percentage exact.
-- **Both factions** is `gameserver.character.creation.mode` 1, else 0.
-- A value back to the default is **removed** from the file rather than written. Every other line is kept byte for byte: the file is read
-  and written as ISO-8859-1, as Java reads it, replaced in one step, and its version from before the launcher's first change is kept
-  beside it as `mygs.properties.before-launcher`.
+- **The catalog** (`src/shared/settingsCatalog.ts`) lists every setting offered, by family: the 30 rates of `rates.properties` (all read
+  by the server: 26 in its core, the four arena rates in `data/handlers/instance/pvparenas/`), the daily Glory Point loss of the 9 officer
+  ranks, and both factions. A setting the server's files lack is not offered. Labels are `group.<id>` and `setting.<id>` in each
+  dictionary, checked by a unit test.
+- **Regular accounts only.** A rate holds one value per membership level (`1.0, 2.0`: regular, premium); the launcher writes the regular
+  value alone (`3.0`), which `Rates.get` then applies to every level.
+- **A family's field** sets all of its settings to one value, or, for the Glory Point loss, to a share of their official values (rounded
+  to whole points, read back from the rank that loses the most, the only one that keeps the share exact). It reads "mixed" when they
+  differ. The AP lost on a PvP death is a family of its own, so raising every gain never raises the penalty.
+- **What a rate does not cover**, said on the page: siege Glory Points and some instance rewards are fixed by the server, and the world's
+  bots keep their own XP pace (`BotPacing.OFFICIAL_XP_RATE` on the server side).
+- A value back to the default is **removed** from the file rather than written, and the launcher's header with it once nothing is left
+  under it. Every other line is kept byte for byte (blank lines at the very end aside): the file is read and written as ISO-8859-1, as
+  Java reads it, replaced in one step, and its version from before the launcher's first change is kept beside it as
+  `mygs.properties.before-launcher`.
 - Settings saved while the game server runs apply at its next start; the launcher says so until it stops or starts again.
 
 ## MySQL

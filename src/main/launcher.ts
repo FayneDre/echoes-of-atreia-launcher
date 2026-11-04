@@ -243,12 +243,12 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     return this.layout ? readServerSettings(this.layout.servers.game.dir) : Promise.resolve(null)
   }
 
-  /** Saves the settings; a game server that runs reads them at its next start, and the interface says so. */
-  async saveServerSettings(settings: ServerSettings): Promise<boolean> {
+  /** Saves the values; a game server that runs reads them at its next start, and the interface says so. */
+  async saveServerSettings(values: Record<string, number>): Promise<boolean> {
     if (!this.layout) {
       return false
     }
-    await writeServerSettings(this.layout.servers.game.dir, settings)
+    await writeServerSettings(this.layout.servers.game.dir, values)
     if (this.servers.game?.hasProcess) {
       this.restartNeeded = true
       this.publish()

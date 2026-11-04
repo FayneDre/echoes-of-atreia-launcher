@@ -75,24 +75,7 @@ export interface LauncherState {
   problem?: Problem
 }
 
-/**
- * The server settings the launcher shows. Rates are multipliers of the server's defaults (1 is the official rate): applied to every
- * membership level at once, so a premium account keeps its edge.
- */
-export interface ServerSettings {
-  xpRate: number
-  apRate: number
-  gpRate: number
-  /** Share of the daily Glory Point loss each Abyss rank keeps, in percent: 100 is the official loss, 0 turns it off. */
-  gpDailyLossPercent: number
-  /** Characters of both factions on one account. */
-  bothFactions: boolean
-}
-
-export const SETTING_LIMITS = {
-  rate: { min: 0.1, max: 100 },
-  gpDailyLossPercent: { min: 0, max: 100 }
-} as const
+export type { ServerSettings } from './settingsCatalog'
 
 export interface LogBatch {
   server: ServerId

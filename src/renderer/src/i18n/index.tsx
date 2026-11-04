@@ -4,6 +4,11 @@ import { fr } from './fr'
 
 export type { MessageKey }
 
+/** Whether a key built at run time (from the settings catalog) has a text. */
+export function hasMessage(key: string): key is MessageKey {
+  return key in en
+}
+
 export const LANGUAGES = ['fr', 'en'] as const
 export type Language = (typeof LANGUAGES)[number]
 
