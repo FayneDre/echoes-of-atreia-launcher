@@ -28,7 +28,8 @@ function isLanguage(value: unknown): value is Language {
   return typeof value === 'string' && (LANGUAGES as readonly string[]).includes(value)
 }
 
-// The language chosen with the switch, kept from one start to the next; English until one is chosen, whatever the system's language.
+// The language chosen with the switch, kept from one start to the next; until one is chosen, the system's when the launcher has it, English
+// for any other.
 function initialLanguage(): Language {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -36,9 +37,10 @@ function initialLanguage(): Language {
       return saved
     }
   } catch {
-    // Storage unavailable: English.
+    // Storage unavailable: the system's language.
   }
-  return 'en'
+  const system = navigator.language.toLowerCase().split('-')[0]
+  return isLanguage(system) ? system : 'en'
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }): React.JSX.Element {

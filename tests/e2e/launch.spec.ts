@@ -5,9 +5,10 @@ import { _electron as electron, expect, test, type ElectronApplication, type Pag
 
 let userDataDir: string
 
-async function launch(): Promise<{ app: ElectronApplication; page: Page }> {
+// `--lang` stands in for the system language: Chromium takes it for the locale it reports to the page.
+async function launch(extraArgs: string[] = []): Promise<{ app: ElectronApplication; page: Page }> {
   const app = await electron.launch({
-    args: ['.'],
+    args: [...extraArgs, '.'],
     // No server folder: these tests are about the window, and must not find the server installed on this machine.
     env: { ...process.env, ECHOES_USER_DATA_DIR: userDataDir, AION_SERVER_HOME: '' }
   })
@@ -31,13 +32,18 @@ test('opens the launcher window', async () => {
   await app.close()
 })
 
-test('opens in English the first time, whatever the system language', async () => {
-  const { app, page } = await launch()
-  await expect(page.getByRole('button', { name: 'EN' })).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByText('Atreia is never empty.')).toBeVisible()
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-  await app.close()
-})
+for (const [system, expected] of [
+  ['fr-FR', 'fr'],
+  ['en-US', 'en'],
+  ['de-DE', 'en']
+] as const) {
+  test(`opens the first time in ${expected} on a system in ${system}`, async () => {
+    const { app, page } = await launch([`--lang=${system}`])
+    await expect(page.getByRole('button', { name: expected.toUpperCase() })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('html')).toHaveAttribute('lang', expected)
+    await app.close()
+  })
+}
 
 test('switches between French and English', async () => {
   const { app, page } = await launch()
