@@ -19,6 +19,7 @@ export const fr: Record<MessageKey, string> = {
   'settings.allOfficial': 'Tout aux valeurs officielles',
   'settings.pointsPerDay': 'points par jour',
   'settings.save': 'Enregistrer',
+  'settings.unsaved': 'Modifications non enregistrées',
 
   'group.xp': 'Expérience (XP)',
   'group.skillXp': 'Niveaux de métier',

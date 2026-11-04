@@ -218,6 +218,10 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
   }
 
   const definitions = SETTING_GROUPS.flatMap((group) => group.settings).filter((definition) => settings.official[definition.id] !== undefined)
+  // Only what was changed here is sent: a setting the page cannot show as it is (a premium rate of its own, the reservation mode) stays as
+  // the file has it unless the person changes it.
+  const edited = Object.fromEntries(definitions.filter((d) => values[d.id] !== settings.values[d.id]).map((d) => [d.id, values[d.id]!]))
+  const dirty = Object.keys(edited).length > 0
   const valid = definitions.every((definition) => isAllowed(definition, values[definition.id]))
 
   const change = (changes: Values): void => {
@@ -225,7 +229,11 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
     setFeedback(null)
   }
   const save = async (): Promise<void> => {
-    setFeedback((await window.launcher.saveServerSettings(values)) ? 'saved' : 'failed')
+    const saved = await window.launcher.saveServerSettings(edited)
+    if (saved) {
+      setSettings({ ...settings, values: { ...settings.values, ...edited } })
+    }
+    setFeedback(saved ? 'saved' : 'failed')
   }
 
   return (
@@ -241,7 +249,12 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
         <button type="button" onClick={() => change(settings.official)}>
           {t('settings.allOfficial')}
         </button>
-        <button type="button" className="button-primary" disabled={!valid} onClick={() => void save()}>
+        {dirty && (
+          <span className="unsaved" data-testid="unsaved">
+            {t('settings.unsaved')}
+          </span>
+        )}
+        <button type="button" className="button-primary" disabled={!valid || !dirty} onClick={() => void save()}>
           {t('settings.save')}
         </button>
       </div>

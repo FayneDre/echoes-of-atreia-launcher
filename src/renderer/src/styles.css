@@ -19,6 +19,11 @@
   box-sizing: border-box;
 }
 
+/* A display set by a class would otherwise win over the attribute. */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body,
 #root {
@@ -433,6 +438,13 @@ button.small {
 .hint {
   margin: 4px 0 0;
   color: var(--text-muted);
+  font-size: 12px;
+}
+
+.unsaved {
+  margin-left: auto;
+  align-self: center;
+  color: var(--asmodian);
   font-size: 12px;
 }
 

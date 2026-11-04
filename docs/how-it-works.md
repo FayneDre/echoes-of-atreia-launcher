@@ -64,6 +64,8 @@ Updating the server therefore never conflicts with the player's settings.
 - **A family's field** sets all of its settings to one value, or, for the Glory Point loss, to a share of their official values (rounded
   to whole points, read back from the rank that loses the most, the only one that keeps the share exact). It reads "mixed" when they
   differ. The AP lost on a PvP death is a family of its own, so raising every gain never raises the penalty.
+- **Only what was changed on the page is written.** A setting the page cannot show as it is (a premium rate of its own, the character
+  reservation mode 2) stays as the file has it until the person changes it. Changes not saved survive going to another page.
 - **What a rate does not cover**, said on the page: siege Glory Points and some instance rewards are fixed by the server, and the world's
   bots keep their own XP pace (`BotPacing.OFFICIAL_XP_RATE` on the server side).
 - A value back to the default is **removed** from the file rather than written, and the launcher's header with it once nothing is left

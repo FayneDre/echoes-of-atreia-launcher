@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test, type ElectronApplication, type Locator, type Page } from '@playwright/test'
 import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
@@ -112,6 +112,43 @@ test('goes back to the official values, which leaves nothing of them in mygs.pro
   expect(overrides()).not.toContain('gameserver.rates')
   expect(overrides()).not.toContain('Echoes of Atreia launcher')
   expect(overrides()).toContain('database.user = aion')
+  await app.close()
+})
+
+test('leaves every setting it was not asked to change as the file had it', async () => {
+  // Values the page cannot show as they are: a premium rate of its own, the character reservation mode.
+  const file = join(install.serverRoot, 'game-server', 'config', 'mygs.properties')
+  writeFileSync(file, 'gameserver.rates.xp.solo = 2.0, 5.0\ngameserver.character.creation.mode = 2\n', 'latin1')
+  const { app, page } = await openSettings()
+  await page.getByLabel('Divine Points (DP) — All').fill('3')
+  await save(page)
+  expect(overrides()).toContain('gameserver.rates.xp.solo = 2.0, 5.0\n')
+  expect(overrides()).toContain('gameserver.character.creation.mode = 2\n')
+  expect(overrides()).toContain('gameserver.rates.dp.pve = 3.0\n')
+  await app.close()
+})
+
+test('keeps changes not saved yet across a look at the home page', async () => {
+  const { app, page } = await openSettings()
+  await page.getByLabel('Experience (XP) — All').fill('4')
+  await expect(page.getByTestId('unsaved')).toBeVisible()
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Server settings' }).click()
+  await expect(page.getByLabel('Experience (XP) — All')).toHaveValue('4')
+  await save(page)
+  await expect(page.getByTestId('unsaved')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeDisabled()
+  await app.close()
+})
+
+test('takes a decimal typed one key at a time', async () => {
+  const { app, page } = await openSettings()
+  const field = page.getByLabel('Experience (XP) — All')
+  await field.fill('')
+  await field.pressSequentially('1.5')
+  await expect(field).toHaveValue('1.5')
+  await save(page)
+  expect(overrides()).toContain('gameserver.rates.xp.solo = 1.5\n')
   await app.close()
 })
 

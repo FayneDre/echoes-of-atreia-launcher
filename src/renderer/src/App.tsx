@@ -44,8 +44,9 @@ export function App(): React.JSX.Element {
         </p>
       )}
 
-      {state && page === 'home' && (
-        <main className="content">
+      {/* Both pages stay mounted and the other is hidden: settings changed but not saved survive a look at the servers. */}
+      {state && (
+        <main className="content" hidden={page !== 'home'}>
           <div className="column">
             <ServersPanel state={state} />
             <InstallPanel state={state} />
@@ -53,8 +54,8 @@ export function App(): React.JSX.Element {
           <TerminalPanel />
         </main>
       )}
-      {state && page === 'settings' && (
-        <main className="content content-single">
+      {state && (
+        <main className="content content-single" hidden={page !== 'settings'}>
           <SettingsPage state={state} />
         </main>
       )}

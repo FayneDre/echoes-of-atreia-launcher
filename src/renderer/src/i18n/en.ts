@@ -18,6 +18,7 @@ export const en = {
   'settings.allOfficial': 'Everything to the official values',
   'settings.pointsPerDay': 'points a day',
   'settings.save': 'Save',
+  'settings.unsaved': 'Changes not saved yet',
 
   'group.xp': 'Experience (XP)',
   'group.skillXp': 'Profession levels',
