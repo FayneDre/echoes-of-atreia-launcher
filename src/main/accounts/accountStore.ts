@@ -31,8 +31,6 @@ export interface BotRecord {
   race: 'ELYOS' | 'ASMODIANS'
   playerClass: string
   worldId: number
-  /** Lives in one place (a resident) rather than wandering the world. */
-  resident: boolean
   /** In the world as the server last knew it: while the game server runs, those that are present. */
   inWorld: boolean
 }
@@ -135,7 +133,7 @@ export class MysqlAccountStore implements AccountStore {
     }
     const rows = await query<RowDataPacket>(
       address,
-      'SELECT p.`id`, p.`name`, p.`exp`, p.`race`, p.`player_class`, p.`world_id`, b.`resident`, b.`in_world` ' +
+      'SELECT p.`id`, p.`name`, p.`exp`, p.`race`, p.`player_class`, p.`world_id`, b.`in_world` ' +
         'FROM `playerbot_characters` b JOIN `players` p ON p.`id` = b.`player_id` ORDER BY p.`name`',
       []
     )
@@ -146,7 +144,6 @@ export class MysqlAccountStore implements AccountStore {
       race: row['race'] as BotRecord['race'],
       playerClass: String(row['player_class']),
       worldId: Number(row['world_id']),
-      resident: Boolean(row['resident']),
       inWorld: Boolean(row['in_world'])
     }))
   }

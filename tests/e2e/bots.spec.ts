@@ -20,7 +20,6 @@ test('lists the bots by faction, with their level, class, map and whether they a
   await expect(elyos).toContainText('2 bots, 1 in the world')
   await expect(elyos.getByTestId('bot-Zephyra')).toContainText('Level 3 · Cleric · Sanctum')
   await expect(elyos.getByTestId('bot-Zephyra')).toContainText('In the world')
-  await expect(elyos.getByTestId('bot-Zephyra')).toContainText('Resident')
   await expect(elyos.getByTestId('bot-Aldric')).not.toContainText('In the world')
   // Highest level first.
   await expect(elyos.getByRole('listitem').first()).toContainText('Zephyra')

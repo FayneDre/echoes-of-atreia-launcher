@@ -84,9 +84,9 @@ export const FAKE_CHARACTERS: FakeCharacter[] = [
 ]
 
 export const FAKE_BOTS = [
-  { id: 900001, name: 'Zephyra', exp: 1500, race: 'ELYOS', playerClass: 'CLERIC', worldId: 110010000, resident: true, inWorld: true },
-  { id: 900002, name: 'Aldric', exp: 400, race: 'ELYOS', playerClass: 'GLADIATOR', worldId: 110010000, resident: false, inWorld: false },
-  { id: 900003, name: 'Brakka', exp: 1500, race: 'ASMODIANS', playerClass: 'GLADIATOR', worldId: 220010000, resident: false, inWorld: true }
+  { id: 900001, name: 'Zephyra', exp: 1500, race: 'ELYOS', playerClass: 'CLERIC', worldId: 110010000, inWorld: true },
+  { id: 900002, name: 'Aldric', exp: 400, race: 'ELYOS', playerClass: 'GLADIATOR', worldId: 110010000, inWorld: false },
+  { id: 900003, name: 'Brakka', exp: 1500, race: 'ASMODIANS', playerClass: 'GLADIATOR', worldId: 220010000, inWorld: true }
 ]
 
 /** Writes the stand-in for the two databases the launcher reads (ECHOES_FAKE_DB), passwords hashed as the login server hashes them. */

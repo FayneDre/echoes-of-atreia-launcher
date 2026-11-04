@@ -17,7 +17,6 @@ export async function listBots(layout: ServerLayout | null): Promise<BotSummary[
       playerClass: record.playerClass,
       race: record.race,
       mapName: data.mapName(record.worldId),
-      resident: record.resident,
       inWorld: record.inWorld
     }))
   } catch (error) {

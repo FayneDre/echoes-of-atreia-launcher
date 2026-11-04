@@ -155,8 +155,6 @@ export interface BotSummary {
   playerClass: string
   race: 'ELYOS' | 'ASMODIANS'
   mapName: string | null
-  /** Lives in one place rather than wandering the world. */
-  resident: boolean
   /** In the world as the server last knew it. */
   inWorld: boolean
 }

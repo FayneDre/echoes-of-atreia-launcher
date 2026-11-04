@@ -14,7 +14,6 @@ function BotRow({ bot }: { bot: BotSummary }): React.JSX.Element {
       <span className="bot-top">
         <span className="bot-name">{bot.name}</span>
         {bot.inWorld && <span className="tag tag-online">{t('bots.inWorld')}</span>}
-        {bot.resident && <span className="tag">{t('bots.resident')}</span>}
       </span>
       <span className="bot-line">
         {t('account.level', { level: bot.level })} · {hasMessage(classKey) ? t(classKey) : bot.playerClass}

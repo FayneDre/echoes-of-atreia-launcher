@@ -19,7 +19,6 @@ export const fr: Record<MessageKey, string> = {
   'bots.noMatch': 'Aucun bot ne correspond.',
   'bots.more': 'Les {shown} premiers sur {total} : cherche pour affiner la liste.',
   'bots.inWorld': 'Dans le monde',
-  'bots.resident': 'Résident',
   'bots.refresh': 'Actualiser',
 
   'settings.intro':

@@ -18,7 +18,6 @@ export const en = {
   'bots.noMatch': 'No bot matches.',
   'bots.more': 'Showing the first {shown} of {total}: search to narrow the list.',
   'bots.inWorld': 'In the world',
-  'bots.resident': 'Resident',
   'bots.refresh': 'Refresh',
 
   'settings.intro':
