@@ -1,0 +1,100 @@
+:root {
+  --bg: #0d1320;
+  --bg-raised: #151d2e;
+  --text: #e6e9ef;
+  --text-muted: #8f99ab;
+  --elyos: #7cc4ff;
+  --asmodian: #e0b25c;
+  --border: #263049;
+  color-scheme: dark;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.language-switch {
+  display: flex;
+  gap: 4px;
+}
+
+.language-switch button {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.language-switch button[aria-pressed='true'] {
+  border-color: var(--elyos);
+  color: var(--text);
+}
+
+.home {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  background: linear-gradient(90deg, var(--elyos), var(--asmodian));
+  background-clip: text;
+  color: transparent;
+}
+
+.tagline {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.footer {
+  padding: 8px 20px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
