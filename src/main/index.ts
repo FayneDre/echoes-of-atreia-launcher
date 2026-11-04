@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { SERVER_IDS, type FolderKind, type QuitAnswer, type ServerId } from '../shared/types'
 import { AccountService } from './accounts/accountService'
 import { BackupService } from './backup/backupService'
+import { listBots } from './bots/botList'
 import { Launcher } from './launcher'
 import { validValues } from './server/serverSettings'
 import { SettingsStore } from './settings'
@@ -46,6 +47,7 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('accounts:select-character', (_event, id: unknown) =>
     Number.isInteger(id) ? accounts.selectCharacter(id as number) : undefined
   )
+  ipcMain.handle('bots:list', () => listBots(launcher.currentLayout))
   ipcMain.handle('game:destinations', () => launcher.listDestinations())
   ipcMain.handle('game:teleport', (_event, destinationId: unknown) => {
     const character = accounts.selectedCharacterId

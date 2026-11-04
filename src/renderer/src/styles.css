@@ -795,3 +795,87 @@ button.small {
   background: var(--elyos);
   color: var(--bg);
 }
+
+.bots-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  max-width: 420px;
+}
+
+.bots-toolbar input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-sunken);
+  color: var(--text);
+  font: inherit;
+}
+
+.bots-toolbar input:focus {
+  border-color: var(--elyos);
+  outline: none;
+}
+
+.factions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.faction h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+
+.faction[data-testid='faction-ELYOS'] h3 {
+  color: var(--elyos);
+}
+
+.faction[data-testid='faction-ASMODIANS'] h3 {
+  color: var(--asmodian);
+}
+
+.faction-count {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.bot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 480px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.bot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-sunken);
+}
+
+.bot-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bot-name {
+  font-weight: 600;
+}
+
+.bot-line {
+  color: var(--text-muted);
+  font-size: 13px;
+}

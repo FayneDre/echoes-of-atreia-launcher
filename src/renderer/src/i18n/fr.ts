@@ -10,6 +10,17 @@ export const fr: Record<MessageKey, string> = {
   'nav.settings': 'Réglages du serveur',
   'nav.account': 'Compte',
   'nav.backups': 'Sauvegardes',
+  'nav.bots': 'Bots',
+  'bots.title': 'Bots',
+  'bots.intro': 'Les bots du serveur, par faction. Un bot est dans le monde quand le serveur de jeu tourne et que le bot est présent.',
+  'bots.search': 'Chercher un bot',
+  'bots.summary': '{count} bots, {present} dans le monde',
+  'bots.none': 'Aucun bot pour l’instant : ils sont créés quand le serveur de jeu démarre avec le module de bots.',
+  'bots.noMatch': 'Aucun bot ne correspond.',
+  'bots.more': 'Les {shown} premiers sur {total} : cherche pour affiner la liste.',
+  'bots.inWorld': 'Dans le monde',
+  'bots.resident': 'Résident',
+  'bots.refresh': 'Actualiser',
 
   'settings.intro':
     'Valeurs des comptes normaux, écrites dans le config/mygs.properties du serveur de jeu (jamais dans ses fichiers par défaut) et appliquées à son démarrage.',

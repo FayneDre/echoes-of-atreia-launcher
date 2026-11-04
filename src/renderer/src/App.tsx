@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AccountPage } from './components/AccountPage'
 import { BackupsPage } from './components/BackupsPage'
+import { BotsPage } from './components/BotsPage'
 import { InstallPanel } from './components/InstallPanel'
 import { QuitDialog } from './components/QuitDialog'
 import { ServersPanel } from './components/ServersPanel'
@@ -9,12 +10,13 @@ import { TerminalPanel } from './components/TerminalPanel'
 import { LANGUAGES, useI18n, type MessageKey } from './i18n'
 import { useAccounts, useLauncherState } from './useLauncher'
 
-type Page = 'home' | 'account' | 'settings' | 'backups'
+type Page = 'home' | 'account' | 'bots' | 'settings' | 'backups'
 
 const PAGES: { id: Page; label: MessageKey }[] = [
   { id: 'home', label: 'nav.home' },
   { id: 'account', label: 'nav.account' },
   { id: 'settings', label: 'nav.settings' },
+  { id: 'bots', label: 'nav.bots' },
   { id: 'backups', label: 'nav.backups' }
 ]
 
@@ -83,6 +85,11 @@ export function App(): React.JSX.Element {
       {state && (
         <main className="content content-single" hidden={page !== 'account'}>
           <AccountPage accounts={accounts} gameReady={state?.servers.game.status === 'ready'} reload={reload} />
+        </main>
+      )}
+      {state && (
+        <main className="content content-single" hidden={page !== 'bots'}>
+          <BotsPage state={state} visible={page === 'bots'} />
         </main>
       )}
       {state && (

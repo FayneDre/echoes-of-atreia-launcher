@@ -9,6 +9,17 @@ export const en = {
   'nav.settings': 'Server settings',
   'nav.account': 'Account',
   'nav.backups': 'Backups',
+  'nav.bots': 'Bots',
+  'bots.title': 'Bots',
+  'bots.intro': 'The server’s bots, by faction. A bot is in the world while the game server runs and the bot is present.',
+  'bots.search': 'Search a bot',
+  'bots.summary': '{count} bots, {present} in the world',
+  'bots.none': 'No bot yet: they are created when the game server starts with the bot module.',
+  'bots.noMatch': 'No bot matches.',
+  'bots.more': 'Showing the first {shown} of {total}: search to narrow the list.',
+  'bots.inWorld': 'In the world',
+  'bots.resident': 'Resident',
+  'bots.refresh': 'Refresh',
 
   'settings.intro':
     'Values for regular accounts, written to the game server’s config/mygs.properties (never to its default files) and applied when it starts.',

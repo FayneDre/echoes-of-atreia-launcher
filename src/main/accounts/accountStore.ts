@@ -23,10 +23,25 @@ export interface CharacterRecord {
   deleting: boolean
 }
 
+/** A bot: a character the server plays itself, from the `playerbot_characters` table. */
+export interface BotRecord {
+  id: number
+  name: string
+  exp: number
+  race: 'ELYOS' | 'ASMODIANS'
+  playerClass: string
+  worldId: number
+  /** Lives in one place (a resident) rather than wandering the world. */
+  resident: boolean
+  /** In the world as the server last knew it: while the game server runs, those that are present. */
+  inWorld: boolean
+}
+
 /** Where the launcher reads accounts and characters: the server's two databases, or, in the end-to-end tests, a file standing in for them. */
 export interface AccountStore {
   findAccount(name: string): Promise<AccountRecord | null>
   listCharacters(accountId: number): Promise<CharacterRecord[]>
+  listBots(): Promise<BotRecord[]>
 }
 
 /** The login server's password hash (`AccountUtils.encodePassword`), so a password is checked exactly as the server checks it. */
@@ -112,13 +127,36 @@ export class MysqlAccountStore implements AccountStore {
       deleting: row['deletion_date'] !== null
     }))
   }
+
+  async listBots(): Promise<BotRecord[]> {
+    const address = await addressOf(this.layout.servers.game.dir)
+    if (!address) {
+      throw new Error('The game server has no database.url')
+    }
+    const rows = await query<RowDataPacket>(
+      address,
+      'SELECT p.`id`, p.`name`, p.`exp`, p.`race`, p.`player_class`, p.`world_id`, b.`resident`, b.`in_world` ' +
+        'FROM `playerbot_characters` b JOIN `players` p ON p.`id` = b.`player_id` ORDER BY p.`name`',
+      []
+    )
+    return rows.map((row) => ({
+      id: Number(row['id']),
+      name: String(row['name']),
+      exp: Number(row['exp']),
+      race: row['race'] as BotRecord['race'],
+      playerClass: String(row['player_class']),
+      worldId: Number(row['world_id']),
+      resident: Boolean(row['resident']),
+      inWorld: Boolean(row['in_world'])
+    }))
+  }
 }
 
 /** The end-to-end tests' stand-in for the databases (ECHOES_FAKE_DB): a JSON file of accounts and characters, read at every question. */
 export class FileAccountStore implements AccountStore {
   constructor(private readonly file: string) {}
 
-  private async read(): Promise<{ accounts: AccountRecord[]; characters: (CharacterRecord & { accountId: number })[] }> {
+  private async read(): Promise<{ accounts: AccountRecord[]; characters: (CharacterRecord & { accountId: number })[]; bots?: BotRecord[] }> {
     return JSON.parse(await readFile(this.file, 'utf8'))
   }
 
@@ -128,6 +166,10 @@ export class FileAccountStore implements AccountStore {
 
   async listCharacters(accountId: number): Promise<CharacterRecord[]> {
     return (await this.read()).characters.filter((character) => character.accountId === accountId)
+  }
+
+  async listBots(): Promise<BotRecord[]> {
+    return (await this.read()).bots ?? []
   }
 }
 

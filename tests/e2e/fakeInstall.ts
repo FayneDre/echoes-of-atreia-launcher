@@ -83,14 +83,21 @@ export const FAKE_CHARACTERS: FakeCharacter[] = [
   { id: 301, accountId: 3, name: 'Nobody', exp: 0, race: 'ELYOS', gender: 'MALE', playerClass: 'MAGE', worldId: 110010000, online: false, deleting: false }
 ]
 
+export const FAKE_BOTS = [
+  { id: 900001, name: 'Zephyra', exp: 1500, race: 'ELYOS', playerClass: 'CLERIC', worldId: 110010000, resident: true, inWorld: true },
+  { id: 900002, name: 'Aldric', exp: 400, race: 'ELYOS', playerClass: 'GLADIATOR', worldId: 110010000, resident: false, inWorld: false },
+  { id: 900003, name: 'Brakka', exp: 1500, race: 'ASMODIANS', playerClass: 'GLADIATOR', worldId: 220010000, resident: false, inWorld: true }
+]
+
 /** Writes the stand-in for the two databases the launcher reads (ECHOES_FAKE_DB), passwords hashed as the login server hashes them. */
-export function writeFakeDatabase(install: FakeInstall, accounts: FakeAccount[] = FAKE_ACCOUNTS, characters = FAKE_CHARACTERS): void {
+export function writeFakeDatabase(install: FakeInstall, accounts: FakeAccount[] = FAKE_ACCOUNTS, characters = FAKE_CHARACTERS, bots = FAKE_BOTS): void {
   const hash = (password: string): string => createHash('sha1').update(password, 'utf8').digest('base64')
   writeFileSync(
     install.database,
     JSON.stringify({
       accounts: accounts.map((account) => ({ id: account.id, name: account.name, passwordHash: hash(account.password) })),
-      characters
+      characters,
+      bots
     })
   )
 }

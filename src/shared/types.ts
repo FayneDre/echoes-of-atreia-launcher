@@ -145,3 +145,18 @@ export interface DestinationSummary {
   id: number
   name: string
 }
+
+/** One of the server's bots. */
+export interface BotSummary {
+  id: number
+  name: string
+  level: number
+  /** The server's class name, such as GLADIATOR; the interface translates it. */
+  playerClass: string
+  race: 'ELYOS' | 'ASMODIANS'
+  mapName: string | null
+  /** Lives in one place rather than wandering the world. */
+  resident: boolean
+  /** In the world as the server last knew it. */
+  inWorld: boolean
+}
