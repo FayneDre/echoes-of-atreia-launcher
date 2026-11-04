@@ -30,7 +30,7 @@ Features fall in three kinds, and the kind decides the order:
 | 1. Play | Detect server, client and MySQL; ordered start (MySQL, chat, login, game, each waiting for the one before); clean stop; the three terminals; launch the client | — |
 | 2. Settings | Every rate by family (a family field and each rate), the daily Glory Point loss rank by rank, both factions, in `mygs.properties`, with "restart required" | world bots keep their XP pace (`BotPacing.OFFICIAL_XP_RATE`) |
 | 3. Account | Sign in with account name and password, list its characters, pick the one played; several accounts; database backup and restore | — |
-| 4. Admin channel | A local-only, key-protected interface in the game server; teleport the picked character to any zone | yes |
+| 4. Admin channel | A local-only, key-protected interface in the game server; teleport the picked character to any zone; apply saved settings to the running server (what `//reload config` does: the rates are read at every gain, so they apply at once) instead of asking for a restart | yes |
 | 5. Bots and broker | One global density slider over the fixed-density system, bot XP rate, PvP, chat and its language, broker settings, skill learning, list of bots | yes |
 | 6. Distribution | Public installer, updates from published releases, SQL updates, patch notes in FR and EN | releases |
 | 7. Linux | The servers run there; the client needs Wine | — |
