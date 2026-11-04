@@ -31,6 +31,14 @@ test('opens the launcher window', async () => {
   await app.close()
 })
 
+test('opens in English the first time, whatever the system language', async () => {
+  const { app, page } = await launch()
+  await expect(page.getByRole('button', { name: 'EN' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByText('Atreia is never empty.')).toBeVisible()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+  await app.close()
+})
+
 test('switches between French and English', async () => {
   const { app, page } = await launch()
 
