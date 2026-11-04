@@ -12,7 +12,10 @@ Features fall in three kinds, and the kind decides the order:
   an install, patch notes, FR/EN.
 - **A server setting that already exists** — written to `game-server/config/mygs.properties`, the local overrides file, never to the
   defaults (so a server update never conflicts with the player's choices). XP rates (`gameserver.rates.xp.*`), AP (`gameserver.rates.ap.*`),
-  honour points (probably `gameserver.rates.gp.gain`, to confirm), both factions on one account (`gameserver.character.creation.mode = 1`).
+  honour points, which are the Glory Points that open the upper Abyss ranks: their gain (`gameserver.rates.gp.gain`) and, more useful than
+  a boost, their daily loss (`gameserver.topranking.gp_loss.<RANK>` in `ranking.properties`, 9 to 219 a day by rank, 0 turns it off; shown
+  as one percentage applied to every rank; check that `mygs.properties` overrides these per-rank keys), both factions on one account
+  (`gameserver.character.creation.mode = 1`).
   A change takes effect at the next server start, and the launcher says so.
 - **Server work first** — the setting does not exist yet and is added to the server before the launcher shows it: skill learning (only
   stigmas have an auto-learn setting), every bot setting (`playerbot.properties` only has `enable` and `populate`), the broker house, and any
@@ -24,7 +27,7 @@ Features fall in three kinds, and the kind decides the order:
 |---|---|---|
 | 0. Base | Electron + TypeScript + React, FR/EN, Playwright, README | — |
 | 1. Play | Detect server, client and MySQL; ordered start (MySQL, chat, login, game, each waiting for the one before); clean stop; the three terminals; launch the client | — |
-| 2. Settings | XP, AP, honour, both factions, in `mygs.properties`, with "restart required" | — |
+| 2. Settings | XP, AP, honour gain and daily loss, both factions, in `mygs.properties`, with "restart required" | — |
 | 3. Account | Sign in with account name and password, list its characters, pick the one played; several accounts; database backup and restore | — |
 | 4. Admin channel | A local-only, key-protected interface in the game server; teleport the picked character to any zone | yes |
 | 5. Bots and broker | One global density slider over the fixed-density system, bot XP rate, PvP, chat and its language, broker settings, skill learning, list of bots | yes |
@@ -49,7 +52,6 @@ Features fall in three kinds, and the kind decides the order:
 
 ## Open questions
 
-- Are "honour points" the Glory Points (`gameserver.rates.gp.gain`)?
 - Does the 4.8 client accept anything on its command line that could pre-fill the account? If not, the launcher's sign-in only selects the
   character for the launcher's own actions.
 - Licence of this repository.
