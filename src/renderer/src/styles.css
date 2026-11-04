@@ -751,3 +751,47 @@ button.small {
   gap: 8px;
   margin-top: 16px;
 }
+
+.teleport {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 20px;
+  max-width: 420px;
+}
+
+.teleport h4 {
+  margin: 0;
+}
+
+.teleport input,
+.teleport select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-sunken);
+  color: var(--text);
+  font: inherit;
+}
+
+.teleport input:focus,
+.teleport select:focus {
+  border-color: var(--elyos);
+  outline: none;
+}
+
+.teleport select {
+  padding: 4px;
+}
+
+.teleport option {
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+
+.teleport option:checked {
+  background: var(--elyos);
+  color: var(--bg);
+}
