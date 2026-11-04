@@ -1,9 +1,10 @@
 # Roadmap
 
-Status: in progress: phases 0 and 1 done (start, client launch and stop checked by the tester on the real servers, 4 November); phase 2
-built, unverified in game (rates and the daily loss taking effect after a restart); phase 3 next.
+Status: in progress: phases 0 and 1 done (start, client launch and stop checked by the tester on the real servers, 4 November; released as
+v0.1.0); phase 2 built, unverified in game (the rates taking effect after a restart; the server side that keeps the bots' XP pace is not
+deployed yet); phase 3 next.
 
-How phase 1 works, and why: [how-it-works.md](how-it-works.md).
+How phases 1 and 2 work, and why: [how-it-works.md](how-it-works.md).
 
 The launcher is distributed publicly: a player installs it, it installs or finds the server and the client, and the game is one click away.
 
@@ -14,12 +15,9 @@ Features fall in three kinds, and the kind decides the order:
 - **Launcher only** — processes and files: start and stop MySQL and the three servers, launch the client, show their terminals, detect
   an install, patch notes, FR/EN.
 - **A server setting that already exists** — written to `game-server/config/mygs.properties`, the local overrides file, never to the
-  defaults (so a server update never conflicts with the player's choices). XP rates (`gameserver.rates.xp.*`), AP (`gameserver.rates.ap.*`),
-  honour points, which are the Glory Points that open the upper Abyss ranks: their gain (`gameserver.rates.gp.gain`) and, more useful than
-  a boost, their daily loss (`gameserver.topranking.gp_loss.<RANK>` in `ranking.properties`, 9 to 219 a day by rank, 0 turns it off; shown
-  as one percentage applied to every rank; check that `mygs.properties` overrides these per-rank keys), both factions on one account
-  (`gameserver.character.creation.mode = 1`).
-  A change takes effect at the next server start, and the launcher says so.
+  defaults (so a server update never conflicts with the player's choices): the 30 rates of `rates.properties`, the daily Glory Point loss
+  of each Abyss rank (honour points are the Glory Points), both factions on one account. A change takes effect at the next server start,
+  and the launcher says so.
 - **Server work first** — the setting does not exist yet and is added to the server before the launcher shows it: skill learning (only
   stigmas have an auto-learn setting), every bot setting (`playerbot.properties` only has `enable` and `populate`), the broker house, and any
   action on a character that is in game.
@@ -30,7 +28,7 @@ Features fall in three kinds, and the kind decides the order:
 |---|---|---|
 | 0. Base | Electron + TypeScript + React, FR/EN, Playwright, README | — |
 | 1. Play | Detect server, client and MySQL; ordered start (MySQL, chat, login, game, each waiting for the one before); clean stop; the three terminals; launch the client | — |
-| 2. Settings | XP, AP, honour gain and daily loss, both factions, in `mygs.properties`, with "restart required" | — |
+| 2. Settings | Every rate by family (a family field and each rate), the daily Glory Point loss rank by rank, both factions, in `mygs.properties`, with "restart required" | world bots keep their XP pace (`BotPacing.OFFICIAL_XP_RATE`) |
 | 3. Account | Sign in with account name and password, list its characters, pick the one played; several accounts; database backup and restore | — |
 | 4. Admin channel | A local-only, key-protected interface in the game server; teleport the picked character to any zone | yes |
 | 5. Bots and broker | One global density slider over the fixed-density system, bot XP rate, PvP, chat and its language, broker settings, skill learning, list of bots | yes |
@@ -49,6 +47,13 @@ Features fall in three kinds, and the kind decides the order:
 - **An action on a character in game goes through the server, never the database.** The server holds that character in memory and writes
   it back at the next save, overwriting the change. Hence the admin channel of phase 4; once it exists, each new action is one more command.
   The `bot-commands.txt` inbox the server already reads is not enough: it takes bot commands only and answers in the log.
+- **Rates are set for regular accounts only**, one value per setting, which the server applies to every membership level. Premium is not
+  offered: nobody is premium, the bots included.
+- **Raising the players' XP must not empty the regions**: the world's bots were paced at 1% of the official rate, so the server makes a
+  paced bot read the official rate whatever the players' is (one `playerbots:` line in `Rates.calcXpRate`).
+- **Only the settings changed on the page are written**, so a value the page cannot show as it is (a premium rate of its own, the
+  reservation mode) survives a save.
+- **Language**: the switch's choice, else the system's when the launcher has it, else English.
 - **Backups start with the whole database.** One character is spread over dozens of tables; a per-character backup comes later, if at all.
 - **The server's PowerShell tools** (`start-server.ps1`, `apply-sql.ps1`, `sync-install.ps1`) are Windows-only: their logic is rewritten
   in TypeScript here, which is also what Linux needs.
