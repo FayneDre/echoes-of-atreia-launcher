@@ -27,6 +27,8 @@ function settingsFile(): string {
  */
 export class SettingsStore {
   private data: Settings = {}
+  // Writes one after the other: two at once would share the temporary file, and one of them would fail or be lost.
+  private writing: Promise<void> = Promise.resolve()
 
   async load(): Promise<void> {
     try {
@@ -40,12 +42,20 @@ export class SettingsStore {
     return this.data
   }
 
-  /** Changes the settings and writes them at once, through a temporary file so a crash never leaves half a file. */
-  async update(change: (settings: Settings) => Settings): Promise<void> {
+  /**
+   * Changes the settings at once in memory, then writes them after any write still under way, through a temporary file so a crash never leaves
+   * half a file. Each write takes the settings as they are when its turn comes, so the last one always holds every change.
+   */
+  update(change: (settings: Settings) => Settings): Promise<void> {
     this.data = change(this.data)
-    const file = settingsFile()
-    const temporary = `${file}.tmp`
-    await writeFile(temporary, JSON.stringify(this.data, null, 2), 'utf8')
-    await rename(temporary, file)
+    const write = async (): Promise<void> => {
+      const file = settingsFile()
+      const temporary = `${file}.tmp`
+      await writeFile(temporary, JSON.stringify(this.data, null, 2), 'utf8')
+      await rename(temporary, file)
+    }
+    const next = this.writing.then(write, write)
+    this.writing = next.catch(() => undefined)
+    return next
   }
 }

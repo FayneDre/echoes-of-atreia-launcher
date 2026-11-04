@@ -68,7 +68,8 @@ export class AccountService {
    */
   async getState(): Promise<AccountsState> {
     const saved = this.saved()
-    const active = this.settings.current.activeAccount ?? null
+    // An account kept without one being active (a settings file edited by hand) makes the first one active rather than show nothing.
+    const active = this.settings.current.activeAccount ?? saved[0]?.name ?? null
     const base: AccountsState = { accounts: saved.map((entry) => entry.name), active, characters: [], selectedCharacterId: null }
     const entry = saved.find((candidate) => candidate.name === active)
     if (!entry) {
