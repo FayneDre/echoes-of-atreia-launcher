@@ -28,3 +28,7 @@ Layout:
 - `src/preload/` — the only bridge between the interface and the system (`window.launcher`).
 - `src/renderer/` — the interface, in React; texts live in `src/renderer/src/i18n/` (English is the reference).
 - `tests/e2e/` — Playwright tests against the built application, each on a throwaway profile.
+
+## Licence
+
+[GNU General Public License v3.0](LICENSE) or later, like the server it drives.

@@ -54,4 +54,3 @@ Features fall in three kinds, and the kind decides the order:
 
 - Does the 4.8 client accept anything on its command line that could pre-fill the account? If not, the launcher's sign-in only selects the
   character for the launcher's own actions.
-- Licence of this repository.

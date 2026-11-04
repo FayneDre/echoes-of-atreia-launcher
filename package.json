@@ -3,6 +3,7 @@
   "productName": "Echoes of Atreia",
   "version": "0.1.0",
   "description": "All-in-one launcher for a self-hosted Aion 4.8 server populated by AI-driven bots: install, play and back up your characters.",
+  "license": "GPL-3.0-or-later",
   "private": true,
   "main": "./out/main/index.js",
   "scripts": {
