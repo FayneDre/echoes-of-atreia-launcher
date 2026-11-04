@@ -11,7 +11,8 @@ const STORAGE_KEY = 'language'
 interface I18nContextValue {
   language: Language
   setLanguage: (language: Language) => void
-  t: (key: MessageKey) => string
+  /** The text of a key, with each `{name}` replaced by its value. */
+  t: (key: MessageKey, values?: Record<string, string | number>) => string
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null)
@@ -49,7 +50,8 @@ export function LanguageProvider({ children }: { children: ReactNode }): React.J
     }
   }
 
-  const t = (key: MessageKey): string => dictionaries[language][key]
+  const t = (key: MessageKey, values?: Record<string, string | number>): string =>
+    dictionaries[language][key].replace(/\{(\w+)\}/g, (placeholder, name: string) => String(values?.[name] ?? placeholder))
 
   return <I18nContext.Provider value={{ language, setLanguage, t }}>{children}</I18nContext.Provider>
 }

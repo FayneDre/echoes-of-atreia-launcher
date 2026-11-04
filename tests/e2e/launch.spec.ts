@@ -8,7 +8,8 @@ let userDataDir: string
 async function launch(): Promise<{ app: ElectronApplication; page: Page }> {
   const app = await electron.launch({
     args: ['.'],
-    env: { ...process.env, ECHOES_USER_DATA_DIR: userDataDir }
+    // No server folder: these tests are about the window, and must not find the server installed on this machine.
+    env: { ...process.env, ECHOES_USER_DATA_DIR: userDataDir, AION_SERVER_HOME: '' }
   })
   const page = await app.firstWindow()
   return { app, page }

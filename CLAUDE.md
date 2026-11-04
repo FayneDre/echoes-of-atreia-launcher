@@ -5,6 +5,8 @@ the server up and acts on the player's character. The server itself lives in its
 `D:\Jeux\Aion\source\aion-server-4.8`); work on the server happens there, never here.
 
 [docs/roadmap.md](docs/roadmap.md) says what is left, by phase, and why each decision was made. Start there.
+[docs/how-it-works.md](docs/how-it-works.md) says how the servers are started and stopped, and why; read it before touching `src/main/server/`.
+The one rule above all: **never kill the game server while it can stop by itself** (it saves the players on shutdown).
 
 ## Stack
 
@@ -16,7 +18,8 @@ Electron + TypeScript + React, built with electron-vite; Playwright drives the b
   enforce it).
 - Each test runs on a throwaway profile (`ECHOES_USER_DATA_DIR`), never the player's.
 
-Before calling something done: `npm run typecheck` and `npm run test:e2e`, and a new feature comes with its test.
+Before calling something done: `npm test` (typecheck, Vitest, Playwright), and a new feature comes with its test. The end-to-end tests
+run against fake servers (`tests/fixtures/`), never the real installation; a test that would start the real MySQL service is not written.
 
 ## Conventions
 

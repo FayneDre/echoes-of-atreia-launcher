@@ -1,6 +1,8 @@
 # Roadmap
 
-Status: in progress: phase 0 done, phase 1 next.
+Status: in progress: phase 1 built, unverified on the real servers (a full start, stop and client launch); phase 2 next.
+
+How phase 1 works, and why: [how-it-works.md](how-it-works.md).
 
 The launcher is distributed publicly: a player installs it, it installs or finds the server and the client, and the game is one click away.
 

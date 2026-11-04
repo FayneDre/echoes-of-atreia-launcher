@@ -1,13 +1,18 @@
 :root {
   --bg: #0d1320;
   --bg-raised: #151d2e;
+  --bg-sunken: #090e18;
   --text: #e6e9ef;
   --text-muted: #8f99ab;
   --elyos: #7cc4ff;
   --asmodian: #e0b25c;
   --border: #263049;
+  --ok: #5fcf8a;
+  --busy: #e0b25c;
+  --bad: #ef6b6b;
   color-scheme: dark;
   font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
 }
 
 * {
@@ -26,6 +31,41 @@ body {
   color: var(--text);
 }
 
+button {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-raised);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--elyos);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button.small {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+
+.button-primary {
+  border-color: var(--elyos);
+  background: linear-gradient(90deg, #1d3550, #3d3220);
+  font-weight: 600;
+}
+
+.button-danger {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
 .app {
   display: flex;
   flex-direction: column;
@@ -41,9 +81,19 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-.brand {
-  font-weight: 600;
-  letter-spacing: 0.04em;
+.title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  background: linear-gradient(90deg, var(--elyos), var(--asmodian));
+  background-clip: text;
+  color: transparent;
+}
+
+.tagline {
+  margin: 2px 0 0;
+  color: var(--text-muted);
 }
 
 .language-switch {
@@ -53,12 +103,8 @@ body {
 
 .language-switch button {
   padding: 4px 10px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
   background: transparent;
   color: var(--text-muted);
-  font: inherit;
-  cursor: pointer;
 }
 
 .language-switch button[aria-pressed='true'] {
@@ -66,29 +112,184 @@ body {
   color: var(--text);
 }
 
-.home {
+.content {
   flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(380px, 1fr) minmax(0, 1.4fr);
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.column {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
 }
 
-.title {
-  margin: 0;
-  font-size: 48px;
-  font-weight: 300;
-  letter-spacing: 0.06em;
-  background: linear-gradient(90deg, var(--elyos), var(--asmodian));
-  background-clip: text;
-  color: transparent;
+.panel {
+  padding: 14px 16px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 6px;
 }
 
-.tagline {
-  margin: 0;
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--text-muted);
-  font-size: 18px;
+}
+
+.server-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.server-row {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.server-row:last-child {
+  border-bottom: none;
+}
+
+.server-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.server-name {
+  flex: 1;
+}
+
+.server-meta {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex: none;
+}
+
+.dot-ready {
+  background: var(--ok);
+}
+
+.dot-starting,
+.dot-registering,
+.dot-stopping {
+  background: var(--busy);
+}
+
+.dot-failed,
+.dot-missing {
+  background: var(--bad);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.actions .button-primary {
+  margin-left: auto;
+  min-width: 110px;
+}
+
+.problem {
+  margin-top: 6px;
+  color: var(--bad);
+}
+
+.problem p {
+  margin: 0;
+}
+
+.problem-detail {
+  margin: 6px 0 0;
+  padding: 8px;
+  max-height: 140px;
+  overflow: auto;
+  background: var(--bg-sunken);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: pre-wrap;
+}
+
+.install-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.install-label {
+  width: 130px;
+  flex: none;
+  color: var(--text-muted);
+}
+
+.install-value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.install-value.missing {
+  color: var(--bad);
+}
+
+.terminal-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.tabs button {
+  padding: 4px 12px;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.tabs button[aria-selected='true'] {
+  border-color: var(--elyos);
+  color: var(--text);
+}
+
+.terminal {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 10px;
+  overflow: auto;
+  background: var(--bg-sunken);
+  border-radius: 4px;
+  font-family: Consolas, 'Cascadia Mono', monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .footer {
@@ -97,4 +298,33 @@ body {
   font-size: 12px;
   text-align: center;
   border-top: 1px solid var(--border);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 60%);
+}
+
+.dialog {
+  width: min(520px, calc(100% - 32px));
+  padding: 20px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.dialog h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
 }

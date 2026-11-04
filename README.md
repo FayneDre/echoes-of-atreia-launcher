@@ -9,7 +9,9 @@ The server it drives is [aion-server-playerbots](https://github.com/FayneDre/aio
 
 ## Status
 
-Early development: the window, the FR/EN switch and the test setup. See [docs/roadmap.md](docs/roadmap.md) for what comes next.
+Early development. The launcher finds the server, the client, Java and MySQL; starts the servers in order and stops them without losing
+data; shows their terminals; and launches the game. See [docs/roadmap.md](docs/roadmap.md) for what comes next and
+[docs/how-it-works.md](docs/how-it-works.md) for how it runs the servers.
 
 ## Development
 
@@ -19,8 +21,12 @@ Requires Node.js 24 or later.
 npm install
 npm run dev        # the launcher with hot reload
 npm run typecheck  # TypeScript, no build
-npm run test:e2e   # builds, then drives the real window with Playwright
+npm run test:unit  # Vitest, the logic that needs no window
+npm run test:e2e   # builds, then drives the real window with Playwright, against fake servers
+npm test           # all three
 ```
+
+The launcher finds the server through the `AION_SERVER_HOME` environment variable, or the folder chosen in its Installation panel.
 
 Layout:
 
