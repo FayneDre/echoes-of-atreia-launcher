@@ -28,8 +28,20 @@ export function InstallPanel({ state }: { state: LauncherState }): React.JSX.Ele
   const { t } = useI18n()
   const { install } = state
   // The folders can only change while nothing runs: the running servers belong to the current one.
-  const locked = state.busy || SERVER_IDS.some((id) => state.servers[id].status !== 'stopped' && state.servers[id].status !== 'failed')
+  const locked =
+    state.activity !== 'idle' || SERVER_IDS.some((id) => state.servers[id].status !== 'stopped' && state.servers[id].status !== 'failed')
   const java = install.javaVersion
+
+  if (state.activity === 'detecting') {
+    return (
+      <section className="panel" aria-labelledby="install-title">
+        <h2 id="install-title">{t('section.install')}</h2>
+        <p className="install-detecting" data-testid="install-detecting">
+          {t('install.detecting')}
+        </p>
+      </section>
+    )
+  }
 
   return (
     <section className="panel" aria-labelledby="install-title">

@@ -1,7 +1,8 @@
 // Stands in for java.exe in the end-to-end tests (ECHOES_FAKE_JAVA). It answers `-version`, and otherwise plays the server its main
 // class names, doing what the launcher relies on: it moves its old console log aside and writes a new one, listens on the port its
 // config names, and the game server refuses to start without the login and chat servers, registers a little later, and stops on
-// shutdown.request. A file named fail-on-start in the server folder makes it crash at once.
+// shutdown.request. Files in the server folder change how it behaves: fail-on-start makes it crash at once, slow-start opens its port
+// 20 s late (a game server still loading its data), slow-register registers 20 s late (one loading its world).
 import { existsSync, mkdirSync, appendFileSync, readFileSync, renameSync, rmSync } from 'node:fs'
 import { connect, createServer } from 'node:net'
 import { join } from 'node:path'
@@ -71,11 +72,11 @@ async function main() {
       }
     }
   }
-  await new Promise((resolve) => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, existsSync('slow-start') ? 20_000 : 300))
   createServer((socket) => socket.destroy()).listen(portOf(listenKey), '127.0.0.1', () => log(`Listening on ${portOf(listenKey)}`))
 
   if (kind === 'game') {
-    setTimeout(() => log('Connected to login server'), 800)
+    setTimeout(() => log('Connected to login server'), existsSync('slow-register') ? 20_000 : 800)
     setInterval(() => {
       if (existsSync('shutdown.request')) {
         rmSync('shutdown.request', { force: true })

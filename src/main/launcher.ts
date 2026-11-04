@@ -2,6 +2,7 @@ import { EventEmitter } from 'node:events'
 import {
   REQUIRED_JAVA,
   SERVER_IDS,
+  type Activity,
   type FolderKind,
   type InstallState,
   type LauncherState,
@@ -19,7 +20,8 @@ import { javaCommand, javaMajorVersion } from './system/java'
 
 /**
  * The whole stack and what the interface sees of it. Starts in dependency order (MySQL, chat, login, game: the game server connects to the
- * other two while it starts) and stops in the reverse one, each step waiting for the one before.
+ * other two while it starts) and stops in the reverse one, each step waiting for the one before. A stop may interrupt a start: the game
+ * server takes minutes to load, and the person must not have to wait for it to be ready to change their mind.
  */
 export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [LogBatch] }> {
   private settings: Settings = {}
@@ -27,7 +29,8 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   private servers: Partial<Record<ServerId, ServerProcess>> = {}
   private readonly mysql = new MysqlControl(() => this.publish())
   private install: InstallState = { serverRoot: null, serverFound: false, clientRoot: null, clientFound: false, javaVersion: null }
-  private busy = false
+  private activity: Activity = 'detecting'
+  private stopRequested = false
   private quitRequested = false
   private problem: Problem | undefined
 
@@ -39,7 +42,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       install: this.install,
       mysql: this.mysql.current,
       servers,
-      busy: this.busy,
+      activity: this.activity,
       quitRequested: this.quitRequested,
       problem: this.problem
     }
@@ -57,16 +60,46 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     this.emit('state', this.getState())
   }
 
-  async initialize(): Promise<void> {
-    this.settings = await loadSettings()
-    await this.detect()
+  /** Runs one activity at a time. Ends it only if it is still the current one: a stop may have taken over a start. */
+  private async run(activity: Exclude<Activity, 'idle'>, work: () => Promise<boolean>, force = false): Promise<boolean> {
+    if (this.activity !== 'idle' && !force) {
+      return false
+    }
+    this.activity = activity
+    this.problem = undefined
+    this.publish()
+    try {
+      return await work()
+    } finally {
+      if (this.activity === activity) {
+        this.activity = 'idle'
+      }
+      this.publish()
+    }
+  }
+
+  private fail(problem: Problem): false {
+    this.problem = problem
+    return false
+  }
+
+  initialize(): Promise<boolean> {
+    return this.run(
+      'detecting',
+      async () => {
+        this.settings = await loadSettings()
+        await this.detect()
+        return true
+      },
+      true
+    )
   }
 
   /** Finds the server, the client and Java, then takes over whatever servers are already running. */
-  async detect(): Promise<void> {
+  private async detect(): Promise<void> {
     const serverRoot = this.settings.serverRoot || process.env['AION_SERVER_HOME'] || null
     this.layout = serverRoot ? await readServerLayout(serverRoot) : null
-    const clientRoot = this.settings.clientRoot ?? (serverRoot ? await findClientNear(serverRoot) : null)
+    const clientRoot = this.settings.clientRoot || (serverRoot ? await findClientNear(serverRoot) : null)
     this.install = {
       serverRoot,
       serverFound: this.layout !== null,
@@ -87,7 +120,6 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
         this.servers[id] = server
       }
     }
-    this.problem = undefined
     this.publish()
 
     await this.mysql.refresh(this.layout?.mysql ?? null)
@@ -96,37 +128,21 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     }
   }
 
-  async chooseFolder(kind: FolderKind, folder: string): Promise<void> {
-    if (this.anyRunning || this.busy) {
-      return
+  chooseFolder(kind: FolderKind, folder: string): Promise<boolean> {
+    if (this.anyRunning) {
+      return Promise.resolve(false)
     }
-    this.settings = kind === 'server' ? { ...this.settings, serverRoot: folder } : { ...this.settings, clientRoot: folder }
-    await saveSettings(this.settings)
-    await this.detect()
-  }
-
-  private async exclusive(work: () => Promise<boolean>): Promise<boolean> {
-    if (this.busy) {
-      return false
-    }
-    this.busy = true
-    this.problem = undefined
-    this.publish()
-    try {
-      return await work()
-    } finally {
-      this.busy = false
-      this.publish()
-    }
-  }
-
-  private fail(problem: Problem): false {
-    this.problem = problem
-    return false
+    return this.run('detecting', async () => {
+      this.settings = kind === 'server' ? { ...this.settings, serverRoot: folder } : { ...this.settings, clientRoot: folder }
+      await saveSettings(this.settings)
+      await this.detect()
+      return true
+    })
   }
 
   startAll(): Promise<boolean> {
-    return this.exclusive(async () => {
+    return this.run('starting', async () => {
+      this.stopRequested = false
       if (!this.layout) {
         return this.fail({ code: 'server-missing' })
       }
@@ -145,7 +161,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
         }
       }
       for (const id of SERVER_IDS) {
-        if (!(await this.servers[id]!.start(javaCommand()))) {
+        if (this.stopRequested || !(await this.servers[id]!.start(javaCommand()))) {
           return false
         }
       }
@@ -153,18 +169,29 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     })
   }
 
-  /** Stops the game server first: it saves the players and needs the login server and the database until it is done. */
+  /**
+   * Stops the game server first: it saves the players and needs the login server and the database until it is done. Interrupts a start
+   * under way: each server gives up its start at its next step.
+   */
   stopAll(): Promise<boolean> {
-    return this.exclusive(async () => {
-      for (const id of [...SERVER_IDS].reverse()) {
-        // A server that failed has nothing left to stop, and stopping it clears the failure.
-        const server = this.servers[id]
-        if (server && server.current.status !== 'stopped' && !(await server.stop())) {
-          return false
+    if (this.activity === 'stopping') {
+      return Promise.resolve(false)
+    }
+    this.stopRequested = true
+    return this.run(
+      'stopping',
+      async () => {
+        for (const id of [...SERVER_IDS].reverse()) {
+          // A server that failed has nothing left to stop, and stopping it clears the failure.
+          const server = this.servers[id]
+          if (server && server.current.status !== 'stopped' && !(await server.stop())) {
+            return false
+          }
         }
-      }
-      return true
-    })
+        return true
+      },
+      this.activity === 'starting'
+    )
   }
 
   forceStop(id: ServerId): Promise<boolean> {
@@ -172,15 +199,16 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   }
 
   startMysql(): Promise<boolean> {
-    return this.exclusive(async () => {
+    return this.run('mysql', async () => {
       const problem = await this.mysql.start()
       return problem ? this.fail(problem) : true
     })
   }
 
   stopMysql(): Promise<boolean> {
-    return this.exclusive(async () => {
-      if (this.servers.game?.hasProcess) {
+    return this.run('mysql', async () => {
+      // The game server saves the characters into it, and the login server reads the accounts from it.
+      if (this.anyRunning) {
         return this.fail({ code: 'mysql-in-use' })
       }
       const problem = await this.mysql.stop()

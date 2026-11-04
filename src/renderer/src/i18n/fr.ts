@@ -40,6 +40,7 @@ export const fr: Record<MessageKey, string> = {
   'install.java': 'Java',
   'install.notFound': 'Introuvable',
   'install.notSet': 'Non défini',
+  'install.detecting': 'Recherche du serveur, du client, de Java et de MySQL…',
   'install.javaVersion': 'Java {version}',
   'install.javaTooOld': 'Java {version} (25 ou plus requis)',
 
@@ -60,7 +61,7 @@ export const fr: Record<MessageKey, string> = {
   'problem.mysql-missing': "Aucun service MySQL n'a été trouvé sur cet ordinateur.",
   'problem.mysql-refused': "Windows n'a pas autorisé le démarrage ou l'arrêt de MySQL (la demande d'autorisation a été refusée).",
   'problem.mysql-timeout': "MySQL n'a pas répondu à temps.",
-  'problem.mysql-in-use': 'Arrête le serveur de jeu avant MySQL : il sauvegarde les personnages dans la base.',
+  'problem.mysql-in-use': 'Arrête les serveurs avant MySQL : le serveur de jeu sauvegarde les personnages dans la base.',
   'problem.exited': "Le serveur s'est arrêté tout seul.",
   'problem.port-timeout': "Le serveur n'a pas ouvert son port en deux minutes.",
   'problem.register-timeout': "Le serveur de jeu n'a pas rejoint le serveur de connexion en dix minutes.",

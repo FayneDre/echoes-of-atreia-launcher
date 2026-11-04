@@ -26,25 +26,35 @@ connects to the other two while it starts.
 - **The game server is ready only once its log says `Connected to login server`**, minutes after its port opens: until then a client sees
   the server as down.
 - **The terminals follow each server's `log/server_console.log`**, not its output: the same view for a server the launcher started and
-  for one it found running. The file is replaced at every start, and the reader starts over when it is.
+  for one it found running. The file is replaced at every start and rolls over at 100 MB, and the reader starts over when it is; of a
+  server found running only the last 256 KB are shown, and whether it has registered is searched in chunks through its console log and
+  the ones it rolled over.
+- **A stop may interrupt a start**: the game server takes minutes to load. Each server gives up its start at its next step.
 - What the JVM writes before its logging starts (a wrong Java, a missing class) goes to `log/launcher-stderr.log`, and a failure shows its
   last lines.
 
 ## Stopping
 
-- **The game server is never killed while it can stop by itself.** It saves the players from a shutdown hook that a killed process never
+- **The game server is never killed once it can stop by itself.** It saves the players from a shutdown hook that a killed process never
   runs. The launcher writes `game-server/shutdown.request`, which the server's `ShutdownRequestWatcher` picks up within half a second,
   and waits up to 15 minutes (saving every bot took up to 510 s). A request still there after 10 seconds means a server too old to read
   it: the launcher removes it, says so, and only then offers to force the stop, after a warning.
+- **Before its port opens, the game server is ended instead.** `GameServer.java` opens the port, then installs the hook and starts the
+  watch, then loads the bots: before the port, there is neither a player nor a bot to save, nor anything that would read the request.
+- **Whether a server is gone** is asked of its process when the launcher knows it, else of its port every 5 seconds only: each answer is a
+  connection the game server counts against its flood limit.
 - The chat and login servers keep nothing a shutdown would save: they are ended directly.
-- Order: game, login, chat; MySQL only on its own button, and never while the game server runs.
+- Order: game, login, chat; MySQL only on its own button, and never while a server runs.
 - **Closing the window while servers run** asks: stop them and quit, leave them running, or stay. Servers left running are taken over at the
   next start of the launcher, found by port and by the main class on their command line.
+- **One launcher at a time**: a second one only brings the first to the front, since both would believe they own the servers.
 
 ## MySQL
 
-Up when its port answers. Started and stopped through its Windows service (`sc start|stop`), which needs administrator rights: Windows
-shows its permission prompt each time. A public install will bring its own database run as a plain process instead (phase 6).
+Up when its port answers. Started and stopped through its Windows service (`sc start|stop`), a running one first when there are several,
+which needs administrator rights: Windows shows its permission prompt each time. A public install will bring its own database run as a
+plain process instead (phase 6). Each probe is a connection MySQL sees close before its handshake; MySQL leaves loopback connections out of
+the count that blocks a host, but a database on another machine would count them.
 
 ## Tests
 

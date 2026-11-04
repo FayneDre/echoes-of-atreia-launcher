@@ -254,6 +254,11 @@ button.small {
   color: var(--bad);
 }
 
+.install-detecting {
+  margin: 0;
+  color: var(--text-muted);
+}
+
 .terminal-panel {
   display: flex;
   flex-direction: column;

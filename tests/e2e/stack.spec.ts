@@ -115,6 +115,34 @@ test('shows why a server stopped while starting', async () => {
   await app.close()
 })
 
+test('stops a game server that is loading its world, through its shutdown request', async () => {
+  writeFileSync(join(install.serverRoot, 'game-server', 'slow-register'), '')
+  const { app, page } = await open()
+  await page.getByRole('button', { name: 'Start the servers' }).click()
+  await expect(status(page, 'game')).toHaveAttribute('data-status', 'registering', { timeout: READY_TIMEOUT })
+
+  await stopAll(page)
+  // Its port was open, so its shutdown hook was there to save: it was asked, not killed.
+  expect(gameLog()).toContain('Shutdown complete')
+  await expect(page.getByTestId('server-game').getByRole('alert')).toHaveCount(0)
+  await app.close()
+})
+
+test('ends a game server still loading its data, which has nothing to save yet', async () => {
+  writeFileSync(join(install.serverRoot, 'game-server', 'slow-start'), '')
+  const { app, page } = await open()
+  await page.getByRole('button', { name: 'Start the servers' }).click()
+  await expect(status(page, 'login')).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })
+  await expect(status(page, 'game')).toHaveAttribute('data-status', 'starting')
+
+  await stopAll(page)
+  expect(gameLog()).not.toContain('Shutdown requested')
+  expect(existsSync(join(install.serverRoot, 'game-server', 'shutdown.request'))).toBe(false)
+  await expect(page.getByTestId('server-game').getByRole('alert')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Start the servers' })).toBeEnabled()
+  await app.close()
+})
+
 test('launches the client on the login server port', async () => {
   const { app, page } = await open()
   await startAll(page)

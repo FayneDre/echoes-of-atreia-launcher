@@ -33,9 +33,12 @@ function ServerRow({ server, onForceStop }: { server: ServerState; onForceStop: 
 
 export function ServersPanel({ state }: { state: LauncherState }): React.JSX.Element {
   const { t } = useI18n()
-  const { mysql, servers, busy, install } = state
+  const { mysql, servers, activity, install } = state
+  const idle = activity === 'idle'
   const running = SERVER_IDS.some((id) => !['stopped', 'failed'].includes(servers[id].status) || servers[id].external)
   const gameReady = servers.game.status === 'ready'
+  // A stop can interrupt a start: the game server takes minutes to load.
+  const canStop = running && (idle || activity === 'starting')
 
   const forceStop = (id: ServerState['id']): void => {
     if (id !== 'game' || window.confirm(t('action.forceConfirm'))) {
@@ -59,7 +62,7 @@ export function ServersPanel({ state }: { state: LauncherState }): React.JSX.Ele
               <button
                 type="button"
                 className="small"
-                disabled={busy || mysql.status === 'starting' || mysql.status === 'stopping'}
+                disabled={!idle || mysql.status === 'starting' || mysql.status === 'stopping'}
                 onClick={() => void (mysql.status === 'ready' ? window.launcher.stopMysql() : window.launcher.startMysql())}
               >
                 {mysql.status === 'ready' ? t('action.mysqlStop') : t('action.mysqlStart')}
@@ -74,10 +77,10 @@ export function ServersPanel({ state }: { state: LauncherState }): React.JSX.Ele
       </ul>
 
       <div className="actions">
-        <button type="button" disabled={busy || !install.serverFound} onClick={() => void window.launcher.start()}>
+        <button type="button" disabled={!idle || !install.serverFound || gameReady} onClick={() => void window.launcher.start()}>
           {t('action.start')}
         </button>
-        <button type="button" disabled={busy || !running} onClick={() => void window.launcher.stop()}>
+        <button type="button" disabled={!canStop} onClick={() => void window.launcher.stop()}>
           {t('action.stop')}
         </button>
         <button type="button" className="button-primary" disabled={!gameReady || !install.clientFound} onClick={() => void window.launcher.play()}>

@@ -17,13 +17,17 @@ function runPowerShell(script: string, timeoutMs = 30_000): Promise<{ code: numb
   })
 }
 
-/** The name of the MySQL or MariaDB Windows service, if one is installed. */
+/**
+ * The name of the MySQL or MariaDB Windows service, if one is installed; a running one first, when there are several (a leftover MySQL80
+ * beside the one in use must not be the one started).
+ */
 async function findService(): Promise<string | null> {
   if (process.platform !== 'win32') {
     return null
   }
   const { stdout } = await runPowerShell(
-    `Get-CimInstance Win32_Service | Where-Object { $_.Name -match 'mysql|mariadb' } | Select-Object -First 1 -ExpandProperty Name`
+    `Get-CimInstance Win32_Service | Where-Object { $_.Name -match 'mysql|mariadb' } | ` +
+      `Sort-Object { $_.State -ne 'Running' }, Name | Select-Object -First 1 -ExpandProperty Name`
   )
   const name = stdout.trim()
   return /^[\w.-]+$/.test(name) ? name : null

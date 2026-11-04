@@ -56,12 +56,17 @@ export interface InstallState {
   javaVersion: number | null
 }
 
+/**
+ * What the launcher is doing. A stop may interrupt a start (the game server takes minutes to load), so the two are told apart; anything
+ * else waits for `idle`.
+ */
+export type Activity = 'detecting' | 'idle' | 'starting' | 'stopping' | 'mysql'
+
 export interface LauncherState {
   install: InstallState
   mysql: MysqlState
   servers: Record<ServerId, ServerState>
-  /** A start or a stop of the whole stack is under way. */
-  busy: boolean
+  activity: Activity
   /** The window was closed while servers run: the interface asks what to do with them. */
   quitRequested: boolean
   /** Why the last start of the stack could not begin (no server folder, no Java...). */

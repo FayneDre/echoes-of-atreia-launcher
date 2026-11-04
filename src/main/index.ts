@@ -99,11 +99,25 @@ function createWindow(): BrowserWindow {
   return window
 }
 
-void app.whenReady().then(() => {
-  const window = createWindow()
-  registerIpc(window)
-  void launcher.initialize()
-})
+// Two launchers would each believe they own the servers: a second one only brings the first to the front.
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    const window = BrowserWindow.getAllWindows()[0]
+    if (window) {
+      if (window.isMinimized()) {
+        window.restore()
+      }
+      window.focus()
+    }
+  })
+  void app.whenReady().then(() => {
+    const window = createWindow()
+    registerIpc(window)
+    void launcher.initialize()
+  })
+}
 
 app.on('window-all-closed', () => {
   launcher.dispose()

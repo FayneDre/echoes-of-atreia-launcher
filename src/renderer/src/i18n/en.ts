@@ -39,6 +39,7 @@ export const en = {
   'install.java': 'Java',
   'install.notFound': 'Not found',
   'install.notSet': 'Not set',
+  'install.detecting': 'Looking for the server, the client, Java and MySQL…',
   'install.javaVersion': 'Java {version}',
   'install.javaTooOld': 'Java {version} (25 or later needed)',
 
@@ -58,7 +59,7 @@ export const en = {
   'problem.mysql-missing': 'No MySQL service was found on this computer.',
   'problem.mysql-refused': 'Windows did not allow MySQL to be started or stopped (the permission prompt was declined).',
   'problem.mysql-timeout': 'MySQL did not answer in time.',
-  'problem.mysql-in-use': 'Stop the game server before MySQL: it saves the characters into the database.',
+  'problem.mysql-in-use': 'Stop the servers before MySQL: the game server saves the characters into the database.',
   'problem.exited': 'The server stopped by itself.',
   'problem.port-timeout': 'The server did not open its port within two minutes.',
   'problem.register-timeout': 'The game server did not reach the login server within ten minutes.',
