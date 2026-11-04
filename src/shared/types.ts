@@ -23,6 +23,11 @@ export type ProblemCode =
   | 'stop-unanswered'
   | 'stop-timeout'
   | 'client-failed'
+  | 'account-unknown'
+  | 'password-wrong'
+  | 'password-needed'
+  | 'database-unreachable'
+  | 'encryption-unavailable'
 
 /** A code the interface translates, and what the system said, shown as is. */
 export interface Problem {
@@ -76,6 +81,34 @@ export interface LauncherState {
 }
 
 export type { ServerSettings } from './settingsCatalog'
+
+/** A character of the signed-in account, as the game database has it. */
+export interface CharacterSummary {
+  id: number
+  name: string
+  level: number
+  /** The server's class name, such as GLADIATOR; the interface translates it. */
+  playerClass: string
+  race: 'ELYOS' | 'ASMODIANS'
+  gender: 'MALE' | 'FEMALE'
+  /** The name of the map it stands on, from the server's world data; null for one it does not name. */
+  mapName: string | null
+  online: boolean
+  /** Set when the character is waiting to be deleted. */
+  deleting: boolean
+}
+
+/** The accounts the launcher keeps, and the one in use with its characters. */
+export interface AccountsState {
+  /** The accounts saved on this computer, by name, their passwords kept encrypted. */
+  accounts: string[]
+  active: string | null
+  /** The active account's characters; empty when they could not be read, the problem then says why. */
+  characters: CharacterSummary[]
+  /** The character the person plays with, on the active account. */
+  selectedCharacterId: number | null
+  problem?: Problem
+}
 
 export interface LogBatch {
   server: ServerId

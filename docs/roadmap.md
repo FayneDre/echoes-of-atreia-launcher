@@ -2,7 +2,8 @@
 
 Status: in progress: phases 0 and 1 done (start, client launch and stop checked by the tester on the real servers, 4 November; released as
 v0.1.0); phase 2 built, unverified in game (the rates taking effect after a restart; the server side that keeps the bots' XP pace is not
-deployed yet); phase 3 next.
+deployed yet); phase 3 in progress: sign-in, several accounts, the characters and the one played with built, unverified on the real
+database; the database backup is next.
 
 How phases 1 and 2 work, and why: [how-it-works.md](how-it-works.md).
 

@@ -1,8 +1,10 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
 import { SERVER_IDS, type FolderKind, type QuitAnswer, type ServerId } from '../shared/types'
+import { AccountService } from './accounts/accountService'
 import { Launcher } from './launcher'
 import { validValues } from './server/serverSettings'
+import { SettingsStore } from './settings'
 
 // Lets the end-to-end tests run against a throwaway profile instead of the player's own.
 const userDataDir = process.env['ECHOES_USER_DATA_DIR']
@@ -10,7 +12,12 @@ if (userDataDir) {
   app.setPath('userData', userDataDir)
 }
 
-const launcher = new Launcher()
+const settings = new SettingsStore()
+const launcher = new Launcher(settings)
+const accounts = new AccountService(settings, () => launcher.currentLayout)
+
+const isText = (value: unknown, maxLength: number): value is string =>
+  typeof value === 'string' && value.length > 0 && value.length <= maxLength
 // Set once the person has said what to do with running servers, so the window may close.
 let quitAllowed = false
 
@@ -27,6 +34,16 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('launcher:mysql-start', () => launcher.startMysql())
   ipcMain.handle('launcher:mysql-stop', () => launcher.stopMysql())
   ipcMain.handle('launcher:play', () => launcher.play())
+  ipcMain.handle('accounts:get-state', () => accounts.getState())
+  // Account names are 45 characters at most in the login database; a password is checked, never stored in clear.
+  ipcMain.handle('accounts:sign-in', (_event, name: unknown, password: unknown) =>
+    isText(name, 45) && isText(password, 256) ? accounts.signIn(name.trim(), password) : { code: 'account-unknown' }
+  )
+  ipcMain.handle('accounts:switch', (_event, name: unknown) => (isText(name, 45) ? accounts.switchTo(name) : undefined))
+  ipcMain.handle('accounts:forget', (_event, name: unknown) => (isText(name, 45) ? accounts.forget(name) : undefined))
+  ipcMain.handle('accounts:select-character', (_event, id: unknown) =>
+    Number.isInteger(id) ? accounts.selectCharacter(id as number) : undefined
+  )
   ipcMain.handle('launcher:get-server-settings', () => launcher.getServerSettings())
   ipcMain.handle('launcher:save-server-settings', (_event, value: unknown) => {
     const values = validValues(value)
@@ -121,7 +138,7 @@ if (!app.requestSingleInstanceLock()) {
   void app.whenReady().then(() => {
     const window = createWindow()
     registerIpc(window)
-    void launcher.initialize()
+    void settings.load().then(() => launcher.initialize())
   })
 }
 

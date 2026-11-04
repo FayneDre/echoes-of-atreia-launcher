@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { createServer, type Server } from 'node:net'
 import { tmpdir } from 'node:os'
@@ -49,11 +50,58 @@ function startBat(mainClass: string): string {
   return `@ECHO off\r\nTITLE test\r\n:START\r\nJAVA -Xms16m -Xmx16m -cp "libs/*" ${mainClass}\r\nPAUSE\r\n`
 }
 
+export interface FakeAccount {
+  id: number
+  name: string
+  password: string
+}
+
+export interface FakeCharacter {
+  id: number
+  accountId: number
+  name: string
+  exp: number
+  race: 'ELYOS' | 'ASMODIANS'
+  gender: 'MALE' | 'FEMALE'
+  playerClass: string
+  worldId: number
+  online: boolean
+  deleting: boolean
+}
+
+/** Two accounts of one person, and a third the tests never sign in to. Experience 400 is level 2, 1500 level 3 in the fake table. */
+export const FAKE_ACCOUNTS: FakeAccount[] = [
+  { id: 1, name: 'player1', password: 'secret' },
+  { id: 2, name: 'player2', password: 'other' },
+  { id: 3, name: 'stranger', password: 'x' }
+]
+
+export const FAKE_CHARACTERS: FakeCharacter[] = [
+  { id: 101, accountId: 1, name: 'Aeris', exp: 1500, race: 'ELYOS', gender: 'FEMALE', playerClass: 'CLERIC', worldId: 110010000, online: true, deleting: false },
+  { id: 102, accountId: 1, name: 'Borin', exp: 400, race: 'ASMODIANS', gender: 'MALE', playerClass: 'GLADIATOR', worldId: 220010000, online: false, deleting: false },
+  { id: 201, accountId: 2, name: 'Cyra', exp: 0, race: 'ELYOS', gender: 'FEMALE', playerClass: 'BARD', worldId: 999, online: false, deleting: true },
+  { id: 301, accountId: 3, name: 'Nobody', exp: 0, race: 'ELYOS', gender: 'MALE', playerClass: 'MAGE', worldId: 110010000, online: false, deleting: false }
+]
+
+/** Writes the stand-in for the two databases the launcher reads (ECHOES_FAKE_DB), passwords hashed as the login server hashes them. */
+export function writeFakeDatabase(install: FakeInstall, accounts: FakeAccount[] = FAKE_ACCOUNTS, characters = FAKE_CHARACTERS): void {
+  const hash = (password: string): string => createHash('sha1').update(password, 'utf8').digest('base64')
+  writeFileSync(
+    install.database,
+    JSON.stringify({
+      accounts: accounts.map((account) => ({ id: account.id, name: account.name, passwordHash: hash(account.password) })),
+      characters
+    })
+  )
+}
+
 export interface FakeInstall {
   root: string
   serverRoot: string
   clientRoot: string
   userData: string
+  /** The file that stands in for the account and character databases. */
+  database: string
   ports: { chat: number; login: number; loginClient: number; game: number; mysql: number }
   dispose: () => Promise<void>
 }
@@ -108,6 +156,15 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
   )
   write(join(serverRoot, 'game-server', 'config', 'main', 'gameserver.properties'), 'gameserver.character.creation.mode = 0\n')
   write(join(serverRoot, 'game-server', 'config', 'mygs.properties'), '# local overrides\ndatabase.user = aion\n')
+  // What the launcher reads the levels and the map names from.
+  write(
+    join(serverRoot, 'game-server', 'data', 'static_data', 'player_experience_table.xml'),
+    '<player_experience_table><exp>0</exp><exp>400</exp><exp>1433</exp><exp>3820</exp><exp>9054</exp></player_experience_table>\n'
+  )
+  write(
+    join(serverRoot, 'game-server', 'data', 'static_data', 'world_maps.xml'),
+    '<world_maps>\n\t<map id="110010000" cName="LC1" name="Sanctum"/>\n\t<map id="220010000" cName="DF1" name="Ishalgen"/>\n</world_maps>\n'
+  )
   write(join(clientRoot, 'bin64', 'aion.bin'), '')
 
   let mysql: Server | null = null
@@ -116,11 +173,12 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
     await new Promise<void>((done) => mysql!.listen(ports.mysql, '127.0.0.1', done))
   }
 
-  return {
+  const install: FakeInstall = {
     root,
     serverRoot,
     clientRoot,
     userData: join(root, 'user-data'),
+    database: join(root, 'database.json'),
     ports,
     dispose: async () => {
       await new Promise<void>((done) => (mysql ? mysql.close(() => done()) : done()))
@@ -135,6 +193,8 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
       }
     }
   }
+  writeFakeDatabase(install)
+  return install
 }
 
 export async function launchWith(install: FakeInstall): Promise<{ app: ElectronApplication; page: Page }> {
@@ -145,7 +205,8 @@ export async function launchWith(install: FakeInstall): Promise<{ app: ElectronA
       ECHOES_USER_DATA_DIR: install.userData,
       AION_SERVER_HOME: install.serverRoot,
       ECHOES_FAKE_JAVA: resolve('tests/fixtures/fake-java.mjs'),
-      ECHOES_FAKE_CLIENT: resolve('tests/fixtures/fake-client.mjs')
+      ECHOES_FAKE_CLIENT: resolve('tests/fixtures/fake-client.mjs'),
+      ECHOES_FAKE_DB: install.database
     }
   })
   const page = await app.firstWindow()

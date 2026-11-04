@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
-import type { FolderKind, LauncherState, LogBatch, QuitAnswer, ServerId, ServerSettings } from '../shared/types'
+import type { AccountsState, FolderKind, LauncherState, LogBatch, Problem, QuitAnswer, ServerId, ServerSettings } from '../shared/types'
 
 function subscribe<T>(channel: string, listener: (value: T) => void): () => void {
   const handler = (_event: IpcRendererEvent, value: T): void => listener(value)
@@ -18,6 +18,11 @@ const launcherApi = {
   startMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-start'),
   stopMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-stop'),
   play: (): Promise<boolean> => ipcRenderer.invoke('launcher:play'),
+  getAccounts: (): Promise<AccountsState> => ipcRenderer.invoke('accounts:get-state'),
+  signIn: (name: string, password: string): Promise<Problem | null> => ipcRenderer.invoke('accounts:sign-in', name, password),
+  switchAccount: (name: string): Promise<void> => ipcRenderer.invoke('accounts:switch', name),
+  forgetAccount: (name: string): Promise<void> => ipcRenderer.invoke('accounts:forget', name),
+  selectCharacter: (id: number): Promise<void> => ipcRenderer.invoke('accounts:select-character', id),
   getServerSettings: (): Promise<ServerSettings | null> => ipcRenderer.invoke('launcher:get-server-settings'),
   saveServerSettings: (values: Record<string, number>): Promise<boolean> => ipcRenderer.invoke('launcher:save-server-settings', values),
   chooseFolder: (kind: FolderKind): Promise<void> => ipcRenderer.invoke('launcher:choose-folder', kind),

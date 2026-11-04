@@ -74,6 +74,22 @@ Updating the server therefore never conflicts with the player's settings.
   `mygs.properties.before-launcher`.
 - Settings saved while the game server runs apply at its next start; the launcher says so until it stops or starts again.
 
+## Accounts and characters
+
+`src/main/accounts/`. The launcher reads the server's two databases, with the credentials each server uses (its `config`, overrides
+included), and never writes to them: the login server's `account_data` for the accounts, the game server's `players` for the characters.
+A connection is opened for each question and closed after it.
+
+- **The password is checked as the login server checks it**: SHA-1 of its UTF-8 bytes, in Base64 (`AccountUtils.encodePassword`).
+- **It is kept encrypted by Windows** (Electron `safeStorage`, DPAPI): unreadable on another computer or by another Windows user, never in
+  clear in `settings.json`. It is checked again at every start, so a password changed on the server asks for the new one.
+- **Several accounts** can be kept; one is active, and each remembers the character played with. Accounts are not created from the
+  launcher: the login server creates one at its first sign-in from the client.
+- **The level** is not in the database: it is computed from the experience with the server's `player_experience_table.xml`, as
+  `PlayerExperienceTable.getLevelForExp` does. **The map** name comes from `world_maps.xml`.
+- The world's bots live on reserved accounts (900000 and up) and are never listed: only the signed-in account's characters are.
+- The end-to-end tests read a JSON file instead of the databases (`ECHOES_FAKE_DB`).
+
 ## MySQL
 
 Up when its port answers. Started and stopped through its Windows service (`sc start|stop`), a running one first when there are several,

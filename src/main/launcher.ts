@@ -17,7 +17,7 @@ import { findClientNear, isClientFolder, readServerLayout, type ServerLayout } f
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
 import { readServerSettings, writeServerSettings } from './server/serverSettings'
-import { loadSettings, saveSettings, type Settings } from './settings'
+import type { SettingsStore } from './settings'
 import { javaCommand, javaMajorVersion } from './system/java'
 
 /**
@@ -26,7 +26,6 @@ import { javaCommand, javaMajorVersion } from './system/java'
  * server takes minutes to load, and the person must not have to wait for it to be ready to change their mind.
  */
 export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [LogBatch] }> {
-  private settings: Settings = {}
   private layout: ServerLayout | null = null
   private servers: Partial<Record<ServerId, ServerProcess>> = {}
   private readonly mysql = new MysqlControl(() => this.publish())
@@ -36,6 +35,15 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   private quitRequested = false
   private restartNeeded = false
   private problem: Problem | undefined
+
+  constructor(private readonly settings: SettingsStore) {
+    super()
+  }
+
+  /** The installation the servers run from, or null when none was found. */
+  get currentLayout(): ServerLayout | null {
+    return this.layout
+  }
 
   getState(): LauncherState {
     const servers = Object.fromEntries(
@@ -91,7 +99,6 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     return this.run(
       'detecting',
       async () => {
-        this.settings = await loadSettings()
         await this.detect()
         return true
       },
@@ -101,9 +108,10 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
 
   /** Finds the server, the client and Java, then takes over whatever servers are already running. */
   private async detect(): Promise<void> {
-    const serverRoot = this.settings.serverRoot || process.env['AION_SERVER_HOME'] || null
+    const saved = this.settings.current
+    const serverRoot = saved.serverRoot || process.env['AION_SERVER_HOME'] || null
     this.layout = serverRoot ? await readServerLayout(serverRoot) : null
-    const clientRoot = this.settings.clientRoot || (serverRoot ? await findClientNear(serverRoot) : null)
+    const clientRoot = saved.clientRoot || (serverRoot ? await findClientNear(serverRoot) : null)
     this.install = {
       serverRoot,
       serverFound: this.layout !== null,
@@ -143,8 +151,9 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       return Promise.resolve(false)
     }
     return this.run('detecting', async () => {
-      this.settings = kind === 'server' ? { ...this.settings, serverRoot: folder } : { ...this.settings, clientRoot: folder }
-      await saveSettings(this.settings)
+      await this.settings.update((settings) =>
+        kind === 'server' ? { ...settings, serverRoot: folder } : { ...settings, clientRoot: folder }
+      )
       await this.detect()
       return true
     })

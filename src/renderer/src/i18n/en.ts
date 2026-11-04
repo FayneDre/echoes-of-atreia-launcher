@@ -7,6 +7,7 @@ export const en = {
   'nav.label': 'Pages',
   'nav.home': 'Home',
   'nav.settings': 'Server settings',
+  'nav.account': 'Account',
 
   'settings.intro':
     'Values for regular accounts, written to the game server’s config/mygs.properties (never to its default files) and applied when it starts.',
@@ -86,6 +87,47 @@ export const en = {
   'settings.restartNeeded': 'Restart the servers to apply the new settings.',
   'settings.noServer': 'Choose the server folder on the Home page first.',
 
+  'account.intro':
+    'Sign in with your game account to see your characters and choose the one you play with. The password is kept on this computer, encrypted by Windows.',
+  'account.accounts': 'Accounts',
+  'account.add': 'Add an account',
+  'account.name': 'Account name',
+  'account.password': 'Password',
+  'account.signIn': 'Sign in',
+  'account.cancel': 'Cancel',
+  'account.forget': 'Forget this account',
+  'account.forgetConfirm': 'Forget {name} on this computer? Nothing changes on the server.',
+  'account.signInAgain': 'Sign in again to {name}',
+  'account.characters': 'Characters',
+  'account.choose': 'Choose the character you play with.',
+  'account.noCharacters': 'No character on this account yet: create one in the game.',
+  'account.refresh': 'Refresh',
+  'account.level': 'Level {level}',
+  'account.online': 'In game',
+  'account.deleting': 'Being deleted',
+  'account.playing': 'Playing: {name}',
+  'account.noMap': 'Unknown map',
+
+  'race.ELYOS': 'Elyos',
+  'race.ASMODIANS': 'Asmodian',
+  'class.WARRIOR': 'Warrior',
+  'class.GLADIATOR': 'Gladiator',
+  'class.TEMPLAR': 'Templar',
+  'class.SCOUT': 'Scout',
+  'class.ASSASSIN': 'Assassin',
+  'class.RANGER': 'Ranger',
+  'class.MAGE': 'Mage',
+  'class.SORCERER': 'Sorcerer',
+  'class.SPIRIT_MASTER': 'Spiritmaster',
+  'class.PRIEST': 'Priest',
+  'class.CLERIC': 'Cleric',
+  'class.CHANTER': 'Chanter',
+  'class.ENGINEER': 'Technist',
+  'class.GUNNER': 'Gunner',
+  'class.RIDER': 'Aethertech',
+  'class.ARTIST': 'Muse',
+  'class.BARD': 'Songweaver',
+
   'section.servers': 'Servers',
   'section.terminals': 'Terminals',
   'section.install': 'Installation',
@@ -147,7 +189,12 @@ export const en = {
   'problem.register-timeout': 'The game server did not reach the login server within ten minutes.',
   'problem.stop-unanswered': 'The game server did not answer the stop request. This server version may be too old for it.',
   'problem.stop-timeout': 'The server did not stop in time.',
-  'problem.client-failed': 'The game client could not be started.'
+  'problem.client-failed': 'The game client could not be started.',
+  'problem.account-unknown': 'There is no account by that name on this server.',
+  'problem.password-wrong': 'Wrong password.',
+  'problem.password-needed': 'The saved password no longer opens this account: type it again.',
+  'problem.database-unreachable': 'The database does not answer. Is MySQL started (Home page)?',
+  'problem.encryption-unavailable': 'Windows cannot encrypt the password on this computer, so it cannot be kept.'
 }
 
 export type MessageKey = keyof typeof en

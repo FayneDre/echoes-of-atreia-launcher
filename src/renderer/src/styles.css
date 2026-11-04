@@ -530,6 +530,131 @@ button.small {
   color: var(--ok);
 }
 
+.account-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.playing {
+  margin-left: auto;
+  margin-right: 12px;
+  padding: 5px 12px;
+  border-color: var(--asmodian);
+  border-radius: 16px;
+  background: #3d3220;
+  color: var(--asmodian);
+  font-size: 13px;
+}
+
+.playing + .nav {
+  margin-left: 0;
+}
+
+.add-account {
+  margin-top: 6px;
+  color: var(--elyos) !important;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sign-in {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+  margin-top: 12px;
+}
+
+.sign-in label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.sign-in input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-sunken);
+  color: var(--text);
+  font: inherit;
+}
+
+.sign-in input:focus {
+  border-color: var(--elyos);
+  outline: none;
+}
+
+.sign-in-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.characters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.character {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  background: var(--bg-sunken);
+  text-align: left;
+}
+
+.character.selected {
+  border-color: var(--asmodian);
+  box-shadow: inset 0 0 0 1px var(--asmodian);
+}
+
+.character-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.character-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.character-line {
+  font-size: 13px;
+}
+
+.character-map {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.tag {
+  padding: 1px 7px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.tag-online {
+  background: #1d3a2a;
+  color: var(--ok);
+}
+
+.tag-deleting {
+  background: #3a1d1d;
+  color: var(--bad);
+}
+
 .footer {
   padding: 8px 20px;
   color: var(--text-muted);

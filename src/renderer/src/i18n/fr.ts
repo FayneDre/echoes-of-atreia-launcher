@@ -8,6 +8,7 @@ export const fr: Record<MessageKey, string> = {
   'nav.label': 'Pages',
   'nav.home': 'Accueil',
   'nav.settings': 'Réglages du serveur',
+  'nav.account': 'Compte',
 
   'settings.intro':
     'Valeurs des comptes normaux, écrites dans le config/mygs.properties du serveur de jeu (jamais dans ses fichiers par défaut) et appliquées à son démarrage.',
@@ -87,6 +88,47 @@ export const fr: Record<MessageKey, string> = {
   'settings.restartNeeded': 'Redémarre les serveurs pour appliquer les nouveaux réglages.',
   'settings.noServer': "Choisis d'abord le dossier du serveur sur la page Accueil.",
 
+  'account.intro':
+    "Connecte-toi avec ton compte de jeu pour voir tes personnages et choisir celui avec lequel tu joues. Le mot de passe est conservé sur cet ordinateur, chiffré par Windows.",
+  'account.accounts': 'Comptes',
+  'account.add': 'Ajouter un compte',
+  'account.name': 'Nom du compte',
+  'account.password': 'Mot de passe',
+  'account.signIn': 'Se connecter',
+  'account.cancel': 'Annuler',
+  'account.forget': 'Oublier ce compte',
+  'account.forgetConfirm': 'Oublier {name} sur cet ordinateur ? Rien ne change sur le serveur.',
+  'account.signInAgain': 'Se reconnecter à {name}',
+  'account.characters': 'Personnages',
+  'account.choose': 'Choisis le personnage avec lequel tu joues.',
+  'account.noCharacters': "Aucun personnage sur ce compte pour l'instant : crées-en un dans le jeu.",
+  'account.refresh': 'Actualiser',
+  'account.level': 'Niveau {level}',
+  'account.online': 'En jeu',
+  'account.deleting': 'Suppression en cours',
+  'account.playing': 'Personnage : {name}',
+  'account.noMap': 'Carte inconnue',
+
+  'race.ELYOS': 'Élyséen',
+  'race.ASMODIANS': 'Asmodien',
+  'class.WARRIOR': 'Guerrier',
+  'class.GLADIATOR': 'Gladiateur',
+  'class.TEMPLAR': 'Templier',
+  'class.SCOUT': 'Éclaireur',
+  'class.ASSASSIN': 'Assassin',
+  'class.RANGER': 'Rôdeur',
+  'class.MAGE': 'Mage',
+  'class.SORCERER': 'Sorcier',
+  'class.SPIRIT_MASTER': 'Spiritualiste',
+  'class.PRIEST': 'Prêtre',
+  'class.CLERIC': 'Clerc',
+  'class.CHANTER': 'Aède',
+  'class.ENGINEER': 'Technicien',
+  'class.GUNNER': 'Pistolero',
+  'class.RIDER': 'Éthertech',
+  'class.ARTIST': 'Artiste',
+  'class.BARD': 'Barde',
+
   'section.servers': 'Serveurs',
   'section.terminals': 'Terminaux',
   'section.install': 'Installation',
@@ -150,5 +192,10 @@ export const fr: Record<MessageKey, string> = {
   'problem.stop-unanswered':
     "Le serveur de jeu n'a pas répondu à la demande d'arrêt. Cette version du serveur est peut-être trop ancienne.",
   'problem.stop-timeout': "Le serveur ne s'est pas arrêté à temps.",
-  'problem.client-failed': "Le client du jeu n'a pas pu être lancé."
+  'problem.client-failed': "Le client du jeu n'a pas pu être lancé.",
+  'problem.account-unknown': "Aucun compte de ce nom sur ce serveur.",
+  'problem.password-wrong': 'Mot de passe incorrect.',
+  'problem.password-needed': "Le mot de passe enregistré n'ouvre plus ce compte : saisis-le à nouveau.",
+  'problem.database-unreachable': 'La base de données ne répond pas. MySQL est-il démarré (page Accueil) ?',
+  'problem.encryption-unavailable': 'Windows ne peut pas chiffrer le mot de passe sur cet ordinateur : il ne peut donc pas être retenu.'
 }

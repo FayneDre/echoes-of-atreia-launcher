@@ -1,18 +1,27 @@
 import { useState } from 'react'
+import { AccountPage } from './components/AccountPage'
 import { InstallPanel } from './components/InstallPanel'
 import { QuitDialog } from './components/QuitDialog'
 import { ServersPanel } from './components/ServersPanel'
 import { SettingsPage } from './components/SettingsPage'
 import { TerminalPanel } from './components/TerminalPanel'
-import { LANGUAGES, useI18n } from './i18n'
-import { useLauncherState } from './useLauncher'
+import { LANGUAGES, useI18n, type MessageKey } from './i18n'
+import { useAccounts, useLauncherState } from './useLauncher'
 
-type Page = 'home' | 'settings'
+type Page = 'home' | 'account' | 'settings'
+
+const PAGES: { id: Page; label: MessageKey }[] = [
+  { id: 'home', label: 'nav.home' },
+  { id: 'account', label: 'nav.account' },
+  { id: 'settings', label: 'nav.settings' }
+]
 
 export function App(): React.JSX.Element {
   const { language, setLanguage, t } = useI18n()
   const state = useLauncherState()
+  const { accounts, reload } = useAccounts(state)
   const [page, setPage] = useState<Page>('home')
+  const playing = accounts?.characters.find((character) => character.id === accounts.selectedCharacterId)
 
   return (
     <div className="app">
@@ -21,13 +30,28 @@ export function App(): React.JSX.Element {
           <h1 className="title">Echoes of Atreia</h1>
           <p className="tagline">{t('home.tagline')}</p>
         </div>
+        {playing && (
+          <button type="button" className="playing" data-testid="playing" onClick={() => setPage('account')}>
+            {t('account.playing', { name: playing.name })}
+          </button>
+        )}
         <nav className="nav" aria-label={t('nav.label')}>
-          <button type="button" aria-current={page === 'home' ? 'page' : undefined} onClick={() => setPage('home')}>
-            {t('nav.home')}
-          </button>
-          <button type="button" aria-current={page === 'settings' ? 'page' : undefined} onClick={() => setPage('settings')}>
-            {t('nav.settings')}
-          </button>
+          {PAGES.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              aria-current={page === entry.id ? 'page' : undefined}
+              onClick={() => {
+                setPage(entry.id)
+                // What is in game changes while one plays: the list is read again on arrival.
+                if (entry.id === 'account') {
+                  void reload()
+                }
+              }}
+            >
+              {t(entry.label)}
+            </button>
+          ))}
         </nav>
         <div className="language-switch" role="group" aria-label={t('language.label')}>
           {LANGUAGES.map((code) => (
@@ -44,7 +68,7 @@ export function App(): React.JSX.Element {
         </p>
       )}
 
-      {/* Both pages stay mounted and the other is hidden: settings changed but not saved survive a look at the servers. */}
+      {/* Every page stays mounted and the others are hidden: what was typed on one survives a look at another. */}
       {state && (
         <main className="content" hidden={page !== 'home'}>
           <div className="column">
@@ -52,6 +76,11 @@ export function App(): React.JSX.Element {
             <InstallPanel state={state} />
           </div>
           <TerminalPanel />
+        </main>
+      )}
+      {state && (
+        <main className="content content-single" hidden={page !== 'account'}>
+          <AccountPage accounts={accounts} reload={reload} />
         </main>
       )}
       {state && (

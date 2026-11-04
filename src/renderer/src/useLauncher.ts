@@ -1,5 +1,23 @@
-import { useEffect, useState } from 'react'
-import type { LauncherState, ServerId } from '../../shared/types'
+import { useCallback, useEffect, useState } from 'react'
+import type { AccountsState, LauncherState, ServerId } from '../../shared/types'
+
+/**
+ * The saved accounts and the active one's characters, read again when what they depend on changes: the server folder (found at startup, or
+ * chosen) and MySQL coming up.
+ */
+export function useAccounts(state: LauncherState | null): { accounts: AccountsState | null; reload: () => Promise<void> } {
+  const [accounts, setAccounts] = useState<AccountsState | null>(null)
+  const reload = useCallback(async () => setAccounts(await window.launcher.getAccounts()), [])
+  const ready = state !== null && state.activity !== 'detecting'
+  const serverRoot = state?.install.serverRoot
+  const mysql = state?.mysql.status
+  useEffect(() => {
+    if (ready) {
+      void reload()
+    }
+  }, [ready, serverRoot, mysql, reload])
+  return { accounts, reload }
+}
 
 /** The launcher's state as the main process last published it; null until the first answer. */
 export function useLauncherState(): LauncherState | null {
