@@ -96,6 +96,42 @@ test('says why a backup failed, and leaves no half backup behind', async () => {
   await app.close()
 })
 
+test('survives a restore that fails half-way, and says what holds the data from before', async () => {
+  // A dump big enough that mysql stops while the launcher is still sending it.
+  writeFileSync(join(install.root, 'mysql-data', 'aion_ls.sql'), 'x'.repeat(8 * 1024 * 1024))
+  const { app, page } = await openBackups()
+  await backUp(page)
+  const [first] = readdirSync(backupsDir())
+  writeFileSync(join(install.root, 'mysql-data', 'fail-restore'), '')
+
+  page.once('dialog', (dialog) => void dialog.accept())
+  await page.getByTestId(`backup-${first}`).getByRole('button', { name: 'Restore' }).click()
+  const problem = page.getByRole('alert')
+  await expect(problem).toContainText('The restore failed.')
+  await expect(problem).toContainText('You have an error in your SQL syntax')
+  await expect(problem).toContainText('holds what was there before')
+  // Still standing, and still answering.
+  await expect(page.getByRole('button', { name: 'Back up now' })).toBeEnabled()
+  await app.close()
+})
+
+test('restores nothing from a backup whose description names a file outside it', async () => {
+  const { app, page } = await openBackups()
+  await backUp(page)
+  const [id] = readdirSync(backupsDir())
+  const metaFile = join(backupsDir(), id!, 'backup.json')
+  const meta = JSON.parse(readFileSync(metaFile, 'utf8'))
+  meta.databases[0].file = '../../outside.sql'
+  writeFileSync(metaFile, JSON.stringify(meta))
+
+  page.once('dialog', (dialog) => void dialog.accept())
+  await page.getByTestId(`backup-${id}`).getByRole('button', { name: 'Restore' }).click()
+  await expect(page.getByRole('alert')).toContainText('is not a dump file name')
+  // Refused before anything was touched: no safety backup either.
+  expect(readdirSync(backupsDir())).toEqual([id])
+  await app.close()
+})
+
 test('deletes a backup', async () => {
   const { app, page } = await openBackups()
   await backUp(page)

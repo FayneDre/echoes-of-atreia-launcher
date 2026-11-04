@@ -11,6 +11,8 @@ import { findMysqlBinDir } from '../server/mysql'
 // A backup's folder is its date, and nothing else is ever read or removed: a name from the interface cannot reach outside the folder.
 const BACKUP_ID = /^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}(-\d+)?$/
 const META_FILE = 'backup.json'
+// What backup.json may name as a database's file: a plain name in the backup's own folder, never a path out of it.
+const DUMP_FILE = /^[\w-]+\.sql$/
 const STDERR_KEPT = 4000
 
 interface Tool {
@@ -127,6 +129,9 @@ async function runTool(tool: Tool, address: DatabaseAddress, args: string[], inp
       })
       if (input) {
         const source = createReadStream(input)
+        // A tool that stops on an error closes its input while the dump is still being sent: writing on then fails with EPIPE, which,
+        // unheard, would take the whole launcher down. The tool's own exit code and message say what happened.
+        child.stdin!.on('error', () => source.destroy())
         source.on('error', () => child.kill())
         source.pipe(child.stdin!)
       }
@@ -255,6 +260,10 @@ export class BackupService {
       meta = JSON.parse(await readFile(join(dir, META_FILE), 'utf8')) as BackupMeta
     } catch {
       return { code: 'restore-failed', detail: `${id}: no ${META_FILE}` }
+    }
+    const strange = meta.databases.find((entry) => !DUMP_FILE.test(entry.file))
+    if (strange) {
+      return { code: 'restore-failed', detail: `${id}: ${strange.file} is not a dump file name` }
     }
     const addresses = await this.databases(layout)
     const targets = meta.databases.map((entry) => ({ entry, address: addresses.find((address) => address.database === entry.name) }))

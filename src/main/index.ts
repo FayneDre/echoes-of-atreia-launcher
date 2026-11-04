@@ -56,7 +56,10 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('backups:restore', (_event, id: unknown) =>
     typeof id === 'string' ? launcher.withActivity('restore', () => backups.restore(id)) : { code: 'restore-failed' }
   )
-  ipcMain.handle('backups:remove', (_event, id: unknown) => (typeof id === 'string' ? backups.remove(id) : undefined))
+  // Not while a backup or a restore is under way: it may be the very one being read.
+  ipcMain.handle('backups:remove', (_event, id: unknown) =>
+    typeof id === 'string' && launcher.getState().activity === 'idle' ? backups.remove(id) : undefined
+  )
   ipcMain.handle('backups:open-folder', async () => {
     const folder = await backups.folderPath()
     if (folder) {
@@ -118,6 +121,11 @@ function createWindow(): BrowserWindow {
 
   // Closing while servers run asks first: stop them (the game server saves the players), leave them running, or stay.
   window.on('close', (event) => {
+    // A restore stopped half-way leaves one database restored and the other not: the window waits for it to end.
+    if (launcher.getState().activity === 'restore') {
+      event.preventDefault()
+      return
+    }
     if (!quitAllowed && launcher.anyRunning) {
       event.preventDefault()
       launcher.setQuitRequested(true)

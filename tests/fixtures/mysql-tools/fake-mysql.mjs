@@ -1,6 +1,6 @@
 // Stands in for the mysql client in the end-to-end tests (ECHOES_FAKE_MYSQL_TOOLS): reads a dump on its input and makes it the content of the
 // database file ECHOES_FAKE_MYSQL_DATA/<name>.sql, as running the real dump replaces the tables.
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const args = process.argv.slice(2)
@@ -10,6 +10,11 @@ if (!optionFile || !/^\[client\]/.test(readFileSync(optionFile, 'utf8'))) {
   process.exit(1)
 }
 const database = args.at(-1)
+// A marker file makes it fail at once, without reading its input: the launcher may still be sending the dump.
+if (existsSync(join(process.env.ECHOES_FAKE_MYSQL_DATA, 'fail-restore'))) {
+  process.stderr.write("mysql: ERROR 1064 (42000) at line 1: You have an error in your SQL syntax\n")
+  process.exit(1)
+}
 const chunks = []
 process.stdin.on('data', (chunk) => chunks.push(chunk))
 process.stdin.on('end', () => {
