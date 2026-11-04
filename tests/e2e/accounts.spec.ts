@@ -127,11 +127,10 @@ test('teleports the character played, through the game server', async () => {
   const log = join(install.serverRoot, 'game-server', 'log', 'server_console.log')
   await expect.poll(() => readFileSync(log, 'utf8')).toContain('teleport 101 110010000 1 2 3')
 
-  // A character that is not in game is told so.
+  // A character that is not in game is not offered the teleport.
   await page.getByTestId('character-Borin').click()
-  await page.getByLabel('Places').selectOption({ label: 'Sanctum' })
-  await page.getByRole('button', { name: 'Teleport', exact: true }).click()
-  await expect(page.getByRole('alert')).toContainText('not in game')
+  await expect(page.getByTestId('teleport')).toContainText('log in with the character')
+  await expect(page.getByLabel('Places')).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Home' }).click()
   await page.getByRole('button', { name: 'Stop the servers' }).click()

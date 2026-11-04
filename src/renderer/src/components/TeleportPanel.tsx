@@ -44,7 +44,7 @@ export function TeleportPanel(props: { character: CharacterSummary; gameReady: b
   return (
     <div className="teleport" data-testid="teleport">
       <h4>{t('teleport.title', { name: props.character.name })}</h4>
-      {!props.gameReady ? (
+      {!props.gameReady || !props.character.online ? (
         <p className="muted">{t('teleport.needsServer')}</p>
       ) : (
         <>
