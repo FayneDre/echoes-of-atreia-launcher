@@ -33,25 +33,35 @@ function NumberInput(props: {
   definition: SettingDefinition
   value: number | null
   placeholder?: string
+  unit?: string
   onChange: (value: number) => void
 }): React.JSX.Element {
   const { definition } = props
   const limits = LIMITS[definition.kind]
-  const step = definition.kind === 'multiplier' ? 0.5 : 1
+  const prefix = definition.kind === 'multiplier' ? 'x' : null
+  const suffix = props.unit ?? (definition.kind === 'percent' ? '%' : null)
   return (
     <span className="value-input">
-      {definition.kind === 'multiplier' && <span aria-hidden="true">x</span>}
+      {prefix && (
+        <span className="affix" aria-hidden="true">
+          {prefix}
+        </span>
+      )}
       <input
         type="number"
         aria-label={props.label}
         min={limits.min}
         max={limits.max}
-        step={step}
+        step={definition.kind === 'multiplier' ? 0.5 : 1}
         value={props.value === null || Number.isNaN(props.value) ? '' : props.value}
         placeholder={props.placeholder}
         onChange={(event) => props.onChange(event.currentTarget.valueAsNumber)}
       />
-      {definition.kind === 'percent' && <span aria-hidden="true">%</span>}
+      {suffix && (
+        <span className="affix" aria-hidden="true">
+          {suffix}
+        </span>
+      )}
     </span>
   )
 }
@@ -76,22 +86,17 @@ function sharedPercent(settings: SettingDefinition[], values: Values, official: 
   return consistent ? percent : null
 }
 
-function GroupView(props: {
+function GroupPanel(props: {
   group: SettingGroup
+  settings: SettingDefinition[]
   values: Values
   official: Values
+  changed: number
   onChange: (changes: Values) => void
-}): React.JSX.Element | null {
+}): React.JSX.Element {
   const { t } = useI18n()
-  const [open, setOpen] = useState(false)
-  const { group, values, official } = props
-  // Only what this server's files have.
-  const settings = group.settings.filter((definition) => official[definition.id] !== undefined)
-  if (settings.length === 0) {
-    return null
-  }
+  const { group, settings, values, official } = props
   const title = t(groupLabel(group))
-  const changed = settings.filter((definition) => values[definition.id] !== official[definition.id]).length
   // Not every group needs one.
   const hintKey = `hint.${group.id}`
   const hint = hasMessage(hintKey) ? t(hintKey) : null
@@ -106,6 +111,7 @@ function GroupView(props: {
         ])
       )
     )
+  const resetGroup = (): void => props.onChange(Object.fromEntries(settings.map((definition) => [definition.id, official[definition.id]!])))
 
   let globalField: React.JSX.Element | null = null
   if (group.globalField === 'same-value') {
@@ -131,60 +137,59 @@ function GroupView(props: {
   }
 
   return (
-    <section className="setting-group" data-testid={`group-${group.id}`}>
-      <div className="group-header">
-        <button type="button" className="group-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
-          <span className="chevron" aria-hidden="true">
-            {open ? '▾' : '▸'}
-          </span>
-          {title}
+    <div className="group-panel" role="tabpanel" aria-label={title} data-testid={`group-${group.id}`}>
+      <div className="group-panel-header">
+        <div>
+          <h3>{title}</h3>
+          {props.changed > 0 && <span className="group-changed">{t('settings.changed', { count: props.changed })}</span>}
+        </div>
+        <button type="button" className="small" disabled={props.changed === 0} onClick={resetGroup}>
+          {t('settings.official')}
         </button>
-        {changed > 0 && <span className="group-changed">{t('settings.changed', { count: changed })}</span>}
-        {globalField && (
-          <span className="group-global">
-            <span className="muted-inline">{t('settings.all')}</span>
-            {globalField}
-          </span>
-        )}
       </div>
-      {open && (
-        <div className="group-body">
-          {hint && <p className="hint">{hint}</p>}
-          {settings.map((definition) => {
-            const value = values[definition.id]!
-            const label = `${title} — ${t(settingLabel(definition))}`
-            const modified = value !== official[definition.id]
-            return (
-              <div key={definition.id} className={modified ? 'setting-row modified' : 'setting-row'}>
-                <span className="setting-label">{t(settingLabel(definition))}</span>
-                {definition.kind === 'toggle' ? (
+      {hint && <p className="hint">{hint}</p>}
+
+      <div className="setting-table">
+        {globalField && (
+          <div className="setting-row setting-row-all">
+            <span className="setting-label">{t('settings.allOfGroup')}</span>
+            {globalField}
+            <span className="official" />
+          </div>
+        )}
+        {settings.map((definition) => {
+          const value = values[definition.id]!
+          const label = `${title} — ${t(settingLabel(definition))}`
+          const modified = value !== official[definition.id]
+          return (
+            <div key={definition.id} className={modified ? 'setting-row modified' : 'setting-row'}>
+              <span className="setting-label">{t(settingLabel(definition))}</span>
+              {definition.kind === 'toggle' ? (
+                <span className="toggle-cell">
                   <input
                     type="checkbox"
                     aria-label={label}
                     checked={value === 1}
                     onChange={(event) => props.onChange({ [definition.id]: event.currentTarget.checked ? 1 : 0 })}
                   />
-                ) : (
-                  <span className="setting-control">
-                    <NumberInput
-                      label={label}
-                      definition={definition}
-                      value={value}
-                      onChange={(next) => props.onChange({ [definition.id]: next })}
-                    />
-                    {definition.kind === 'points' && <span className="muted-inline">{t('settings.pointsPerDay')}</span>}
-                    <span className="official">{t('settings.officialValue', { value: formatOfficial(definition, official[definition.id]!) })}</span>
-                  </span>
-                )}
-              </div>
-            )
-          })}
-          <button type="button" className="small" onClick={() => props.onChange(Object.fromEntries(settings.map((d) => [d.id, official[d.id]!])))}>
-            {t('settings.official')}
-          </button>
-        </div>
-      )}
-    </section>
+                </span>
+              ) : (
+                <NumberInput
+                  label={label}
+                  definition={definition}
+                  value={value}
+                  unit={definition.kind === 'points' ? t('settings.perDay') : undefined}
+                  onChange={(next) => props.onChange({ [definition.id]: next })}
+                />
+              )}
+              <span className="official">
+                {definition.kind === 'toggle' ? '' : t('settings.officialValue', { value: formatOfficial(definition, official[definition.id]!) })}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -193,6 +198,7 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
   const [settings, setSettings] = useState<ServerSettings | null>(null)
   const [values, setValues] = useState<Values>({})
   const [feedback, setFeedback] = useState<Feedback>(null)
+  const [selected, setSelected] = useState(SETTING_GROUPS[0]!.id)
   const serverRoot = state.install.serverFound ? state.install.serverRoot : null
 
   useEffect(() => {
@@ -217,12 +223,20 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
     return <section className="panel settings-page" aria-busy="true" />
   }
 
-  const definitions = SETTING_GROUPS.flatMap((group) => group.settings).filter((definition) => settings.official[definition.id] !== undefined)
+  // Only what this server's files have.
+  const groups = SETTING_GROUPS.map((group) => ({
+    group,
+    settings: group.settings.filter((definition) => settings.official[definition.id] !== undefined)
+  })).filter((entry) => entry.settings.length > 0)
+  const definitions = groups.flatMap((entry) => entry.settings)
+  const changedIn = (list: SettingDefinition[]): number => list.filter((d) => values[d.id] !== settings.official[d.id]).length
+
   // Only what was changed here is sent: a setting the page cannot show as it is (a premium rate of its own, the reservation mode) stays as
   // the file has it unless the person changes it.
   const edited = Object.fromEntries(definitions.filter((d) => values[d.id] !== settings.values[d.id]).map((d) => [d.id, values[d.id]!]))
   const dirty = Object.keys(edited).length > 0
   const valid = definitions.every((definition) => isAllowed(definition, values[definition.id]))
+  const current = groups.find((entry) => entry.group.id === selected) ?? groups[0]!
 
   const change = (changes: Values): void => {
     setValues({ ...values, ...changes })
@@ -238,36 +252,69 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
 
   return (
     <section className="panel settings-page" aria-labelledby="settings-title">
-      <h2 id="settings-title">{t('nav.settings')}</h2>
-      <p className="muted">{t('settings.intro')}</p>
+      <header className="settings-header">
+        <h2 id="settings-title">{t('nav.settings')}</h2>
+        <p className="muted">{t('settings.intro')}</p>
+      </header>
 
-      {SETTING_GROUPS.map((group) => (
-        <GroupView key={group.id} group={group} values={values} official={settings.official} onChange={change} />
-      ))}
+      <div className="settings-layout">
+        <div className="group-list" role="tablist" aria-orientation="vertical" aria-label={t('nav.settings')}>
+          {groups.map(({ group, settings: list }) => {
+            const changed = changedIn(list)
+            return (
+              <button
+                key={group.id}
+                type="button"
+                role="tab"
+                aria-selected={group.id === current.group.id}
+                onClick={() => setSelected(group.id)}
+              >
+                <span>{t(groupLabel(group))}</span>
+                {changed > 0 && (
+                  <span className="badge" aria-label={t('settings.changed', { count: changed })}>
+                    {changed}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+        <GroupPanel
+          key={current.group.id}
+          group={current.group}
+          settings={current.settings}
+          values={values}
+          official={settings.official}
+          changed={changedIn(current.settings)}
+          onChange={change}
+        />
+      </div>
 
-      <div className="actions">
+      <div className="save-bar">
+        <span className="save-state">
+          {feedback === 'saved' && !dirty && (
+            <span className="success" role="status">
+              {t('settings.saved')}
+            </span>
+          )}
+          {feedback === 'failed' && (
+            <span className="problem" role="alert">
+              {t('settings.saveFailed')}
+            </span>
+          )}
+          {dirty && feedback !== 'failed' && (
+            <span className="unsaved" data-testid="unsaved">
+              {t('settings.unsaved')}
+            </span>
+          )}
+        </span>
         <button type="button" onClick={() => change(settings.official)}>
           {t('settings.allOfficial')}
         </button>
-        {dirty && (
-          <span className="unsaved" data-testid="unsaved">
-            {t('settings.unsaved')}
-          </span>
-        )}
         <button type="button" className="button-primary" disabled={!valid || !dirty} onClick={() => void save()}>
           {t('settings.save')}
         </button>
       </div>
-      {feedback === 'saved' && (
-        <p className="success" role="status">
-          {t('settings.saved')}
-        </p>
-      )}
-      {feedback === 'failed' && (
-        <p className="problem" role="alert">
-          {t('settings.saveFailed')}
-        </p>
-      )}
     </section>
   )
 }

@@ -9,14 +9,15 @@ export const en = {
   'nav.settings': 'Server settings',
 
   'settings.intro':
-    'Values for regular accounts. A group’s field sets all of its settings at once; open the group to set each one. They are written to the game server’s config/mygs.properties, never to its default files, and apply when it starts.',
+    'Values for regular accounts, written to the game server’s config/mygs.properties (never to its default files) and applied when it starts.',
   'settings.all': 'All',
+  'settings.allOfGroup': 'All at once',
+  'settings.perDay': 'a day',
   'settings.mixed': 'mixed',
   'settings.officialValue': 'official {value}',
   'settings.changed': '{count} changed',
   'settings.official': 'Official values',
   'settings.allOfficial': 'Everything to the official values',
-  'settings.pointsPerDay': 'points a day',
   'settings.save': 'Save',
   'settings.unsaved': 'Changes not saved yet',
 

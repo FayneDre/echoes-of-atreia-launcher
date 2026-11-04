@@ -29,8 +29,9 @@ function overrides(): string {
 
 const group = (page: Page, id: string): Locator => page.getByTestId(`group-${id}`)
 
-async function expand(page: Page, id: string, title: string): Promise<void> {
-  await group(page, id).getByRole('button', { name: title }).click()
+// The families are tabs: one shows at a time.
+async function select(page: Page, title: string): Promise<void> {
+  await page.getByRole('tab', { name: title }).click()
 }
 
 async function save(page: Page): Promise<void> {
@@ -41,7 +42,7 @@ async function save(page: Page): Promise<void> {
 test('sets a whole group at once, or each of its settings', async () => {
   const { app, page } = await openSettings()
   await page.getByLabel('Experience (XP) — All').fill('3')
-  await expand(page, 'xp', 'Experience (XP)')
+  await select(page, 'Experience (XP)')
   await expect(page.getByLabel('Experience (XP) — Monsters, alone')).toHaveValue('3')
   await expect(page.getByLabel('Experience (XP) — Quests')).toHaveValue('3')
 
@@ -63,7 +64,7 @@ test('sets a whole group at once, or each of its settings', async () => {
   await app.close()
 
   const again = await openSettings()
-  await expand(again.page, 'xp', 'Experience (XP)')
+  await select(again.page, 'Experience (XP)')
   await expect(again.page.getByLabel('Experience (XP) — Monsters, in a group')).toHaveValue('5')
   await expect(again.page.getByLabel('Experience (XP) — Monsters, alone')).toHaveValue('3')
   await again.app.close()
@@ -71,8 +72,8 @@ test('sets a whole group at once, or each of its settings', async () => {
 
 test('sets the daily Glory Point loss as a share of the official loss, or rank by rank', async () => {
   const { app, page } = await openSettings()
+  await select(page, 'Daily Glory Point loss')
   await page.getByLabel('Daily Glory Point loss — All').fill('50')
-  await expand(page, 'gpLoss', 'Daily Glory Point loss')
   await expect(page.getByLabel('Daily Glory Point loss — Officer, 1 star')).toHaveValue('5')
   await expect(page.getByLabel('Daily Glory Point loss — Supreme Commander')).toHaveValue('110')
   await expect(group(page, 'gpLoss')).toContainText('official 219')
@@ -87,10 +88,10 @@ test('sets the daily Glory Point loss as a share of the official loss, or rank b
 
 test('sets the chances of success in percent, and the factions', async () => {
   const { app, page } = await openSettings()
-  await expand(page, 'chances', 'Chances of success')
+  await select(page, 'Chances of success')
   await expect(page.getByLabel('Chances of success — Manastone socketing')).toHaveValue('75')
   await page.getByLabel('Chances of success — Manastone socketing').fill('100')
-  await expand(page, 'account', 'Accounts')
+  await select(page, 'Accounts')
   await page.getByLabel('Accounts — Characters of both factions on one account').check()
   await save(page)
   expect(overrides()).toContain('gameserver.rates.manastone_chances = 100.0\n')
@@ -100,6 +101,7 @@ test('sets the chances of success in percent, and the factions', async () => {
 
 test('goes back to the official values, which leaves nothing of them in mygs.properties', async () => {
   const { app, page } = await openSettings()
+  await select(page, 'Abyss Points (AP)')
   await page.getByLabel('Abyss Points (AP) — All').fill('4')
   await save(page)
   expect(overrides()).toContain('gameserver.rates.ap.pve = 4.0\n')
@@ -120,6 +122,7 @@ test('leaves every setting it was not asked to change as the file had it', async
   const file = join(install.serverRoot, 'game-server', 'config', 'mygs.properties')
   writeFileSync(file, 'gameserver.rates.xp.solo = 2.0, 5.0\ngameserver.character.creation.mode = 2\n', 'latin1')
   const { app, page } = await openSettings()
+  await select(page, 'Divine Points (DP)')
   await page.getByLabel('Divine Points (DP) — All').fill('3')
   await save(page)
   expect(overrides()).toContain('gameserver.rates.xp.solo = 2.0, 5.0\n')
@@ -170,6 +173,7 @@ test('asks for a restart when the settings change while the game server runs', a
   await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })
 
   await page.getByRole('button', { name: 'Server settings' }).click()
+  await select(page, 'Glory Points (GP)')
   await page.getByLabel('Glory Points (GP) — All').fill('2')
   await save(page)
   await expect(page.getByTestId('restart-needed')).toContainText('Restart the servers')

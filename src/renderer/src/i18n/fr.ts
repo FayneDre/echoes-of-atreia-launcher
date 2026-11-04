@@ -10,14 +10,15 @@ export const fr: Record<MessageKey, string> = {
   'nav.settings': 'Réglages du serveur',
 
   'settings.intro':
-    "Valeurs des comptes normaux. Le champ d'une famille règle tous ses réglages d'un coup ; ouvre la famille pour les régler un par un. Ils sont écrits dans le config/mygs.properties du serveur de jeu, jamais dans ses fichiers par défaut, et s'appliquent à son démarrage.",
+    'Valeurs des comptes normaux, écrites dans le config/mygs.properties du serveur de jeu (jamais dans ses fichiers par défaut) et appliquées à son démarrage.',
   'settings.all': 'Tout',
+  'settings.allOfGroup': "Tout d'un coup",
+  'settings.perDay': 'par jour',
   'settings.mixed': 'mixte',
   'settings.officialValue': 'officiel {value}',
   'settings.changed': '{count} modifié(s)',
   'settings.official': 'Valeurs officielles',
   'settings.allOfficial': 'Tout aux valeurs officielles',
-  'settings.pointsPerDay': 'points par jour',
   'settings.save': 'Enregistrer',
   'settings.unsaved': 'Modifications non enregistrées',
 
