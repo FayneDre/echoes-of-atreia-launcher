@@ -35,8 +35,25 @@ Features fall in three kinds, and the kind decides the order:
 | 4. Admin channel | A folder `game-server/admin/` the running server answers (`reload-config`, `destinations`, `teleport`): saved settings apply at once, and the picked character can be teleported to any place of the server's teleport list (Account page) | yes (`AdminChannel`) |
 | 5. Bots and broker | List of the bots by faction (read from the database, no server work); bot XP rate, PvP, chat and its language, broker settings (Bots page, from the server's bot options) | yes (`PlayerBotConfig`) |
 | Postponed | The global bot density slider (to follow the living-world tests on the server first); skill learning (its rules are still to be defined) | yes |
-| 6. Distribution | Public installer, updates from published releases, SQL updates, patch notes in FR and EN | releases |
+| 6. Distribution | Public installer, updates from published releases, SQL updates, patch notes in FR and EN; see "Distribution and client options" below | releases |
+| 6b. Client options | The client in French, several clients at once, the Vulkan renderer; see below | — |
 | 7. Linux | The servers run there; the client needs Wine | — |
+
+## Distribution and client options
+
+Planned on 5 November, in this order. None of them touches the client's executables.
+
+1. **Updates by difference.** A release publishes a manifest: every file of the server and client with its size and SHA-256. The launcher compares
+   it with the install, downloads only what changed, backs up each file it replaces (so an update can be rolled back) and never touches the
+   database, `mygs.properties` or the player's saves. SQL changes go through the server's own once-only mechanism (`schema_applied_sql`).
+2. **A first download that resumes and verifies.** The full install is tens of gigabytes: downloaded in parts that survive a closed launcher or a
+   lost connection, checked against the manifest's SHA-256 before anything is extracted, with a second source when the first fails.
+3. **The client in French.** The 4.8 NA client accepts only the ENU, DEU and FRA locales; the launcher prepares `L10N/fra` from French text data
+   and starts the client with `-lang:fra`, the English archives left untouched. The French data must come from an original French client: where
+   it comes from is settled before anything is distributed.
+4. **Several clients at once**, each signed in to its own account: an open game no longer blocks Play. For testing groups and trades alone.
+5. **The Vulkan renderer**, optional: DXVK's Direct3D 9 DLL put beside the client or removed again, the choice remembered. Often smoother on
+   recent graphics cards; switched only while every client is closed.
 
 ## Decisions and their reasons
 
