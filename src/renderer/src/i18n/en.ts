@@ -19,9 +19,19 @@ export const en = {
   'bots.more': 'Showing the first {shown} of {total}: search to narrow the list.',
   'bots.inWorld': 'In the world',
   'bots.refresh': 'Refresh',
+  'bots.settings': 'Bot settings',
+  'bots.settingsIntro':
+    'How the world’s bots earn experience, fight players, speak and trade. Written to config/mygs.properties like the server settings, and applied at once while the game server runs, except what is marked as read at start.',
 
   'settings.intro':
-    'Values for regular accounts, written to the game server’s config/mygs.properties (never to its default files) and applied when it starts.',
+    'Values for regular accounts, written to the game server’s config/mygs.properties (never to its default files). A game server that runs applies them at once.',
+  'settings.on': 'on',
+  'settings.off': 'off',
+  'settings.startOnly': 'read at start',
+  'settings.noneOnServer': 'This server has none of these settings: deploy a newer build.',
+  'unit.levels': 'levels',
+  'unit.listings': 'listings',
+  'unit.kinah': 'kinah',
   'settings.all': 'All',
   'settings.allOfGroup': 'All at once',
   'settings.perDay': 'a day',
@@ -44,6 +54,10 @@ export const en = {
   'group.arena': 'PvP arena rewards',
   'group.chances': 'Chances of success',
   'group.account': 'Accounts',
+  'group.botXp': 'Experience',
+  'group.botPvp': 'PvP',
+  'group.botChat': 'Chat',
+  'group.broker': 'Broker',
 
   'hint.xp': 'The world’s bots keep their own pace whatever this rate; a bot in a player’s group follows the player’s.',
   'hint.ap':
@@ -52,6 +66,13 @@ export const en = {
   'hint.gpLoss':
     'Every day at noon, each Abyss officer rank loses Glory Points. The group’s field is a share of the official loss: 100 % is official, 0 % turns it off.',
   'hint.chances': 'In percent, for each attempt.',
+  'hint.botXp':
+    'A percent of the official rate, whatever the players’ rates: at 1 %, a bot takes about thirteen hours to outgrow a region. A bot in a player’s group follows the player’s rate.',
+  'hint.botPvp':
+    'Where the game allows PvP, how bots pick a player of the other faction. The three shares are relative to one another: fighters attack on sight, opportunists only a weakened or lower level player, peaceful bots only defend themselves.',
+  'hint.botChat': 'What bots say in the Region, Trade and Find Group channels and by shout in the capitals.',
+  'hint.broker':
+    'The server keeps each faction’s broker stocked with listings, and buys players’ listings priced within the known range, up to a daily ceiling.',
 
   'setting.xp.solo': 'Monsters, alone',
   'setting.xp.group': 'Monsters, in a group',
@@ -93,6 +114,24 @@ export const en = {
   'setting.enchantment_stone.amplified_chances': 'Enchanting an amplified item',
   'setting.tampering_chances': 'Tempering',
   'setting.bothFactions': 'Characters of both factions on one account',
+  'setting.bots.xp.solo': 'Monsters, alone',
+  'setting.bots.xp.group': 'Monsters, in a group',
+  'setting.bots.xp.pvp': 'Player kills',
+  'setting.bots.pvp.enable': 'Bots attack players',
+  'setting.bots.pvp.share.fighter': 'Share of fighters',
+  'setting.bots.pvp.share.opportunist': 'Share of opportunists',
+  'setting.bots.pvp.share.peaceful': 'Share of peaceful bots',
+  'setting.bots.pvp.level_above': 'Players up to this far above',
+  'setting.bots.pvp.level_below': 'Players down to this far below',
+  'setting.bots.chat.enable': 'Bots speak',
+  'setting.bots.chat.language': 'Language',
+  'option.bots.chat.language.FR': 'French',
+  'option.bots.chat.language.EN': 'English',
+  'setting.bots.broker.enable': 'Stocked by the server',
+  'setting.bots.broker.size': 'Listings per faction',
+  'setting.bots.broker.buyer.enable': 'Buys players’ listings',
+  'setting.bots.broker.buyer.tolerance': 'Above the known price, at most',
+  'setting.bots.broker.buyer.daily_kinah': 'Spent a day, at most',
   'settings.saved': 'Saved.',
   'settings.saveFailed': 'The settings could not be saved.',
   'settings.restartNeeded': 'Restart the servers to apply the new settings.',

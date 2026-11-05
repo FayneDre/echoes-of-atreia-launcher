@@ -16,22 +16,53 @@ function firstNumber(value: string | undefined): number | null {
 
 // Java reads "2" and "2.0" alike; the server's own files write rates with a decimal.
 function formatValue(definition: SettingDefinition, value: number): string {
-  if (definition.kind === 'points' || definition.kind === 'toggle') {
-    return String(Math.round(value))
+  switch (definition.kind) {
+    case 'flag':
+      return value === 1 ? 'true' : 'false'
+    case 'choice':
+      return definition.options![value]!
+    case 'points':
+    case 'toggle':
+    case 'count':
+      return String(Math.round(value))
+    default: {
+      const rounded = Math.round(value * 1000) / 1000
+      return Number.isInteger(rounded) ? rounded.toFixed(1) : String(rounded)
+    }
   }
-  const rounded = Math.round(value * 1000) / 1000
-  return Number.isInteger(rounded) ? rounded.toFixed(1) : String(rounded)
+}
+
+/** A value as the server's file writes it, or null when it is missing or not one the setting can hold. */
+function parseValue(definition: SettingDefinition, text: string | undefined): number | null {
+  if (text === undefined) {
+    return null
+  }
+  switch (definition.kind) {
+    case 'toggle':
+      return text.trim() === '1' ? 1 : 0
+    case 'flag': {
+      // As Java's Boolean.parseBoolean: true in any case, anything else false.
+      return text.trim().toLowerCase() === 'true' ? 1 : 0
+    }
+    case 'choice': {
+      const index = (definition.options ?? []).indexOf(text.trim().toUpperCase())
+      return index >= 0 ? index : null
+    }
+    default:
+      return firstNumber(text)
+  }
 }
 
 /**
  * The official value of a setting, from the server's default files. A toggle missing from them is off, as the server's own default
- * (`gameserver.character.creation.mode`, 0); any other missing setting is one this server does not have, and is not offered.
+ * (`gameserver.character.creation.mode`, 0); any other missing setting is one this server does not have (a bot option of a server older than
+ * it), and is not offered.
  */
 function officialOf(definition: SettingDefinition, defaults: Map<string, string>): number | null {
   if (definition.kind === 'toggle') {
     return defaults.get(definition.key) === '1' ? 1 : 0
   }
-  return firstNumber(defaults.get(definition.key))
+  return parseValue(definition, defaults.get(definition.key))
 }
 
 export async function readServerSettings(gameDir: string): Promise<ServerSettings> {
@@ -44,10 +75,14 @@ export async function readServerSettings(gameDir: string): Promise<ServerSetting
       continue
     }
     official[definition.id] = base
-    values[definition.id] =
-      definition.kind === 'toggle' ? (merged.get(definition.key) === '1' ? 1 : 0) : (firstNumber(merged.get(definition.key)) ?? base)
+    values[definition.id] = parseValue(definition, merged.get(definition.key)) ?? base
   }
   return { values, official }
+}
+
+/** Whether one of these settings is read when the game server starts only, so that saving it while the server runs asks for a restart. */
+export function needsStart(ids: string[]): boolean {
+  return ALL_SETTINGS.some((definition) => definition.startOnly && ids.includes(definition.id))
 }
 
 /** The values, or null when one is unknown or outside what the launcher offers (the interface does not send those). */

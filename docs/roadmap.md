@@ -3,7 +3,8 @@
 Status: in progress: phases 0 and 1 done (start, client launch and stop checked by the tester on the real servers, 4 November; released as
 v0.1.0); phase 2 built, unverified in game (the rates taking effect after a restart; the server side that keeps the bots' XP pace is not
 deployed yet); phase 3 built: sign-in, several accounts, the characters and the one played with done (checked by the tester on the real
-database, 4 November); backup and restore done (checked by the tester on the real database, 4 November); phase 4 built, unverified in game (the server side is not deployed yet); phase 5 started: the bot list by faction is built (checked on the real database); density and skill learning are postponed.
+database, 4 November); backup and restore done (checked by the tester on the real database, 4 November); phase 4 built, its server side deployed on 4 November, unverified in game; phase 5 built: the bot list by faction (checked on the real database) and the bot settings (XP, PvP, chat, broker; unverified in game,
+the server's bot options of 4 November are not deployed yet, so the installed server offers only the switches it already had); density and skill learning are postponed.
 
 How phases 1 and 2 work, and why: [how-it-works.md](how-it-works.md).
 
@@ -32,7 +33,7 @@ Features fall in three kinds, and the kind decides the order:
 | 2. Settings | Every rate by family (a family field and each rate), the daily Glory Point loss rank by rank, both factions, in `mygs.properties`, with "restart required" | world bots keep their XP pace (`BotPacing.OFFICIAL_XP_RATE`) |
 | 3. Account | Sign in with account name and password, list its characters, pick the one played; several accounts; database backup and restore | — |
 | 4. Admin channel | A folder `game-server/admin/` the running server answers (`reload-config`, `destinations`, `teleport`): saved settings apply at once, and the picked character can be teleported to any place of the server's teleport list (Account page) | yes (`AdminChannel`) |
-| 5. Bots and broker | List of the bots by faction (built: read from the database, no server work); bot XP rate, PvP, chat and its language, broker settings | yes |
+| 5. Bots and broker | List of the bots by faction (read from the database, no server work); bot XP rate, PvP, chat and its language, broker settings (Bots page, from the server's bot options) | yes (`PlayerBotConfig`) |
 | Postponed | The global bot density slider (to follow the living-world tests on the server first); skill learning (its rules are still to be defined) | yes |
 | 6. Distribution | Public installer, updates from published releases, SQL updates, patch notes in FR and EN | releases |
 | 7. Linux | The servers run there; the client needs Wine | — |

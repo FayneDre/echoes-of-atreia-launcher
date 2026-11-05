@@ -20,9 +20,19 @@ export const fr: Record<MessageKey, string> = {
   'bots.more': 'Les {shown} premiers sur {total} : cherche pour affiner la liste.',
   'bots.inWorld': 'Dans le monde',
   'bots.refresh': 'Actualiser',
+  'bots.settings': 'Réglages des bots',
+  'bots.settingsIntro':
+    "Comment les bots du monde gagnent de l'expérience, combattent les joueurs, parlent et commercent. Écrits dans config/mygs.properties comme les réglages du serveur, et appliqués aussitôt quand le serveur de jeu tourne, sauf ce qui est marqué lu au démarrage.",
 
   'settings.intro':
-    'Valeurs des comptes normaux, écrites dans le config/mygs.properties du serveur de jeu (jamais dans ses fichiers par défaut) et appliquées à son démarrage.',
+    'Valeurs des comptes normaux, écrites dans le config/mygs.properties du serveur de jeu (jamais dans ses fichiers par défaut). Un serveur de jeu qui tourne les applique aussitôt.',
+  'settings.on': 'activé',
+  'settings.off': 'désactivé',
+  'settings.startOnly': 'lu au démarrage',
+  'settings.noneOnServer': "Ce serveur n'a aucun de ces réglages : déploie une version plus récente.",
+  'unit.levels': 'niveaux',
+  'unit.listings': 'annonces',
+  'unit.kinah': 'kinah',
   'settings.all': 'Tout',
   'settings.allOfGroup': "Tout d'un coup",
   'settings.perDay': 'par jour',
@@ -45,6 +55,10 @@ export const fr: Record<MessageKey, string> = {
   'group.arena': 'Récompenses des arènes PvP',
   'group.chances': 'Chances de réussite',
   'group.account': 'Comptes',
+  'group.botXp': 'Expérience',
+  'group.botPvp': 'PvP',
+  'group.botChat': 'Chat',
+  'group.broker': 'Courtier',
 
   'hint.xp': "Les bots du monde gardent leur propre rythme quel que soit ce taux ; un bot dans le groupe d'un joueur suit celui du joueur.",
   'hint.ap':
@@ -53,6 +67,13 @@ export const fr: Record<MessageKey, string> = {
   'hint.gpLoss':
     "Chaque jour à midi, chaque grade d'officier des Abysses perd des points d'honneur. Le champ de la famille est une part de la perte officielle : 100 % est la perte officielle, 0 % la supprime.",
   'hint.chances': 'En pourcentage, à chaque tentative.',
+  'hint.botXp':
+    "Un pourcentage du taux officiel, quels que soient les taux des joueurs : à 1 %, un bot met environ treize heures à dépasser sa région. Un bot dans le groupe d'un joueur suit le taux du joueur.",
+  'hint.botPvp':
+    "Là où le jeu permet le PvP, comment les bots choisissent un joueur de l'autre faction. Les trois parts sont relatives entre elles : les combattants attaquent à vue, les opportunistes seulement un joueur affaibli ou de plus bas niveau, les pacifiques se défendent seulement.",
+  'hint.botChat': 'Ce que disent les bots dans les canaux Région, Commerce et Recherche de groupe, et en criant dans les capitales.',
+  'hint.broker':
+    "Le serveur garnit le courtier de chaque faction d'annonces, et achète les annonces des joueurs au prix connu, jusqu'à un plafond quotidien.",
 
   'setting.xp.solo': 'Monstres, en solo',
   'setting.xp.group': 'Monstres, en groupe',
@@ -94,6 +115,24 @@ export const fr: Record<MessageKey, string> = {
   'setting.enchantment_stone.amplified_chances': "Enchantement d'un objet amplifié",
   'setting.tampering_chances': 'Trempe',
   'setting.bothFactions': 'Personnages des deux factions sur un même compte',
+  'setting.bots.xp.solo': 'Monstres, en solo',
+  'setting.bots.xp.group': 'Monstres, en groupe',
+  'setting.bots.xp.pvp': 'Joueurs tués',
+  'setting.bots.pvp.enable': 'Les bots attaquent les joueurs',
+  'setting.bots.pvp.share.fighter': 'Part de combattants',
+  'setting.bots.pvp.share.opportunist': "Part d'opportunistes",
+  'setting.bots.pvp.share.peaceful': 'Part de pacifiques',
+  'setting.bots.pvp.level_above': "Joueurs jusqu'à tant de niveaux au-dessus",
+  'setting.bots.pvp.level_below': "Joueurs jusqu'à tant de niveaux en dessous",
+  'setting.bots.chat.enable': 'Les bots parlent',
+  'setting.bots.chat.language': 'Langue',
+  'option.bots.chat.language.FR': 'Français',
+  'option.bots.chat.language.EN': 'Anglais',
+  'setting.bots.broker.enable': 'Garni par le serveur',
+  'setting.bots.broker.size': 'Annonces par faction',
+  'setting.bots.broker.buyer.enable': 'Achète les annonces des joueurs',
+  'setting.bots.broker.buyer.tolerance': 'Au-dessus du prix connu, au plus',
+  'setting.bots.broker.buyer.daily_kinah': 'Dépensés par jour, au plus',
   'settings.saved': 'Enregistré.',
   'settings.saveFailed': "Les réglages n'ont pas pu être enregistrés.",
   'settings.restartNeeded': 'Redémarre les serveurs pour appliquer les nouveaux réglages.',

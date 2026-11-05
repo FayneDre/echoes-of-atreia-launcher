@@ -72,7 +72,15 @@ Updating the server therefore never conflicts with the player's settings.
   under it. Every other line is kept byte for byte (blank lines at the very end aside): the file is read and written as ISO-8859-1, as
   Java reads it, replaced in one step, and its version from before the launcher's first change is kept beside it as
   `mygs.properties.before-launcher`.
-- Settings saved while the game server runs apply at its next start; the launcher says so until it stops or starts again.
+- Settings saved while the game server runs are applied at once through the admin channel (`reload-config`); a server that cannot be
+  asked applies them at its next start, and the launcher says so until it stops or starts again. A setting marked `startOnly` (the broker
+  house and its buyer turned on or off, the buyer's daily ceiling) asks for that restart whatever the reload does, and a later save does not
+  take the notice away.
+- **The bot options** (`gameserver.playerbot.*`, the server's `playerbot.properties`) are groups of the same catalog with `page: 'bots'`,
+  set on the Bots page above the list: a world bot's XP as a percent of the official rate (1 at least), PvP and its temperament shares and
+  level band, the chat and its language, the broker. They add three kinds: `flag` (written `true`/`false`), `count` (a whole number in the
+  definition's own bounds, with a unit) and `choice` (an index into `options`, written as the option). A server older than an option does
+  not have it in its files, so it is not offered.
 
 ## Accounts and characters
 

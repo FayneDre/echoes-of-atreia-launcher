@@ -88,7 +88,8 @@ export function App(): React.JSX.Element {
         </main>
       )}
       {state && (
-        <main className="content content-single" hidden={page !== 'bots'}>
+        <main className="content content-single content-scroll" hidden={page !== 'bots'}>
+          <SettingsPage state={state} page="bots" />
           <BotsPage state={state} visible={page === 'bots'} />
         </main>
       )}

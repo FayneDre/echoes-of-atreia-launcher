@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { applyPropertyChanges } from '../../src/main/server/properties'
-import { readServerSettings, validValues, writeServerSettings } from '../../src/main/server/serverSettings'
+import { needsStart, readServerSettings, validValues, writeServerSettings } from '../../src/main/server/serverSettings'
 import { en } from '../../src/renderer/src/i18n/en'
 import { fr } from '../../src/renderer/src/i18n/fr'
 import { ALL_SETTINGS, SETTING_GROUPS } from '../../src/shared/settingsCatalog'
@@ -150,6 +150,69 @@ describe('server settings', () => {
     expect(validValues({ 'database.user': 1 })).toBeNull()
     expect(validValues(['xp.solo'])).toBeNull()
     expect(validValues('nonsense')).toBeNull()
+  })
+})
+
+describe('bot settings', () => {
+  beforeEach(() =>
+    writeFileSync(
+      join(gameDir, 'config', 'main', 'playerbot.properties'),
+      [
+        'gameserver.playerbot.xp.solo = 1',
+        'gameserver.playerbot.pvp.enable = true',
+        'gameserver.playerbot.chat.enable = True',
+        'gameserver.playerbot.chat.language = FR',
+        'gameserver.playerbot.broker.buyer.daily_kinah = 200000000',
+        ''
+      ].join('\n')
+    )
+  )
+
+  it('reads switches written true or false, a choice by its index and a count as it is', async () => {
+    const { official } = await readServerSettings(gameDir)
+    expect(official['bots.xp.solo']).toBe(1)
+    expect(official['bots.pvp.enable']).toBe(1)
+    expect(official['bots.chat.enable']).toBe(1)
+    expect(official['bots.chat.language']).toBe(0)
+    expect(official['bots.broker.buyer.daily_kinah']).toBe(200_000_000)
+    // A server older than an option does not have it, and it is not offered.
+    expect(official['bots.pvp.share.fighter']).toBeUndefined()
+  })
+
+  it('writes them back as the server reads them', async () => {
+    await writeServerSettings(gameDir, { 'bots.xp.solo': 5, 'bots.pvp.enable': 0, 'bots.chat.language': 1, 'bots.broker.buyer.daily_kinah': 1_000_000 })
+    const text = read()
+    expect(text).toContain('gameserver.playerbot.xp.solo = 5\n')
+    expect(text).toContain('gameserver.playerbot.pvp.enable = false\n')
+    expect(text).toContain('gameserver.playerbot.chat.language = EN\n')
+    expect(text).toContain('gameserver.playerbot.broker.buyer.daily_kinah = 1000000\n')
+    const { values } = await readServerSettings(gameDir)
+    expect(values['bots.pvp.enable']).toBe(0)
+    expect(values['bots.chat.language']).toBe(1)
+    // Back to the official value: nothing of it is left in the overrides.
+    await writeServerSettings(gameDir, { 'bots.chat.language': 0 })
+    expect(read()).not.toContain('chat.language')
+  })
+
+  it('takes a language the overrides spell in lower case, and falls back to the official one for an unknown', async () => {
+    writeFileSync(overrides, 'gameserver.playerbot.chat.language = en\n', 'latin1')
+    expect((await readServerSettings(gameDir)).values['bots.chat.language']).toBe(1)
+    writeFileSync(overrides, 'gameserver.playerbot.chat.language = DE\n', 'latin1')
+    expect((await readServerSettings(gameDir)).values['bots.chat.language']).toBe(0)
+  })
+
+  it('keeps each count within its own bounds', () => {
+    expect(validValues({ 'bots.xp.solo': 1, 'bots.xp.pvp': 0, 'bots.broker.size': 6000 })).not.toBeNull()
+    expect(validValues({ 'bots.xp.solo': 0 })).toBeNull()
+    expect(validValues({ 'bots.xp.solo': 1.5 })).toBeNull()
+    expect(validValues({ 'bots.broker.size': 5000 })).toBeNull()
+    expect(validValues({ 'bots.chat.language': 2 })).toBeNull()
+    expect(validValues({ 'bots.pvp.enable': 1 })).not.toBeNull()
+  })
+
+  it('knows which settings wait for a start', () => {
+    expect(needsStart(['bots.xp.solo', 'xp.solo'])).toBe(false)
+    expect(needsStart(['bots.xp.solo', 'bots.broker.enable'])).toBe(true)
   })
 })
 

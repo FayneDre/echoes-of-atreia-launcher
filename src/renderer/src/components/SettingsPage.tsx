@@ -1,30 +1,53 @@
 import { useEffect, useState } from 'react'
 import {
   isAllowed,
-  LIMITS,
+  limitsOf,
+  pageOf,
   SETTING_GROUPS,
   type ServerSettings,
   type SettingDefinition,
-  type SettingGroup
+  type SettingGroup,
+  type SettingPage
 } from '../../../shared/settingsCatalog'
 import type { LauncherState } from '../../../shared/types'
 import { hasMessage, useI18n, type MessageKey } from '../i18n'
 
 type Values = Record<string, number>
 type Feedback = 'saved' | 'failed' | null
+type Translate = ReturnType<typeof useI18n>['t']
 
 // The labels of the catalog: checked to exist in every language by a unit test, so the cast only spares the type system a template literal.
 const groupLabel = (group: SettingGroup): MessageKey => `group.${group.id}` as MessageKey
 const settingLabel = (definition: SettingDefinition): MessageKey => `setting.${definition.id}` as MessageKey
 
-function formatOfficial(definition: SettingDefinition, value: number): string {
+const isSwitch = (definition: SettingDefinition): boolean => definition.kind === 'toggle' || definition.kind === 'flag'
+
+/** What follows a field: a percent sign, a unit word, or for the daily Glory Point loss, "a day". */
+function unitOf(definition: SettingDefinition, t: Translate): string | null {
+  if (definition.kind === 'percent' || definition.unit === 'percent') {
+    return '%'
+  }
+  if (definition.unit) {
+    return t(`unit.${definition.unit}` as MessageKey)
+  }
+  return definition.kind === 'points' ? t('settings.perDay') : null
+}
+
+function formatOfficial(definition: SettingDefinition, value: number, t: Translate): string {
   switch (definition.kind) {
     case 'multiplier':
       return `x${value}`
-    case 'percent':
-      return `${value} %`
-    default:
+    case 'choice':
+      return definition.options?.[value] ?? String(value)
+    case 'toggle':
+    case 'flag':
+      return t(value === 1 ? 'settings.on' : 'settings.off')
+    case 'points':
       return String(value)
+    default: {
+      const unit = unitOf(definition, t)
+      return unit ? `${value.toLocaleString()} ${unit}` : value.toLocaleString()
+    }
   }
 }
 
@@ -33,13 +56,13 @@ function NumberInput(props: {
   definition: SettingDefinition
   value: number | null
   placeholder?: string
-  unit?: string
+  unit?: string | null
   onChange: (value: number) => void
 }): React.JSX.Element {
   const { definition } = props
-  const limits = LIMITS[definition.kind]
+  const limits = limitsOf(definition)
   const prefix = definition.kind === 'multiplier' ? 'x' : null
-  const suffix = props.unit ?? (definition.kind === 'percent' ? '%' : null)
+  const suffix = props.unit ?? null
   return (
     <span className="value-input">
       {prefix && (
@@ -121,6 +144,7 @@ function GroupPanel(props: {
         definition={settings[0]!}
         value={sharedValue(settings, values)}
         placeholder={t('settings.mixed')}
+        unit={unitOf(settings[0]!, t)}
         onChange={setAll}
       />
     )
@@ -131,6 +155,7 @@ function GroupPanel(props: {
         definition={{ id: `${group.id}.percent`, key: '', kind: 'percent' }}
         value={sharedPercent(settings, values, official)}
         placeholder={t('settings.mixed')}
+        unit="%"
         onChange={setPercent}
       />
     )
@@ -164,7 +189,7 @@ function GroupPanel(props: {
           return (
             <div key={definition.id} className={modified ? 'setting-row modified' : 'setting-row'}>
               <span className="setting-label">{t(settingLabel(definition))}</span>
-              {definition.kind === 'toggle' ? (
+              {isSwitch(definition) ? (
                 <span className="toggle-cell">
                   <input
                     type="checkbox"
@@ -173,17 +198,28 @@ function GroupPanel(props: {
                     onChange={(event) => props.onChange({ [definition.id]: event.currentTarget.checked ? 1 : 0 })}
                   />
                 </span>
+              ) : definition.kind === 'choice' ? (
+                <select aria-label={label} value={value} onChange={(event) => props.onChange({ [definition.id]: Number(event.currentTarget.value) })}>
+                  {(definition.options ?? []).map((option, index) => (
+                    <option key={option} value={index}>
+                      {hasMessage(`option.${definition.id}.${option}`) ? t(`option.${definition.id}.${option}` as MessageKey) : option}
+                    </option>
+                  ))}
+                </select>
               ) : (
                 <NumberInput
                   label={label}
                   definition={definition}
                   value={value}
-                  unit={definition.kind === 'points' ? t('settings.perDay') : undefined}
+                  unit={unitOf(definition, t)}
                   onChange={(next) => props.onChange({ [definition.id]: next })}
                 />
               )}
               <span className="official">
-                {definition.kind === 'toggle' ? '' : t('settings.officialValue', { value: formatOfficial(definition, official[definition.id]!) })}
+                {definition.kind === 'toggle'
+                  ? ''
+                  : t('settings.officialValue', { value: formatOfficial(definition, official[definition.id]!, t) })}
+                {definition.startOnly && <span className="start-only">{t('settings.startOnly')}</span>}
               </span>
             </div>
           )
@@ -193,12 +229,20 @@ function GroupPanel(props: {
   )
 }
 
-export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Element {
+const PAGE_TEXT: Record<SettingPage, { title: MessageKey; intro: MessageKey }> = {
+  server: { title: 'nav.settings', intro: 'settings.intro' },
+  bots: { title: 'bots.settings', intro: 'bots.settingsIntro' }
+}
+
+/** The settings of one page of the catalog: the server's on their own page, the bots' under the bot list. */
+export function SettingsPage({ state, page = 'server' }: { state: LauncherState; page?: SettingPage }): React.JSX.Element {
   const { t } = useI18n()
   const [settings, setSettings] = useState<ServerSettings | null>(null)
   const [values, setValues] = useState<Values>({})
   const [feedback, setFeedback] = useState<Feedback>(null)
-  const [selected, setSelected] = useState(SETTING_GROUPS[0]!.id)
+  const pageGroups = SETTING_GROUPS.filter((group) => pageOf(group) === page)
+  const [selected, setSelected] = useState(pageGroups[0]!.id)
+  const text = PAGE_TEXT[page]
   const serverRoot = state.install.serverFound ? state.install.serverRoot : null
 
   useEffect(() => {
@@ -214,7 +258,7 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
   if (!serverRoot) {
     return (
       <section className="panel settings-page">
-        <h2>{t('nav.settings')}</h2>
+        <h2>{t(text.title)}</h2>
         <p className="muted">{t('settings.noServer')}</p>
       </section>
     )
@@ -223,11 +267,19 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
     return <section className="panel settings-page" aria-busy="true" />
   }
 
-  // Only what this server's files have.
-  const groups = SETTING_GROUPS.map((group) => ({
+  // Only what this server's files have: a server older than the bot options has none of them.
+  const groups = pageGroups.map((group) => ({
     group,
     settings: group.settings.filter((definition) => settings.official[definition.id] !== undefined)
   })).filter((entry) => entry.settings.length > 0)
+  if (groups.length === 0) {
+    return (
+      <section className="panel settings-page">
+        <h2>{t(text.title)}</h2>
+        <p className="muted">{t('settings.noneOnServer')}</p>
+      </section>
+    )
+  }
   const definitions = groups.flatMap((entry) => entry.settings)
   const changedIn = (list: SettingDefinition[]): number => list.filter((d) => values[d.id] !== settings.official[d.id]).length
 
@@ -251,14 +303,14 @@ export function SettingsPage({ state }: { state: LauncherState }): React.JSX.Ele
   }
 
   return (
-    <section className="panel settings-page" aria-labelledby="settings-title">
+    <section className="panel settings-page" aria-labelledby={`settings-title-${page}`} data-testid={`settings-${page}`}>
       <header className="settings-header">
-        <h2 id="settings-title">{t('nav.settings')}</h2>
-        <p className="muted">{t('settings.intro')}</p>
+        <h2 id={`settings-title-${page}`}>{t(text.title)}</h2>
+        <p className="muted">{t(text.intro)}</p>
       </header>
 
       <div className="settings-layout">
-        <div className="group-list" role="tablist" aria-orientation="vertical" aria-label={t('nav.settings')}>
+        <div className="group-list" role="tablist" aria-orientation="vertical" aria-label={t(text.title)}>
           {groups.map(({ group, settings: list }) => {
             const changed = changedIn(list)
             return (

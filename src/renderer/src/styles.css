@@ -505,6 +505,11 @@ button.small {
   font-size: 12px;
 }
 
+.start-only {
+  display: block;
+  color: var(--busy);
+}
+
 .save-bar {
   position: sticky;
   bottom: 0;
@@ -842,6 +847,16 @@ button.small {
 .faction-count {
   font-size: 13px;
   font-weight: 400;
+}
+
+/* The bots page holds two panels, its settings above the list: the page scrolls, and the settings keep the height their tabs need. */
+.content-scroll {
+  overflow-y: auto;
+  align-content: start;
+}
+
+.content-scroll .settings-page {
+  height: 600px;
 }
 
 .bot-list {

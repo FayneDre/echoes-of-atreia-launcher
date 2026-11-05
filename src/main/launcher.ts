@@ -18,7 +18,7 @@ import { findClientNear, isClientFolder, readServerLayout, type ServerLayout } f
 import { adminRequest, parseDestinations } from './server/adminChannel'
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
-import { readServerSettings, writeServerSettings } from './server/serverSettings'
+import { needsStart, readServerSettings, writeServerSettings } from './server/serverSettings'
 import type { SettingsStore } from './settings'
 import { javaCommand, javaMajorVersion } from './system/java'
 
@@ -36,6 +36,8 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   private stopRequested = false
   private quitRequested = false
   private restartNeeded = false
+  /** A setting read at start only was saved while the game server ran: only a start clears the restart notice. */
+  private startOnlyPending = false
   private problem: Problem | undefined
 
   constructor(private readonly settings: SettingsStore) {
@@ -133,6 +135,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
           // A game server that stops, or starts again, reads the settings anew.
           if (id === 'game' && (state.status === 'stopped' || state.status === 'starting')) {
             this.restartNeeded = false
+            this.startOnlyPending = false
           }
           this.publish()
         })
@@ -281,7 +284,9 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     await writeServerSettings(this.layout.servers.game.dir, values)
     if (this.servers.game?.hasProcess) {
       const applied = this.servers.game.current.status === 'ready' && (await adminRequest(this.layout.servers.game.dir, 'reload-config', 4000)).ok
-      this.restartNeeded = !applied
+      // A reload reads every file again, so it settles what an earlier save left waiting, except what only a start reads.
+      this.startOnlyPending ||= needsStart(Object.keys(values))
+      this.restartNeeded = !applied || this.startOnlyPending
       this.publish()
     }
     return true

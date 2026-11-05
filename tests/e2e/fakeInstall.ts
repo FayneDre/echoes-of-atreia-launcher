@@ -170,6 +170,29 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
     GP_LOSS.map(([rank, points]) => `gameserver.topranking.gp_loss.${rank} = ${points}\n`).join('')
   )
   write(join(serverRoot, 'game-server', 'config', 'main', 'gameserver.properties'), 'gameserver.character.creation.mode = 0\n')
+  // The bot options, as the server's playerbot.properties ships them.
+  write(
+    join(serverRoot, 'game-server', 'config', 'main', 'playerbot.properties'),
+    [
+      'gameserver.playerbot.xp.solo = 1',
+      'gameserver.playerbot.xp.group = 1',
+      'gameserver.playerbot.xp.pvp = 100',
+      'gameserver.playerbot.pvp.enable = true',
+      'gameserver.playerbot.pvp.share.fighter = 25',
+      'gameserver.playerbot.pvp.share.opportunist = 25',
+      'gameserver.playerbot.pvp.share.peaceful = 50',
+      'gameserver.playerbot.pvp.level_above = 3',
+      'gameserver.playerbot.pvp.level_below = 6',
+      'gameserver.playerbot.chat.enable = true',
+      'gameserver.playerbot.chat.language = FR',
+      'gameserver.playerbot.broker.enable = true',
+      'gameserver.playerbot.broker.size = 6000',
+      'gameserver.playerbot.broker.buyer.enable = true',
+      'gameserver.playerbot.broker.buyer.tolerance = 5',
+      'gameserver.playerbot.broker.buyer.daily_kinah = 200000000',
+      ''
+    ].join('\n')
+  )
   write(join(serverRoot, 'game-server', 'config', 'mygs.properties'), '# local overrides\ndatabase.user = aion\n')
   // What the launcher reads the levels and the map names from.
   write(
