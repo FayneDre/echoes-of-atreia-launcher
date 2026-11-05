@@ -49,8 +49,9 @@ function registerIpc(window: BrowserWindow): void {
   )
   ipcMain.handle('bots:list', () => listBots(launcher.currentLayout))
   ipcMain.handle('game:destinations', () => launcher.listDestinations())
-  ipcMain.handle('game:teleport', (_event, destinationId: unknown) => {
-    const character = accounts.selectedCharacterId
+  ipcMain.handle('game:teleport', async (_event, destinationId: unknown) => {
+    // Through the account's state, so the stored password is checked again as for everything else the page shows.
+    const character = (await accounts.getState()).selectedCharacterId
     if (!character) {
       return { code: 'no-character' }
     }

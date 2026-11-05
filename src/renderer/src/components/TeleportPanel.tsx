@@ -13,12 +13,22 @@ export function TeleportPanel(props: { character: CharacterSummary; gameReady: b
   const [done, setDone] = useState(false)
   const [busy, setBusy] = useState(false)
 
+  const online = props.character.online
+  const loaded = destinations.length > 0
   useEffect(() => {
     if (!props.gameReady) {
       setDestinations([])
       return
     }
+    // Asked again each time the character comes into the game while the list is still missing: a first request may have found the server busy.
+    if (!online || loaded) {
+      return
+    }
+    let current = true
     void window.launcher.getDestinations().then((answer) => {
+      if (!current) {
+        return
+      }
       if (Array.isArray(answer)) {
         setDestinations(answer)
         setProblem(undefined)
@@ -26,16 +36,21 @@ export function TeleportPanel(props: { character: CharacterSummary; gameReady: b
         setProblem(answer)
       }
     })
-  }, [props.gameReady])
+    return () => {
+      current = false
+    }
+  }, [props.gameReady, online, loaded])
 
   const shown = destinations.filter((destination) => destination.name.toLowerCase().includes(filter.trim().toLowerCase())).slice(0, 200)
+  // A choice the filter hides is no choice: the button must not send the character somewhere the list does not show.
+  const target = shown.some((destination) => destination.id === chosen) ? chosen : null
   const send = async (): Promise<void> => {
-    if (chosen === null) {
+    if (target === null) {
       return
     }
     setBusy(true)
     setDone(false)
-    const result = await window.launcher.teleport(chosen)
+    const result = await window.launcher.teleport(target)
     setProblem(result ?? undefined)
     setDone(result === null)
     setBusy(false)
@@ -58,8 +73,11 @@ export function TeleportPanel(props: { character: CharacterSummary; gameReady: b
           <select
             size={6}
             aria-label={t('teleport.destinations')}
-            value={chosen ?? ''}
-            onChange={(event) => setChosen(Number(event.currentTarget.value))}
+            value={target ?? ''}
+            onChange={(event) => {
+              setChosen(Number(event.currentTarget.value))
+              setDone(false)
+            }}
           >
             {shown.map((destination) => (
               <option key={destination.id} value={destination.id}>
@@ -67,7 +85,7 @@ export function TeleportPanel(props: { character: CharacterSummary; gameReady: b
               </option>
             ))}
           </select>
-          <button type="button" className="button-primary" disabled={busy || chosen === null} onClick={() => void send()}>
+          <button type="button" className="button-primary" disabled={busy || target === null} onClick={() => void send()}>
             {t('teleport.go')}
           </button>
           {done && <p role="status">{t('teleport.done')}</p>}

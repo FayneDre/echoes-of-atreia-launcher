@@ -122,6 +122,11 @@ test('teleports the character played, through the game server', async () => {
   await page.getByLabel('Search a place').fill('sanc')
   await expect(places.getByRole('option')).toHaveText(['Sanctum'])
   await places.selectOption({ label: 'Sanctum' })
+  // A choice the search then hides cannot be sent to.
+  await page.getByLabel('Search a place').fill('pand')
+  await expect(page.getByRole('button', { name: 'Teleport', exact: true })).toBeDisabled()
+  await page.getByLabel('Search a place').fill('sanc')
+  await places.selectOption({ label: 'Sanctum' })
   await page.getByRole('button', { name: 'Teleport', exact: true }).click()
   await expect(page.getByRole('status').filter({ hasText: 'Done' })).toBeVisible()
   const log = join(install.serverRoot, 'game-server', 'log', 'server_console.log')
