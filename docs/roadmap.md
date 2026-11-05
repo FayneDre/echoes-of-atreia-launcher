@@ -55,6 +55,16 @@ Planned on 5 November, in this order. None of them touches the client's executab
 5. **The Vulkan renderer**, optional: DXVK's Direct3D 9 DLL put beside the client or removed again, the choice remembered. Often smoother on
    recent graphics cards; switched only while every client is closed.
 
+Then, cheaper and independent of the five above:
+
+6. **Dungeon re-entry**: `gameserver.instance.cooldown_rate` (in `instance.properties`: 1 the official wait, 3 a third of it, 0 none) on the
+   Server page. For a player alone with bots, running a dungeon again without waiting changes everything. A server setting that already exists.
+7. **A server dashboard**: each server's state live, and a summary of the game server's log (errors, a log gone silent, bots in the world) without
+   opening the file; the logic of the server's `check-server-log.ps1`, rewritten in TypeScript.
+8. **Check and repair the install**, from the manifest of point 1: every file against its hash, what is missing or changed listed and downloaded
+   again.
+9. **The starting level** (level 1, or straight to the level 10 Ascension, for players and their bots), once the server has the setting.
+
 ## Decisions and their reasons
 
 - **Stop the game server cleanly.** Killing the Java process loses whatever was not saved yet.
