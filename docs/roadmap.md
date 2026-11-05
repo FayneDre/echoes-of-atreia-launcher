@@ -68,6 +68,13 @@ Then, cheaper and independent of the five above:
     few seconds from a new admin channel command (`world`), which the server answers from the director's last review.
 11. **Bring one of my characters into my group**: on the Account page, a button beside each character of the account, once the server has the
     command (`//bot alt`).
+12. **The connected character's commands**: a page listing every chat command the character played may use (its account's access level decides:
+    a player sees the player commands, staff sees the admin ones too), searchable, each with its description and syntax, and run from the launcher
+    as if typed in game; favourites as buttons (`//bot spawn`, `//bot alt`, `//teleport`, `//add`, `//level`). Server work: two admin channel
+    commands, `commands <character id>` (the names, levels and descriptions of `ChatProcessor.getCommandList` the character passes
+    `isCommandAllowed` for) and `run <character id> <line>` (`ChatProcessor.handleChatCommand` on the online character, refused when it is offline
+    or the command is not allowed). What a command answers goes to the game's chat as usual; sending a copy back to the launcher comes next. The
+    password check of the Account page applies, as for the teleport.
 
 ## Decisions and their reasons
 
