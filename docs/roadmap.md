@@ -68,13 +68,24 @@ Then, cheaper and independent of the five above:
     few seconds from a new admin channel command (`world`), which the server answers from the director's last review.
 11. **Bring one of my characters into my group**: on the Account page, a button beside each character of the account, once the server has the
     command (`//bot alt`).
-12. **The connected character's commands**: a page listing every chat command the character played may use (its account's access level decides:
-    a player sees the player commands, staff sees the admin ones too), searchable, each with its description and syntax, and run from the launcher
-    as if typed in game; favourites as buttons (`//bot spawn`, `//bot alt`, `//teleport`, `//add`, `//level`). Server work: two admin channel
-    commands, `commands <character id>` (the names, levels and descriptions of `ChatProcessor.getCommandList` the character passes
-    `isCommandAllowed` for) and `run <character id> <line>` (`ChatProcessor.handleChatCommand` on the online character, refused when it is offline
-    or the command is not allowed). What a command answers goes to the game's chat as usual; sending a copy back to the launcher comes next. The
-    password check of the Account page applies, as for the teleport.
+12. **GM tools on the connected character**: the server's GM commands (the `//` admin commands of `data/handlers/admincommands`) as forms rather
+    than lines to type, applied to the character played, whatever its account's access level: whoever runs the server is its GM, and the admin
+    channel is a folder on that machine, so a launcher elsewhere on the network never has them. By family:
+    - *Character*: level and experience (`//set`, `//addexp`), heal and resurrect (`//heal`, `//res`), cooldowns cleared (`//removecd`), speed,
+      invisibility, invulnerability (`//speed`, `//invis`, `//invul`), skills and titles (`//addskill`, `//addtitle`), transformation (`//morph`),
+      race and name (`//changerace`, `//rename`), dyes (`//dye`);
+    - *Items*: an item found by name from the server's templates, with its quantity (`//add`), a whole set (`//addset`), cube slots (`//addcube`),
+      a mail with attachments (`//sysmail`);
+    - *Quests*: start, finish or reset one (`//quest`);
+    - *World*: spawn an npc (`//spawnnpc`), weather and time of day (`//weather`, `//time`), a rift or a siege (`//rift`, `//siege`), an
+      announcement (`//announce`);
+    - *Players*: who is online, a player's details, kick, ban and unban (`//online`, `//playerinfo`, `//kick`, `//ban`, `//unban`), access levels
+      (`//access`).
+
+    Server work: admin channel commands `gm <character id> <line>`, which runs a GM command with the online character as its executor (the
+    server's owner standing behind it, so the account's access level is not asked), and `items <text>`, which finds item templates by name for the
+    item form. What a command answers goes to the game's chat; a copy back to the launcher comes next. A destructive one (ban, delete, rename)
+    asks for confirmation first.
 
 ## Decisions and their reasons
 
