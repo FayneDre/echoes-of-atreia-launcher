@@ -80,8 +80,9 @@ The teleport of the Account page and the Bots page stay as they are; their fulle
 - **Stop the game server cleanly.** Killing the Java process loses whatever was not saved yet.
 - **Updates come as published builds**, not compiled on the player's machine: compiling needs Git, JDK 25 and Maven, too much to ask of
   a player.
-- **The density slider is bounded by memory.** On the development PC 958 awake bots took 1.7 GB of the server's 2.5 GB; the launcher
-  suggests a maximum from the RAM it finds.
+- **The density slider is bounded by route planning, not memory.** Measured on the server on 5 November: a bot costs about 0.15 MB, and 1894
+  awake held 1.85 GB of the 2.5 GB heap; but at 100 % the route queue fell behind (fixed the same evening, to be measured again) and the server
+  took 6 to 9 of 16 cores. The slider offers `AUTO`, `FIXED` and `FLOOR` with a percent up to 50 until the next measurement says otherwise.
 - **The account sign-in asks for the password**, checked against the login server's database: on a LAN server another player must not act
   on your characters.
 - **An action on a character in game goes through the server, never the database.** The server holds that character in memory and writes
