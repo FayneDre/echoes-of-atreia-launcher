@@ -64,10 +64,13 @@ Then, cheaper and independent of the five above:
 8. **Check and repair the install**, from the manifest of point 1: every file against its hash, what is missing or changed listed and downloaded
    again.
 9. **The starting level** (level 1, or straight to the level 10 Ascension, for players and their bots), once the server has the setting.
-10. **A live world map**: per map, the bots awake and asleep, the players, the density mode and percent, the memory guard's state; refreshed every
-    few seconds from a new admin channel command (`world`), which the server answers from the director's last review.
-11. **Bring one of my characters into my group**: on the Account page, a button beside each character of the account, once the server has the
-    command (`//bot alt`).
+10. **A live world map, plain**: per map, the bots awake and asleep, the players, the density mode and percent, the memory guard's state;
+    refreshed every few seconds from a new admin channel command (`world`), which the server answers from the director's last review. The full
+    version, with each bot's place and activity, is planned in the game (the server's living world plan, lot H4); this one is for the game closed.
+11. **Bring one of my characters into my group**: planned in the game first (lot H4, a button of the in-game bar and a page of the account's
+    characters), where the group is. Here, a button beside each character of the Account page, once the server has the command (`//bot alt`).
+
+The teleport of the Account page and the Bots page stay as they are; their fuller versions are planned in the game too (lot H4).
 12. **GM tools**: planned in the game rather than here, as a page of the client's own browser and buttons of an interface addon (the server's
     living world plan, lot H3), where the character, its target and its place are at hand. The launcher's part is to install the addon and keep it
     in step with the server; it takes the forms itself only if the client turns out unable to open the server's pages.
