@@ -64,6 +64,10 @@ Then, cheaper and independent of the five above:
 8. **Check and repair the install**, from the manifest of point 1: every file against its hash, what is missing or changed listed and downloaded
    again.
 9. **The starting level** (level 1, or straight to the level 10 Ascension, for players and their bots), once the server has the setting.
+10. **A live world map**: per map, the bots awake and asleep, the players, the density mode and percent, the memory guard's state; refreshed every
+    few seconds from a new admin channel command (`world`), which the server answers from the director's last review.
+11. **Bring one of my characters into my group**: on the Account page, a button beside each character of the account, once the server has the
+    command (`//bot alt`).
 
 ## Decisions and their reasons
 
