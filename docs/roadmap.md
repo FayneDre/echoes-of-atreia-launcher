@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: in progress: phases 0 and 1 done (start, client launch and stop checked by the tester on the real servers, 4 November; released as
+Status: in progress: released as v0.2.0 on 5 November (phases 1 to 5); phases 0 and 1 done (start, client launch and stop checked by the tester on the real servers, 4 November; released as
 v0.1.0); phase 2 built, unverified in game (the rates taking effect after a restart; the server side that keeps the bots' XP pace is not
 deployed yet); phase 3 built: sign-in, several accounts, the characters and the one played with done (checked by the tester on the real
 database, 4 November); backup and restore done (checked by the tester on the real database, 4 November); phase 4 built, its server side deployed on 4 November, unverified in game; phase 5 built: the bot list by faction (checked on the real database) and the bot settings (XP, PvP, chat, broker; unverified in game,
