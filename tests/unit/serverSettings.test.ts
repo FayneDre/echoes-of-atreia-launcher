@@ -194,11 +194,17 @@ describe('bot settings', () => {
     expect(read()).not.toContain('chat.language')
   })
 
-  it('takes a language the overrides spell in lower case, and falls back to the official one for an unknown', async () => {
-    writeFileSync(overrides, 'gameserver.playerbot.chat.language = en\n', 'latin1')
+  it('reads a language and a switch as the server does', async () => {
+    // The server's Enum.valueOf takes the exact spelling only: "en" is refused there, so it does not read as English here.
+    writeFileSync(overrides, 'gameserver.playerbot.chat.language = EN\n', 'latin1')
     expect((await readServerSettings(gameDir)).values['bots.chat.language']).toBe(1)
-    writeFileSync(overrides, 'gameserver.playerbot.chat.language = DE\n', 'latin1')
+    writeFileSync(overrides, 'gameserver.playerbot.chat.language = en\n', 'latin1')
     expect((await readServerSettings(gameDir)).values['bots.chat.language']).toBe(0)
+    // The server's boolean takes 1 and 0 as well as true and false.
+    writeFileSync(overrides, 'gameserver.playerbot.pvp.enable = 0\ngameserver.playerbot.chat.enable = 1\n', 'latin1')
+    const { values } = await readServerSettings(gameDir)
+    expect(values['bots.pvp.enable']).toBe(0)
+    expect(values['bots.chat.enable']).toBe(1)
   })
 
   it('keeps each count within its own bounds', () => {

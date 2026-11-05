@@ -287,7 +287,9 @@ export function SettingsPage({ state, page = 'server' }: { state: LauncherState;
   // the file has it unless the person changes it.
   const edited = Object.fromEntries(definitions.filter((d) => values[d.id] !== settings.values[d.id]).map((d) => [d.id, values[d.id]!]))
   const dirty = Object.keys(edited).length > 0
-  const valid = definitions.every((definition) => isAllowed(definition, values[definition.id]))
+  // Only what is sent must be within the page's bounds: a value of the file outside them (a broker of 3000 listings, which the server takes)
+  // must not keep every other setting from being saved.
+  const valid = definitions.filter((d) => d.id in edited).every((definition) => isAllowed(definition, values[definition.id]))
   const current = groups.find((entry) => entry.group.id === selected) ?? groups[0]!
 
   const change = (changes: Values): void => {

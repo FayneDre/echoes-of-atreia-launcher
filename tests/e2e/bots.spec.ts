@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { appendFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
@@ -76,6 +76,20 @@ test('sets how the bots earn experience, fight, speak and trade', async () => {
   // The server settings page does not show the bots' own.
   await page.getByRole('button', { name: 'Server settings' }).click()
   await expect(page.getByRole('tab', { name: 'Broker' })).toHaveCount(0)
+  await app.close()
+})
+
+test('saves a bot setting while the file holds another outside what the page offers', async () => {
+  // The server takes a smaller broker than the page offers: that value must not keep the others from being saved.
+  appendFileSync(join(install.serverRoot, 'game-server', 'config', 'mygs.properties'), 'gameserver.playerbot.broker.size = 3000\n', 'latin1')
+  const { app, page } = await launchWith(install)
+  await page.getByRole('button', { name: 'EN' }).click()
+  await page.getByRole('button', { name: 'Bots', exact: true }).click()
+  await page.getByLabel('Experience — Monsters, alone').fill('3')
+  await save(page)
+  const text = overrides()
+  expect(text).toContain('gameserver.playerbot.xp.solo = 3\n')
+  expect(text).toContain('gameserver.playerbot.broker.size = 3000\n')
   await app.close()
 })
 

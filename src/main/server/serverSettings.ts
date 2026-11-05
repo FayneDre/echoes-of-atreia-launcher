@@ -41,11 +41,13 @@ function parseValue(definition: SettingDefinition, text: string | undefined): nu
     case 'toggle':
       return text.trim() === '1' ? 1 : 0
     case 'flag': {
-      // As Java's Boolean.parseBoolean: true in any case, anything else false.
-      return text.trim().toLowerCase() === 'true' ? 1 : 0
+      // As the server's BooleanTransformer: true or false in any case, or 1 or 0; anything else it refuses, so it is not a value here.
+      const word = text.trim().toLowerCase()
+      return word === 'true' || word === '1' ? 1 : word === 'false' || word === '0' ? 0 : null
     }
     case 'choice': {
-      const index = (definition.options ?? []).indexOf(text.trim().toUpperCase())
+      // As the server's EnumTransformer (Enum.valueOf): the exact spelling, so "en" is no language the server would speak.
+      const index = (definition.options ?? []).indexOf(text.trim())
       return index >= 0 ? index : null
     }
     default:
