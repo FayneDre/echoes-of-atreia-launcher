@@ -66,6 +66,7 @@
     "yazl": "^3.3.1"
   },
   "dependencies": {
+    "@fontsource/cinzel": "^5.3.0",
     "electron-updater": "^6.8.11",
     "mysql2": "^3.24.6",
     "yauzl": "^3.4.0"

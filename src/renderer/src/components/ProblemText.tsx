@@ -1,5 +1,6 @@
 import type { Problem } from '../../../shared/types'
 import { useI18n } from '../i18n'
+import { Icon } from './Icon'
 
 /**
  * A problem in one line, with what the system said: shown as is when it is one short line, folded under "Details" otherwise (a log excerpt
@@ -21,6 +22,7 @@ export function ProblemText({ problem, onShowLog }: { problem: Problem | undefin
         </p>
         {onShowLog && (
           <button type="button" className="small" onClick={onShowLog}>
+            <Icon name="log" />
             {t('action.showLog')}
           </button>
         )}

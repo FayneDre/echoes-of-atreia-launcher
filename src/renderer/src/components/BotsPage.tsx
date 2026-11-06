@@ -3,22 +3,22 @@ import type { BotSummary, LauncherState, Problem } from '../../../shared/types'
 import { hasMessage, useI18n } from '../i18n'
 import { ProblemText } from './ProblemText'
 
-const SHOWN = 150
+/** A page of each faction's list, and how many more each click shows. */
+const PAGE = 20
 const FACTIONS = ['ELYOS', 'ASMODIANS'] as const
 
-function BotRow({ bot }: { bot: BotSummary }): React.JSX.Element {
+/** One line a bot: name, level, class, map. `inWorld` is what the database says, which only a running game server keeps true. */
+function BotRow({ bot, inWorld }: { bot: BotSummary; inWorld: boolean }): React.JSX.Element {
   const { t } = useI18n()
   const classKey = `class.${bot.playerClass}`
   return (
     <li className="bot" data-testid={`bot-${bot.name}`}>
-      <span className="bot-top">
-        <span className="bot-name">{bot.name}</span>
-        {bot.inWorld && <span className="tag tag-online">{t('bots.inWorld')}</span>}
-      </span>
-      <span className="bot-line">
-        {t('account.level', { level: bot.level })} · {hasMessage(classKey) ? t(classKey) : bot.playerClass}
-        {bot.mapName ? ` · ${bot.mapName}` : ''}
-      </span>
+      <span className={`presence${inWorld ? ' present' : ''}`} title={inWorld ? t('bots.inWorld') : undefined} aria-hidden="true" />
+      <span className="bot-name">{bot.name}</span>
+      {inWorld && <span className="visually-hidden">{t('bots.inWorld')}</span>}
+      <span className="bot-level">{bot.level}</span>
+      <span className="bot-class">{hasMessage(classKey) ? t(classKey) : bot.playerClass}</span>
+      <span className="bot-map">{bot.mapName ?? ''}</span>
     </li>
   )
 }
@@ -46,6 +46,10 @@ export function BotsPage({ state, visible }: { state: LauncherState; visible: bo
     }
   }, [visible, serverFound, gameStatus, state.mysql.status, reload])
 
+  // The database keeps `online` set when a game server ends without saving (killed, crashed): only a running one is believed.
+  const live = gameStatus === 'ready'
+  const [limit, setLimit] = useState(PAGE)
+  useEffect(() => setLimit(PAGE), [filter])
   const needle = filter.trim().toLowerCase()
   const byFaction = useMemo(
     () =>
@@ -77,18 +81,27 @@ export function BotsPage({ state, visible }: { state: LauncherState; visible: bo
             <div key={race} className="faction" data-testid={`faction-${race}`}>
               <h3>
                 {t(`race.${race}`)}
-                <span className="muted faction-count">{t('bots.summary', { count: all.length, present: all.filter((bot) => bot.inWorld).length })}</span>
+                <span className="muted faction-count">
+                  {live ? t('bots.summary', { count: all.length, present: all.filter((bot) => bot.inWorld).length }) : t('bots.count', { count: all.length })}
+                </span>
               </h3>
               {matching.length === 0 ? (
                 <p className="muted">{t('bots.noMatch')}</p>
               ) : (
                 <ul className="bot-list">
-                  {matching.slice(0, SHOWN).map((bot) => (
-                    <BotRow key={bot.id} bot={bot} />
+                  {matching.slice(0, limit).map((bot) => (
+                    <BotRow key={bot.id} bot={bot} inWorld={live && bot.inWorld} />
                   ))}
                 </ul>
               )}
-              {matching.length > SHOWN && <p className="muted">{t('bots.more', { shown: SHOWN, total: matching.length })}</p>}
+              {matching.length > limit && (
+                <div className="bot-more">
+                  <span className="muted">{t('bots.more', { shown: limit, total: matching.length })}</span>
+                  <button type="button" className="small" onClick={() => setLimit(limit + PAGE)}>
+                    {t('bots.showMore', { count: Math.min(PAGE, matching.length - limit) })}
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -1,0 +1,506 @@
+/*
+ * The look of Atreia over the layout of styles.css: a night sky with the aether's glow above and the Abyss's violet below, dark panels with a
+ * gold rule and corner ornaments, titles cut in a classical serif, the gold of the Play button. No image of the game is used: only colours.
+ */
+
+body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgb(96 170 255 / 16%), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 85% 110%, rgb(150 70 180 / 16%), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 0% 100%, rgb(208 112 142 / 8%), transparent 70%),
+    linear-gradient(180deg, #0a1124 0%, #060913 100%);
+  background-attachment: fixed;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(216 180 108 / 30%) padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(216 180 108 / 50%) padding-box;
+}
+
+/* ---------- Header ---------- */
+
+.header {
+  position: relative;
+  background: linear-gradient(180deg, rgb(8 12 26 / 92%), rgb(8 12 26 / 70%));
+  border-bottom: none;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold-light) 50%, var(--gold) 80%, transparent);
+  opacity: 0.55;
+}
+
+.title {
+  font-family: var(--title-font);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: linear-gradient(180deg, var(--gold-light) 10%, var(--gold) 60%, #a9803d 100%);
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 10px rgb(216 180 108 / 25%));
+}
+
+.tagline {
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+/* One block of tabs, and one for the two languages */
+.nav,
+.language-switch {
+  gap: 0;
+  border: 1px solid var(--gold-line);
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgb(5 8 18 / 60%);
+}
+
+.nav button,
+.language-switch button {
+  border: none;
+  border-radius: 0;
+  border-right: 1px solid rgb(216 180 108 / 16%);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--title-font);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.nav button {
+  padding: 9px 16px;
+}
+
+.nav button:last-child,
+.language-switch button:last-child {
+  border-right: none;
+}
+
+.nav button:hover:not(:disabled),
+.language-switch button:hover:not(:disabled) {
+  color: var(--gold-light);
+  background: rgb(216 180 108 / 8%);
+}
+
+.nav button[aria-current='page'],
+.language-switch button[aria-pressed='true'] {
+  color: var(--gold-light);
+  background: linear-gradient(180deg, rgb(216 180 108 / 22%), rgb(216 180 108 / 6%));
+  box-shadow: inset 0 -2px 0 var(--gold);
+}
+
+.playing {
+  border-color: var(--gold-line);
+  background: rgb(216 180 108 / 10%);
+  color: var(--gold-light);
+  font-family: var(--title-font);
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Panels ---------- */
+
+.panel {
+  position: relative;
+  background: linear-gradient(180deg, rgb(20 28 50 / 88%), rgb(11 16 31 / 92%));
+  border: 1px solid var(--gold-line);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 4%),
+    0 10px 30px rgb(0 0 0 / 35%);
+}
+
+/* corner ornaments, top left and bottom right */
+.panel::before,
+.panel::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.panel::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--gold);
+  border-left: 2px solid var(--gold);
+}
+
+.panel::after {
+  right: -1px;
+  bottom: -1px;
+  border-right: 2px solid var(--gold);
+  border-bottom: 2px solid var(--gold);
+}
+
+.panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: var(--gold);
+  font-family: var(--title-font);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.panel h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold-line), transparent);
+}
+
+.group-panel-header h3,
+.faction h3 {
+  font-family: var(--title-font);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Buttons ---------- */
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-color: var(--gold-line);
+  background: rgb(255 255 255 / 3%);
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: rgb(216 180 108 / 10%);
+  color: var(--gold-light);
+}
+
+.icon {
+  flex: none;
+}
+
+.button-primary {
+  border-color: #e9c97f;
+  background: linear-gradient(180deg, #f0d58f 0%, #c99a4b 55%, #a87a35 100%);
+  color: #1d1406;
+  font-family: var(--title-font);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 18px rgb(233 201 127 / 30%),
+    inset 0 1px 0 rgb(255 255 255 / 45%);
+}
+
+.button-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #f7e2a6 0%, #d6a95a 55%, #b5853d 100%);
+  color: #1d1406;
+  box-shadow:
+    0 0 26px rgb(233 201 127 / 50%),
+    inset 0 1px 0 rgb(255 255 255 / 55%);
+}
+
+.button-primary:disabled {
+  filter: grayscale(0.85);
+  box-shadow: none;
+}
+
+.button-play {
+  min-width: 170px;
+  padding: 12px 28px;
+  font-size: 17px;
+}
+
+.button-danger {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+/* ---------- Servers ---------- */
+
+.server-row {
+  border-bottom-color: rgb(216 180 108 / 12%);
+}
+
+.server-status {
+  min-width: 72px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+.server-status[data-status='ready'] {
+  color: var(--ok);
+}
+
+.server-status[data-status='failed'],
+.server-status[data-status='missing'] {
+  color: var(--bad);
+}
+
+.dot-ready {
+  background: var(--ok);
+  box-shadow: 0 0 8px var(--ok);
+}
+
+.dot-starting,
+.dot-registering,
+.dot-stopping {
+  box-shadow: 0 0 8px var(--busy);
+}
+
+.dot-failed,
+.dot-missing {
+  box-shadow: 0 0 8px var(--bad);
+}
+
+.actions {
+  align-items: center;
+  margin-top: 18px;
+}
+
+/* ---------- Home ---------- */
+
+.home-grid {
+  align-items: stretch;
+}
+
+.home-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* the two columns end at the same height */
+.home-column > .panel:last-child {
+  flex: 1;
+}
+
+/* ---------- Terminals ---------- */
+
+.terminal-drawer {
+  position: relative;
+  background: linear-gradient(180deg, rgb(10 15 30 / 96%), rgb(6 9 19 / 98%));
+  border-top: none;
+}
+
+.terminal-drawer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+  opacity: 0.4;
+}
+
+.drawer-toggle {
+  border: none;
+  color: var(--gold);
+  font-family: var(--title-font);
+  letter-spacing: 0.14em;
+}
+
+.tabs button[aria-selected='true'] {
+  border-color: var(--gold);
+  color: var(--gold-light);
+  background: rgb(216 180 108 / 10%);
+}
+
+.terminal {
+  border: 1px solid rgb(216 180 108 / 12%);
+  background: rgb(3 5 12 / 92%);
+}
+
+/* ---------- Forms ---------- */
+
+.value-input,
+.sign-in input,
+.teleport input,
+.teleport select,
+.bots-toolbar input {
+  border-color: rgb(216 180 108 / 22%);
+  background: rgb(3 5 12 / 70%);
+}
+
+.value-input:focus-within,
+.sign-in input:focus,
+.teleport input:focus,
+.teleport select:focus,
+.bots-toolbar input:focus {
+  border-color: var(--aether);
+  box-shadow: 0 0 0 2px rgb(111 216 255 / 15%);
+}
+
+.group-list button[aria-selected='true'] {
+  border-color: var(--gold-line);
+  background: linear-gradient(90deg, rgb(216 180 108 / 16%), transparent);
+  color: var(--gold-light);
+  box-shadow: inset 2px 0 0 var(--gold);
+}
+
+.setting-table,
+.backup-list {
+  border-color: rgb(216 180 108 / 16%);
+}
+
+.setting-row,
+.backup {
+  border-bottom-color: rgb(216 180 108 / 10%);
+}
+
+.setting-row-all {
+  background: rgb(216 180 108 / 6%);
+}
+
+.save-bar {
+  border-top-color: var(--gold-line);
+  background: linear-gradient(180deg, rgb(14 20 38 / 96%), rgb(11 16 31 / 98%));
+}
+
+/* ---------- Bots: one line a bot ---------- */
+
+.bot-list {
+  gap: 0;
+  border: 1px solid rgb(216 180 108 / 14%);
+  border-radius: 3px;
+}
+
+.bot {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1.2fr) 36px minmax(0, 1fr) minmax(0, 1.2fr);
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 12px;
+  border: none;
+  border-bottom: 1px solid rgb(216 180 108 / 8%);
+  border-radius: 0;
+  background: transparent;
+  font-size: 13px;
+}
+
+.bot:last-child {
+  border-bottom: none;
+}
+
+.bot:nth-child(even) {
+  background: rgb(255 255 255 / 2%);
+}
+
+.bot-level {
+  color: var(--gold-light);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.bot-class,
+.bot-map {
+  overflow: hidden;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.presence {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(152 161 182 / 30%);
+}
+
+.presence.present {
+  background: var(--ok);
+  box-shadow: 0 0 6px var(--ok);
+}
+
+.bot-more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.bot-more .muted {
+  margin: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Misc ---------- */
+
+.banner {
+  background: linear-gradient(90deg, rgb(216 180 108 / 16%), rgb(216 180 108 / 6%));
+  border-bottom-color: var(--gold-line);
+  color: var(--gold-light);
+}
+
+.badge,
+.tag-safety {
+  background: rgb(216 180 108 / 18%);
+  color: var(--gold-light);
+}
+
+.tag-manual {
+  background: rgb(111 216 255 / 14%);
+  color: var(--aether);
+}
+
+.character.selected {
+  border-color: var(--gold);
+  box-shadow:
+    inset 0 0 0 1px var(--gold),
+    0 0 14px rgb(216 180 108 / 20%);
+}
+
+.dialog {
+  border-color: var(--gold-line);
+  background: linear-gradient(180deg, #141c33, #0b1020);
+}
+
+.dialog h2 {
+  color: var(--gold);
+  font-family: var(--title-font);
+}
+
+.footer {
+  border-top-color: rgb(216 180 108 / 14%);
+  background: rgb(5 8 18 / 70%);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+/* the settings page fits the window when its content does: no bar for a few pixels */
+.content-single {
+  padding-bottom: 12px;
+}
+
+.group-list button {
+  padding: 5px 12px;
+}

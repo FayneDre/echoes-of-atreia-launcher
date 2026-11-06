@@ -126,11 +126,13 @@ export function App(): React.JSX.Element {
         <main className="content content-home" hidden={page !== 'home'}>
           <div className="page-scroll">
             <div className="home-grid">
-              <div className="home-wide">
+              <div className="home-column">
                 <ServersPanel state={state} onShowLog={showLog} />
+                <InstallPanel state={state} />
               </div>
-              <InstallPanel state={state} />
-              <ServerUpdatePanel update={serverUpdate} state={state} />
+              <div className="home-column">
+                <ServerUpdatePanel update={serverUpdate} state={state} />
+              </div>
             </div>
           </div>
           <TerminalPanel

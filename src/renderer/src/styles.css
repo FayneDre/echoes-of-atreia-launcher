@@ -1,15 +1,24 @@
+/*
+ * Atreia's palette: the night sky of the Abyss, the aether's blue light, the gold of a Daeva's ornaments; Elyos in sky blue, Asmodians in
+ * crimson. The theme block at the end of this file draws the panels, the navigation and the buttons with it.
+ */
 :root {
-  --bg: #0d1320;
-  --bg-raised: #151d2e;
-  --bg-sunken: #090e18;
-  --text: #e6e9ef;
-  --text-muted: #8f99ab;
-  --elyos: #7cc4ff;
-  --asmodian: #e0b25c;
-  --border: #263049;
-  --ok: #5fcf8a;
-  --busy: #e0b25c;
+  --bg: #070b16;
+  --bg-raised: #111829;
+  --bg-sunken: #050812;
+  --text: #ece6d6;
+  --text-muted: #98a1b6;
+  --elyos: #7fd4ff;
+  --asmodian: #d0708e;
+  --gold: #d8b46c;
+  --gold-light: #f2deaa;
+  --gold-line: rgb(216 180 108 / 32%);
+  --aether: #6fd8ff;
+  --border: #232d47;
+  --ok: #5fdcb0;
+  --busy: #e3b85f;
   --bad: #ef6b6b;
+  --title-font: Cinzel, 'Trajan Pro', Georgia, serif;
   color-scheme: dark;
   font-family: 'Segoe UI', system-ui, sans-serif;
   font-size: 14px;
@@ -117,7 +126,7 @@ button.small {
   font-size: 26px;
   font-weight: 300;
   letter-spacing: 0.06em;
-  background: linear-gradient(90deg, var(--elyos), var(--asmodian));
+  background: linear-gradient(90deg, var(--elyos), var(--gold));
   background-clip: text;
   color: transparent;
 }
@@ -429,8 +438,8 @@ button.small {
   margin: 0;
   padding: 8px 20px;
   background: #3d3220;
-  border-bottom: 1px solid var(--asmodian);
-  color: var(--asmodian);
+  border-bottom: 1px solid var(--gold);
+  color: var(--gold);
 }
 
 .update-banner {
@@ -558,7 +567,7 @@ button.small {
   padding: 1px 7px;
   border-radius: 10px;
   background: #3d3220;
-  color: var(--asmodian);
+  color: var(--gold);
   font-size: 11px;
   font-weight: 600;
   text-align: center;
@@ -583,7 +592,7 @@ button.small {
 }
 
 .group-changed {
-  color: var(--asmodian);
+  color: var(--gold);
   font-size: 12px;
 }
 
@@ -619,7 +628,7 @@ button.small {
 }
 
 .setting-row.modified .setting-label {
-  color: var(--asmodian);
+  color: var(--gold);
 }
 
 .toggle-cell {
@@ -690,7 +699,7 @@ button.small {
 }
 
 .unsaved {
-  color: var(--asmodian);
+  color: var(--gold);
 }
 
 .success {
@@ -707,10 +716,10 @@ button.small {
   margin-left: auto;
   margin-right: 12px;
   padding: 5px 12px;
-  border-color: var(--asmodian);
+  border-color: var(--gold);
   border-radius: 16px;
   background: #3d3220;
-  color: var(--asmodian);
+  color: var(--gold);
   font-size: 13px;
 }
 
@@ -782,8 +791,8 @@ button.small {
 }
 
 .character.selected {
-  border-color: var(--asmodian);
-  box-shadow: inset 0 0 0 1px var(--asmodian);
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
 }
 
 .character-top {
@@ -877,7 +886,7 @@ button.small {
 
 .tag-safety {
   background: #3d3220;
-  color: var(--asmodian);
+  color: var(--gold);
 }
 
 .footer {

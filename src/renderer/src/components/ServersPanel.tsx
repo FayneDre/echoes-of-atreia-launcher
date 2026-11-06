@@ -1,5 +1,6 @@
 import { SERVER_IDS, type LauncherState, type ServerId, type ServerState } from '../../../shared/types'
 import { useI18n } from '../i18n'
+import { Icon } from './Icon'
 import { ProblemText } from './ProblemText'
 
 function StatusDot({ status }: { status: string }): React.JSX.Element {
@@ -23,12 +24,13 @@ function ServerRow({ server, canAct, onForceStop, onShowLog }: RowProps): React.
     <li className="server-row" data-testid={`server-${server.id}`}>
       <div className="server-line">
         <StatusDot status={server.status} />
-        <span className="server-name">{t(`server.${server.id}`)}</span>
+        <span className="server-name" title={server.port !== null ? t('server.port', { port: server.port }) : undefined}>
+          {t(`server.${server.id}`)}
+        </span>
+        {server.external && <span className="server-meta">{t('server.external')}</span>}
         <span className="server-status" data-testid={`status-${server.id}`} data-status={server.status}>
           {t(`status.${server.status}`)}
         </span>
-        {server.port !== null && <span className="server-meta">{t('server.port', { port: server.port })}</span>}
-        {server.external && <span className="server-meta">{t('server.external')}</span>}
         {canForce && (
           <button type="button" className="button-danger small" onClick={onForceStop}>
             {t('action.forceStop')}
@@ -42,6 +44,7 @@ function ServerRow({ server, canAct, onForceStop, onShowLog }: RowProps): React.
             disabled={!canAct}
             onClick={() => void window.launcher.restartServer(server.id)}
           >
+            <Icon name={server.status === 'ready' ? 'restart' : 'play'} />
             {t(action)}
           </button>
         )}
@@ -74,12 +77,13 @@ export function ServersPanel({ state, onShowLog }: { state: LauncherState; onSho
         <li className="server-row" data-testid="server-mysql">
           <div className="server-line">
             <StatusDot status={mysql.status} />
-            <span className="server-name">{t('server.mysql')}</span>
+            <span className="server-name" title={mysql.port !== null ? t('server.port', { port: mysql.port }) : undefined}>
+              {t('server.mysql')}
+            </span>
+            {mysql.optionsFile && <span className="server-meta">{t('server.mysqlOptions', { file: mysql.optionsFile })}</span>}
             <span className="server-status" data-testid="status-mysql" data-status={mysql.status}>
               {t(`status.${mysql.status}`)}
             </span>
-            {mysql.port !== null && <span className="server-meta">{t('server.port', { port: mysql.port })}</span>}
-            {mysql.optionsFile && <span className="server-meta">{t('server.mysqlOptions', { file: mysql.optionsFile })}</span>}
             {(mysql.serviceName || mysql.optionsFile) && (
               <button
                 type="button"
@@ -119,12 +123,14 @@ export function ServersPanel({ state, onShowLog }: { state: LauncherState; onSho
 
       <div className="actions">
         <button type="button" disabled={!idle || !install.serverFound || gameReady} onClick={() => void window.launcher.start()}>
+          <Icon name="play" />
           {t('action.start')}
         </button>
         <button type="button" disabled={!canStop} onClick={() => void window.launcher.stop()}>
+          <Icon name="stop" />
           {t('action.stop')}
         </button>
-        <button type="button" className="button-primary" disabled={!gameReady || !install.clientFound} onClick={() => void window.launcher.play()}>
+        <button type="button" className="button-primary button-play" disabled={!gameReady || !install.clientFound} onClick={() => void window.launcher.play()}>
           {t('action.play')}
         </button>
       </div>
