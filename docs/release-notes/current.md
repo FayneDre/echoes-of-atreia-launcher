@@ -7,6 +7,34 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.3 — 06/11/2026
+
+**Arrive toute seule si tu as la v0.3.0-beta.2 installée** (avec l'installateur) : c'est la première mise à jour que le launcher fait lui-même.
+Sinon, installe-la à la main avec `Echoes-of-Atreia-Setup-0.3.0-beta.3.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.** Pour installer le serveur depuis le launcher, il faut le serveur v0.1.0-beta.2, le premier livré tout
+compilé.
+
+**Ce qui change**
+- **Le launcher installe le serveur** : un panneau « Version du serveur » sur l'accueil dit la version installée et propose la pre-release
+  du serveur la plus récente, avec ses notes. « Mettre à jour le serveur » télécharge et vérifie tout pendant que les serveurs tournent
+  (le serveur, puis les cartes du navmesh qui ont changé : 1,8 Go la première fois), puis montre ce qui va se passer : les fichiers de
+  réglages que tu as modifiés, qui restent tels quels (la nouvelle version est posée à côté en `.new-<version>`), et ta base de données si
+  elle n'est jamais passée par le script SQL du serveur. « Installer » arrête les serveurs proprement, remplace les fichiers en gardant une
+  copie de chacun, met à jour la base (après l'avoir sauvegardée) et relance les serveurs.
+- **Revenir en arrière** : « Revenir à… » remet les fichiers de la version précédente. La base garde les changements de la mise à jour ;
+  sa sauvegarde est dans le dossier `backups` du serveur.
+- **Un JDK 25 est nécessaire** (pas seulement Java) : le launcher le vérifie avant d'installer et dit quoi faire s'il manque.
+- **Un serveur de développement** (installé par le script de déploiement du serveur) n'est jamais remplacé par une version publiée.
+
+**Ce qui n'est pas réglé** (connu, inutile de le signaler)
+- **L'installation du serveur** n'a été vérifiée qu'en tests et sur un bundle d'essai, pas encore sur une vraie installation de testeur.
+- **La langue du client** est forcée en anglais : un client qui n'a que le français affiche du coréen.
+
+**Configuration requise** : Windows, un JDK 25 ou plus récent, MySQL, le client Aion 4.8.
+
+---
+
 ## v0.3.0-beta.2 — 06/11/2026
 
 **À installer une fois à la main, avec l'installateur** (`Echoes-of-Atreia-Setup-0.3.0-beta.2.exe`, pas la version portable) : c'est la

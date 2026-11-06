@@ -6,6 +6,32 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.3 — 2026-11-06
+
+**It arrives by itself if you have v0.3.0-beta.2 installed** (with the installer): the first update the launcher makes on its own. Otherwise
+install it by hand with `Echoes-of-Atreia-Setup-0.3.0-beta.3.exe`.
+
+**Minimum server: v0.1.0-beta.1.** To install the server from the launcher, server v0.1.0-beta.2 is needed, the first shipped built.
+
+**What changes**
+- **The launcher installs the server**: a "Server version" panel on the home page shows the version installed and offers the newest server
+  pre-release, with its notes. "Update the server" downloads and checks everything while the servers run (the server, then the navmesh maps
+  that changed: 1.8 GB the first time), then shows what will happen: the settings files you edited, which stay as they are (the new version
+  is put beside them as `.new-<version>`), and your database if it has never been through the server's SQL script. "Install" stops the
+  servers cleanly, replaces the files keeping a copy of each, updates the database (after a backup of it) and starts the servers again.
+- **Going back**: "Return to..." puts the previous version's files back. The database keeps the update's changes; its backup is in the
+  server's `backups` folder.
+- **A JDK 25 is needed** (not only Java): the launcher checks it before installing and says what to do when it is missing.
+- **A development server** (installed by the server's deploy script) is never replaced by a published version.
+
+**Not fixed yet** (known, no need to report it)
+- **Installing the server** was checked in tests and on a trial bundle only, not on a real tester's install yet.
+- **The client's language** is forced to English: a client that only has French shows Korean.
+
+**Requirements**: Windows, a JDK 25 or later, MySQL, the Aion 4.8 client.
+
+---
+
 ## v0.3.0-beta.2 — 2026-11-06
 
 **Install it once by hand, with the installer** (`Echoes-of-Atreia-Setup-0.3.0-beta.2.exe`, not the portable build): it is the first version
