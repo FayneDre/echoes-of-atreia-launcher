@@ -55,8 +55,8 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
     return this.state
   }
 
+  /** Looks again every few hours; the first look is made when the launcher has found the server folder (`check`, from the caller). */
   start(): void {
-    void this.check()
     setInterval(() => void this.check(), CHECK_EVERY_MS).unref()
   }
 
@@ -180,7 +180,9 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
     }, step)
     this.plan = null
     if (problem) {
-      this.fail(base, problem)
+      // the files may have changed before the step that failed: the way back is offered at once
+      const last = await installer.lastUpdate()
+      this.fail({ ...base, canReturnTo: last ? { version: last.record.from } : undefined }, problem)
       return problem
     }
     this.set({ status: 'current', installed: release.tag })
@@ -220,7 +222,8 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
       }
     }, (current) => this.set({ ...base, status: 'installing', step: current }))
     if (problem) {
-      this.fail(base, problem)
+      const last = await installer.lastUpdate()
+      this.fail({ ...base, canReturnTo: last ? { version: last.record.from } : undefined }, problem)
       return problem
     }
     this.set({ status: 'off', installed: null })

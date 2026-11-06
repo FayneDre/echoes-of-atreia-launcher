@@ -114,10 +114,10 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('server-update:cancel', () => serverUpdater.cancel())
   ipcMain.handle('server-update:undo', () => serverUpdater.undo())
   ipcMain.handle('update:get-state', () => updater.current)
-  // Not while servers start or stop; closing then asks what to do with the running ones, as any close does.
+  // Not while servers start or stop, or the server's files change; closing then asks what to do with the running ones, as any close does.
   ipcMain.handle('update:install', () => {
     const { activity } = launcher.getState()
-    if (activity === 'starting' || activity === 'stopping' || !updater.askInstall()) {
+    if (activity === 'starting' || activity === 'stopping' || activity === 'server-update' || !updater.askInstall()) {
       return false
     }
     window.close()

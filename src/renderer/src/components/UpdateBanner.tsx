@@ -17,7 +17,7 @@ export function UpdateBanner({ update, state }: Props): React.JSX.Element | null
   }
   const notes = update.notes?.[language] ?? update.notes?.en
   // a start or a stop under way is not interrupted by a close
-  const busy = state.activity === 'starting' || state.activity === 'stopping'
+  const busy = state.activity === 'starting' || state.activity === 'stopping' || state.activity === 'server-update'
   return (
     <div className="banner update-banner" role="status" data-testid="launcher-update" data-status={update.status}>
       {update.status === 'downloading' && <span>{t('update.downloading', { version: update.version, percent: update.percent ?? 0 })}</span>}
