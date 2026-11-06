@@ -8,9 +8,13 @@ import { ServersPanel } from './components/ServersPanel'
 import { SettingsPage } from './components/SettingsPage'
 import { TerminalPanel } from './components/TerminalPanel'
 import { LANGUAGES, useI18n, type MessageKey } from './i18n'
+import { MIN_SERVER_API_LEVEL, MIN_SERVER_VERSION, isServerTooOld } from '../../shared/types'
 import { useAccounts, useLauncherState } from './useLauncher'
 
 type Page = 'home' | 'account' | 'bots' | 'settings' | 'backups'
+
+/** The pages that ask the game server for something its admin channel or its settings must have. */
+const NEEDS_SERVER_API: Page[] = ['account', 'bots', 'settings']
 
 const PAGES: { id: Page; label: MessageKey }[] = [
   { id: 'home', label: 'nav.home' },
@@ -65,6 +69,12 @@ export function App(): React.JSX.Element {
           ))}
         </div>
       </header>
+
+      {state && isServerTooOld(state.serverVersion) && NEEDS_SERVER_API.includes(page) && (
+        <p className="banner" role="alert" data-testid="server-too-old">
+          {t('server.tooOld', { level: state.serverVersion!.apiLevel, needed: MIN_SERVER_API_LEVEL, version: MIN_SERVER_VERSION })}
+        </p>
+      )}
 
       {state?.restartNeeded && (
         <p className="banner" role="status" data-testid="restart-needed">

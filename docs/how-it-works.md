@@ -146,6 +146,11 @@ renames it `<id>.request` (one line: the command and its words), and waits for `
 and the rest data. The server reads the folder twice a second. No port and no key: whoever can write in the server's folder can already replace
 the jar. A server without the channel never answers; the launcher gives up after a few seconds.
 
+- `version`: asked each time the game server becomes ready; the answer is `version`, `revision` and `api` lines. A server that does not
+  know it (or has no channel) is level 0. While the game server is stopped, the same comes from the install's `manifest.json`, which the
+  server's deploy script writes; with neither, nothing is known and nothing is said. Below `MIN_SERVER_API_LEVEL` (`src/shared/types.ts`),
+  the Account, Bots and Settings pages say which server version to install (`MIN_SERVER_VERSION`). Both are raised by a release that needs
+  a newer server, and its notes say so.
 - `reload-config`: sent after a save when the game server is ready; the rates are read at each gain, so they apply at once. If it is not
   answered, the "restart needed" banner shows as before.
 - `destinations`: the server's teleport list (location, map, x y z, name); the interface offers each name once.

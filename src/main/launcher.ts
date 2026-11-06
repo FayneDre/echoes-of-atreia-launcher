@@ -11,11 +11,13 @@ import {
   type Problem,
   type ServerId,
   type ServerSettings,
-  type ServerState
+  type ServerState,
+  type ServerVersion
 } from '../shared/types'
 import { launchClient } from './client'
 import { findClientNear, isClientFolder, readServerLayout, type ServerLayout } from './server/installation'
 import { adminRequest, parseDestinations } from './server/adminChannel'
+import { parseVersionAnswer, readInstallManifest } from './server/serverVersion'
 import { addressOf } from './accounts/accountStore'
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
@@ -40,6 +42,9 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   /** A setting read at start only was saved while the game server ran: only a start clears the restart notice. */
   private startOnlyPending = false
   private problem: Problem | undefined
+  private serverVersion: ServerVersion | null = null
+  /** The game server's last status, so its version is asked once when it becomes ready, not at every state it publishes. */
+  private gameStatus: ServerState['status'] = 'stopped'
 
   constructor(private readonly settings: SettingsStore) {
     super()
@@ -61,7 +66,8 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       activity: this.activity,
       quitRequested: this.quitRequested,
       restartNeeded: this.restartNeeded,
-      problem: this.problem
+      problem: this.problem,
+      serverVersion: this.serverVersion
     }
   }
 
@@ -124,6 +130,8 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       clientFound: clientRoot ? await isClientFolder(clientRoot) : false,
       javaVersion: await javaMajorVersion()
     }
+    this.gameStatus = 'stopped'
+    this.serverVersion = serverRoot ? await readInstallManifest(serverRoot) : null
 
     for (const server of Object.values(this.servers)) {
       server.dispose()
@@ -137,6 +145,14 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
           if (id === 'game' && (state.status === 'stopped' || state.status === 'starting')) {
             this.restartNeeded = false
             this.startOnlyPending = false
+          }
+          if (id === 'game' && state.status !== this.gameStatus) {
+            this.gameStatus = state.status
+            if (state.status === 'ready') {
+              void this.askServerVersion()
+            } else if (state.status === 'stopped') {
+              void this.rereadInstallManifest()
+            }
           }
           this.publish()
         })
@@ -340,6 +356,29 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       return null
     }
     return answer.error === 'not in game' ? { code: 'not-in-game' } : { code: 'admin-failed', detail: answer.error }
+  }
+
+  /** Asks the game server that just became ready what it is. One too old to know the request is level 0. */
+  private async askServerVersion(): Promise<void> {
+    if (!this.layout) {
+      return
+    }
+    const version = parseVersionAnswer(await adminRequest(this.layout.servers.game.dir, 'version'))
+    // a server stopped meanwhile is described by its manifest again, read when it stopped
+    if (this.gameStatus === 'ready') {
+      this.serverVersion = version
+      this.publish()
+    }
+  }
+
+  /** What the install says of a stopped game server: a deploy may have changed it since the launcher started. */
+  private async rereadInstallManifest(): Promise<void> {
+    const serverRoot = this.install.serverRoot
+    const version = serverRoot ? await readInstallManifest(serverRoot) : null
+    if (this.gameStatus === 'stopped') {
+      this.serverVersion = version
+      this.publish()
+    }
   }
 
   private async askGame(command: string): Promise<string[] | Problem> {

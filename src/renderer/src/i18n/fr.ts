@@ -136,6 +136,7 @@ export const fr: Record<MessageKey, string> = {
   'settings.saved': 'Enregistré.',
   'settings.saveFailed': "Les réglages n'ont pas pu être enregistrés.",
   'settings.restartNeeded': 'Redémarre les serveurs pour appliquer les nouveaux réglages.',
+  'server.tooOld': 'Ce serveur est plus ancien que ce launcher (niveau d’API {level}, il lui faut {needed}) : installe le serveur {version} ou plus récent.',
   'settings.noServer': "Choisis d'abord le dossier du serveur sur la page Accueil.",
 
   'account.intro':

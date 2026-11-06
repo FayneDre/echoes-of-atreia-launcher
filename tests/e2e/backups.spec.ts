@@ -16,7 +16,9 @@ test.afterEach(async () => {
 
 const data = (database: string): string => readFileSync(join(install.root, 'mysql-data', `${database}.sql`), 'utf8')
 const backupsDir = (): string => join(install.serverRoot, 'backups')
-const optionFilesLeft = (): string[] => readdirSync(tmpdir()).filter((name) => name.startsWith('echoes-mysql-'))
+// Only this launcher's: the files carry its process id, and the other tests running at the same time make and remove their own.
+const optionFilesLeft = (app: ElectronApplication): string[] =>
+  readdirSync(tmpdir()).filter((name) => name.startsWith(`echoes-mysql-${app.process().pid}-`))
 
 async function openBackups(): Promise<{ app: ElectronApplication; page: Page }> {
   const launched = await launchWith(install)
@@ -32,7 +34,6 @@ async function backUp(page: Page): Promise<void> {
 }
 
 test('backs up both databases, with the credentials each server uses, and lists the backup', async () => {
-  const leftBefore = optionFilesLeft().length
   const { app, page } = await openBackups()
   await expect(page.getByText('No backup yet.')).toBeVisible()
   await backUp(page)
@@ -44,7 +45,7 @@ test('backs up both databases, with the credentials each server uses, and lists 
   await expect(row).toContainText('Backup')
   await expect(row).toContainText('aion_ls 1 KB · aion_gs 1 KB')
   // The credentials went through a file of their own, removed after: none is left behind.
-  expect(optionFilesLeft().length).toBe(leftBefore)
+  expect(optionFilesLeft(app)).toEqual([])
   await app.close()
 })
 

@@ -135,6 +135,7 @@ export const en = {
   'settings.saved': 'Saved.',
   'settings.saveFailed': 'The settings could not be saved.',
   'settings.restartNeeded': 'Restart the servers to apply the new settings.',
+  'server.tooOld': 'This server is older than this launcher (launcher API level {level}, it needs {needed}): install server {version} or later.',
   'settings.noServer': 'Choose the server folder on the Home page first.',
 
   'account.intro':

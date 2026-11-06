@@ -94,6 +94,30 @@ export interface LauncherState {
   restartNeeded: boolean
   /** Why the last start of the stack could not begin (no server folder, no Java...). */
   problem?: Problem
+  /** What the game server says it is, or null while that is not known (stopped, and no manifest.json in its install). */
+  serverVersion: ServerVersion | null
+}
+
+/**
+ * The lowest launcher API level a game server must have for this launcher (the server's `AdminChannel.API_LEVEL`), and the first server
+ * version that has it, named to the person. Raised with a release that needs a newer server, and said in its notes.
+ */
+export const MIN_SERVER_API_LEVEL = 1
+export const MIN_SERVER_VERSION = 'v0.1.0-beta.1'
+
+export interface ServerVersion {
+  /** Where it was read: the running game server's answer, or the install's `manifest.json` while it is stopped. */
+  from: 'server' | 'manifest'
+  /** A release such as v0.1.0-beta.1, `dev` for a build that was not made as one, null when the server did not say. */
+  version: string | null
+  revision: string | null
+  /** 0 for a server that does not know the `version` request: older than the levels. */
+  apiLevel: number
+}
+
+/** A server known to be older than this launcher needs. An unknown one is not: nothing is said rather than something wrong. */
+export function isServerTooOld(version: ServerVersion | null): boolean {
+  return version !== null && version.apiLevel < MIN_SERVER_API_LEVEL
 }
 
 export type { ServerSettings } from './settingsCatalog'
