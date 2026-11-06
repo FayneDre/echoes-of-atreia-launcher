@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { parseVersionAnswer, readInstallManifest } from '../../src/main/server/serverVersion'
-import { MIN_SERVER_API_LEVEL, isServerTooOld } from '../../src/shared/types'
+import { MIN_SERVER_API_LEVEL, isBetaVersion, isServerTooOld } from '../../src/shared/types'
 
 describe('parseVersionAnswer', () => {
   it('reads one key and value a line', () => {
@@ -49,5 +49,12 @@ describe('isServerTooOld', () => {
     expect(isServerTooOld(null)).toBe(false)
     expect(isServerTooOld({ from: 'server', version: null, revision: null, apiLevel: MIN_SERVER_API_LEVEL - 1 })).toBe(true)
     expect(isServerTooOld({ from: 'manifest', version: 'dev', revision: null, apiLevel: MIN_SERVER_API_LEVEL })).toBe(false)
+  })
+})
+
+describe('isBetaVersion', () => {
+  it('follows the pre-releases only for a version with a pre-release part', () => {
+    expect(isBetaVersion('0.3.0-beta.2')).toBe(true)
+    expect(isBetaVersion('0.3.0')).toBe(false)
   })
 })

@@ -3,6 +3,12 @@ import type { MessageKey } from './en'
 export const fr: Record<MessageKey, string> = {
   'language.label': 'Langue',
   'home.tagline': "Atreia n'est plus jamais vide.",
+  'update.downloading': 'Téléchargement de la version {version} du launcher… {percent} %',
+  'update.ready': 'La version {version} du launcher est prête. Elle s’installe à la fermeture du launcher.',
+  'update.install': 'Redémarrer et installer',
+  'update.portable': 'La version {version} du launcher est sortie. Cette copie portable ne peut pas se mettre à jour seule.',
+  'update.download': 'La télécharger',
+  'update.notes': 'Quoi de neuf',
   'footer.disclaimer': 'Projet de fan non officiel, sans lien avec NCSoft ni approuvé par NCSoft.',
 
   'nav.label': 'Pages',
@@ -271,6 +277,8 @@ export const fr: Record<MessageKey, string> = {
   'problem.stop-unanswered':
     "Le serveur de jeu n'a pas répondu à la demande d'arrêt. Cette version du serveur est peut-être trop ancienne.",
   'problem.stop-timeout': "Le serveur ne s'est pas arrêté à temps.",
+  'problem.stop-unknown-process':
+    'Un autre serveur du même type tourne sur cet ordinateur, et le launcher ne peut pas savoir lequel est celui de cette installation : arrête-le toi-même, dans sa fenêtre.',
   'problem.client-failed': "Le client du jeu n'a pas pu être lancé.",
   'problem.account-unknown': "Aucun compte de ce nom sur ce serveur.",
   'problem.password-wrong': 'Mot de passe incorrect.',

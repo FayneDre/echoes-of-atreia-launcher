@@ -327,6 +327,24 @@ button.small {
   color: var(--asmodian);
 }
 
+.update-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.update-notes {
+  flex-basis: 100%;
+}
+
+.update-notes pre {
+  max-height: 200px;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
 .content-single {
   grid-template-columns: minmax(0, 1040px);
   justify-content: center;

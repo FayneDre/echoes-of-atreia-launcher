@@ -46,6 +46,16 @@ const GP_LOSS: [string, number][] = [
   ['SUPREME_COMMANDER', 219]
 ]
 
+/**
+ * Not the real servers' classes: a real server running on the test machine names those, and the launcher would see two servers of a kind,
+ * which it rightly refuses to guess between. The fake tells its role from the word in the name, as the real classes have it.
+ */
+export const FAKE_MAIN_CLASS = {
+  chat: 'test.echoes.chatserver.ChatServer',
+  login: 'test.echoes.loginserver.LoginServer',
+  game: 'test.echoes.gameserver.GameServer'
+}
+
 function startBat(mainClass: string): string {
   return `@ECHO off\r\nTITLE test\r\n:START\r\nJAVA -Xms16m -Xmx16m -cp "libs/*" ${mainClass}\r\nPAUSE\r\n`
 }
@@ -133,18 +143,18 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
     mkdirSync(join(path, '..'), { recursive: true })
     writeFileSync(path, text)
   }
-  write(join(serverRoot, 'chat-server', 'start.bat'), startBat('com.aionemu.chatserver.ChatServer'))
+  write(join(serverRoot, 'chat-server', 'start.bat'), startBat(FAKE_MAIN_CLASS.chat))
   write(
     join(serverRoot, 'chat-server', 'config', 'network', 'network.properties'),
     `chatserver.network.gameserver.socket_address = 0.0.0.0:${ports.chat}\n`
   )
-  write(join(serverRoot, 'login-server', 'start.bat'), startBat('com.aionemu.loginserver.LoginServer'))
+  write(join(serverRoot, 'login-server', 'start.bat'), startBat(FAKE_MAIN_CLASS.login))
   write(
     join(serverRoot, 'login-server', 'config', 'network', 'network.properties'),
     `loginserver.network.client.socket_address = 0.0.0.0:${ports.loginClient}\n` +
       `loginserver.network.gameserver.socket_address = 0.0.0.0:${ports.login}\n`
   )
-  write(join(serverRoot, 'game-server', 'start.bat'), startBat('com.aionemu.gameserver.GameServer'))
+  write(join(serverRoot, 'game-server', 'start.bat'), startBat(FAKE_MAIN_CLASS.game))
   write(
     join(serverRoot, 'game-server', 'config', 'network', 'network.properties'),
     `gameserver.network.client.socket_address = 0.0.0.0:${ports.game}\n` +
@@ -235,7 +245,7 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
   return install
 }
 
-export async function launchWith(install: FakeInstall): Promise<{ app: ElectronApplication; page: Page }> {
+export async function launchWith(install: FakeInstall, env: Record<string, string> = {}): Promise<{ app: ElectronApplication; page: Page }> {
   const app = await electron.launch({
     args: ['.'],
     env: {
@@ -247,7 +257,8 @@ export async function launchWith(install: FakeInstall): Promise<{ app: ElectronA
       ECHOES_FAKE_DB: install.database,
       ECHOES_FAKE_MYSQL_TOOLS: resolve('tests/fixtures/mysql-tools'),
       ECHOES_FAKE_MYSQLD: resolve('tests/fixtures/fake-mysqld.mjs'),
-      ECHOES_FAKE_MYSQL_DATA: join(install.root, 'mysql-data')
+      ECHOES_FAKE_MYSQL_DATA: join(install.root, 'mysql-data'),
+      ...env
     }
   })
   const page = await app.firstWindow()

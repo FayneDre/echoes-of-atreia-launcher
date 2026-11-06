@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
-import type { AccountsState, BackupSummary, BotSummary, DestinationSummary, FolderKind, LauncherState, LogBatch, Problem, QuitAnswer, ServerId, ServerSettings } from '../shared/types'
+import type { AccountsState, BackupSummary, BotSummary, DestinationSummary, FolderKind, LauncherState, LogBatch, Problem, QuitAnswer, ServerId, ServerSettings, UpdateState } from '../shared/types'
 
 function subscribe<T>(channel: string, listener: (value: T) => void): () => void {
   const handler = (_event: IpcRendererEvent, value: T): void => listener(value)
@@ -38,7 +38,10 @@ const launcherApi = {
   chooseFolder: (kind: FolderKind): Promise<void> => ipcRenderer.invoke('launcher:choose-folder', kind),
   answerQuit: (answer: QuitAnswer): Promise<void> => ipcRenderer.invoke('launcher:quit-answer', answer),
   onState: (listener: (state: LauncherState) => void): (() => void) => subscribe('launcher:state', listener),
-  onLines: (listener: (batch: LogBatch) => void): (() => void) => subscribe('launcher:lines', listener)
+  onLines: (listener: (batch: LogBatch) => void): (() => void) => subscribe('launcher:lines', listener),
+  getUpdate: (): Promise<UpdateState> => ipcRenderer.invoke('update:get-state'),
+  installUpdate: (): Promise<boolean> => ipcRenderer.invoke('update:install'),
+  onUpdate: (listener: (state: UpdateState) => void): (() => void) => subscribe('update:state', listener)
 }
 
 export type LauncherApi = typeof launcherApi

@@ -3,6 +3,12 @@ export const en = {
   'language.label': 'Language',
   'home.tagline': 'Atreia is never empty.',
   'footer.disclaimer': 'Unofficial fan project, not affiliated with or endorsed by NCSoft.',
+  'update.downloading': 'Downloading version {version} of the launcher… {percent}%',
+  'update.ready': 'Version {version} of the launcher is ready. It installs when the launcher closes.',
+  'update.install': 'Restart and install',
+  'update.portable': 'Version {version} of the launcher is out. This portable copy cannot update itself.',
+  'update.download': 'Download it',
+  'update.notes': 'What’s new',
 
   'nav.label': 'Pages',
   'nav.home': 'Home',
@@ -268,6 +274,8 @@ export const en = {
   'problem.register-timeout': 'The game server did not reach the login server within ten minutes.',
   'problem.stop-unanswered': 'The game server did not answer the stop request. This server version may be too old for it.',
   'problem.stop-timeout': 'The server did not stop in time.',
+  'problem.stop-unknown-process':
+    'Another server of this kind runs on this computer, and the launcher cannot tell which one is this installation’s: stop it yourself, in its window.',
   'problem.client-failed': 'The game client could not be started.',
   'problem.account-unknown': 'There is no account by that name on this server.',
   'problem.password-wrong': 'Wrong password.',

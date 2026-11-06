@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import type { Problem, ProblemCode, ServerState } from '../../shared/types'
 import type { JavaCommand } from '../system/java'
 import { isPortOpen } from '../system/network'
-import { findJavaProcess, isProcessAlive, killProcess } from '../system/processes'
+import { findJavaProcesses, isProcessAlive, killProcess } from '../system/processes'
 import type { ServerDefinition } from './installation'
 import { fileMentions, LogTail } from './logTail'
 import { waitFor } from './wait'
@@ -155,7 +155,10 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
     if (this.hasProcess || !(await isPortOpen(this.definition.port))) {
       return
     }
-    this.pid = await findJavaProcess(this.definition.mainClass)
+    const candidates = await findJavaProcesses(this.definition.mainClass)
+    // Two servers of this kind run (another install, one started elsewhere): which is this install's cannot be told, so none is taken for
+    // it. The game server still stops through its request, in its own folder; a chat or login server is not killed on a guess.
+    this.pid = candidates.length === 1 ? candidates[0]! : null
     this.portOpened = true
     this.stopRequested = false
     this.registered = this.waitsForRegistration && (await this.registeredInLogs())
@@ -336,6 +339,8 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
       // The chat and login servers keep nothing that a shutdown would save, and neither does a game server still loading its data.
       if (this.pid !== null) {
         killProcess(this.pid)
+      } else if (this.state.external) {
+        return this.failStop({ code: 'stop-unknown-process' })
       }
       if (!(await this.waitUntilGone(KILL_TIMEOUT_MS))) {
         return this.failStop({ code: 'stop-timeout' })

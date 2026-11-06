@@ -46,7 +46,18 @@ connects to the other two while it starts.
 - The chat and login servers keep nothing a shutdown would save: they are ended directly.
 - Order: game, login, chat; MySQL only on its own button, and never while a server runs.
 - **Closing the window while servers run** asks: stop them and quit, leave them running, or stay. Servers left running are taken over at the
-  next start of the launcher, found by port and by the main class on their command line.
+  next start of the launcher, found by port and by the main class on their command line. The command line does not say which install a
+  server runs from (`-cp "libs/*"` is relative): when two processes name the class (another install, a server started by hand), none is
+  taken for this one. The game server still stops through its request in its own folder; a chat or login server is not killed on a guess,
+  and the launcher says to stop it in its window. The tests' fake servers use their own class names for that reason.
+- **The launcher updates itself** (`src/main/update/updater.ts`, `electron-updater`) from its GitHub releases: `build.publish` in
+  `package.json` puts an `app-update.yml` in the build, and each release carries `latest.yml` and the installer's `.blockmap`
+  (`tools/release.ps1` refuses a build without them). A version with a pre-release part (`-beta.N`) follows the pre-releases, a stable one
+  only `Latest`: no setting. Checked at start and every four hours; a newer version downloads in the background, is shown with the release's
+  `notes.<language>.md`, and installs when the launcher closes. "Restart and install" closes the window the usual way, so the question about
+  running servers comes first, and the installer starts only once the launcher has quit (`quitAndInstall` would start it before). Never
+  offered while servers start or stop. The portable build cannot replace itself: it links to the release. A development run does not
+  update; the tests give a local feed (`ECHOES_UPDATE_FEED`, `ECHOES_UPDATE_CONFIG`).
 - **One launcher at a time**: a second one only brings the first to the front, since both would believe they own the servers.
 
 ## Server settings

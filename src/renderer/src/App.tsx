@@ -7,9 +7,10 @@ import { QuitDialog } from './components/QuitDialog'
 import { ServersPanel } from './components/ServersPanel'
 import { SettingsPage } from './components/SettingsPage'
 import { TerminalPanel } from './components/TerminalPanel'
+import { UpdateBanner } from './components/UpdateBanner'
 import { LANGUAGES, useI18n, type MessageKey } from './i18n'
 import { MIN_SERVER_API_LEVEL, MIN_SERVER_VERSION, isServerTooOld } from '../../shared/types'
-import { useAccounts, useLauncherState } from './useLauncher'
+import { useAccounts, useLauncherState, useUpdate } from './useLauncher'
 
 type Page = 'home' | 'account' | 'bots' | 'settings' | 'backups'
 
@@ -27,6 +28,7 @@ const PAGES: { id: Page; label: MessageKey }[] = [
 export function App(): React.JSX.Element {
   const { language, setLanguage, t } = useI18n()
   const state = useLauncherState()
+  const update = useUpdate()
   const { accounts, reload } = useAccounts(state)
   const [page, setPage] = useState<Page>('home')
   const playing = accounts?.characters.find((character) => character.id === accounts.selectedCharacterId)
@@ -69,6 +71,8 @@ export function App(): React.JSX.Element {
           ))}
         </div>
       </header>
+
+      {state && <UpdateBanner update={update} state={state} />}
 
       {state && isServerTooOld(state.serverVersion) && NEEDS_SERVER_API.includes(page) && (
         <p className="banner" role="alert" data-testid="server-too-old">

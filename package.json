@@ -15,13 +15,18 @@
     "test:unit": "vitest run",
     "test:e2e": "electron-vite build && playwright test",
     "test": "npm run typecheck && npm run test:unit && npm run test:e2e",
-    "dist": "electron-vite build && electron-builder --win"
+    "dist": "electron-vite build && electron-builder --win --publish never"
   },
   "build": {
     "appId": "io.github.faynedre.echoes-of-atreia",
     "productName": "Echoes of Atreia",
     "directories": {
       "output": "dist"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "FayneDre",
+      "repo": "echoes-of-atreia-launcher"
     },
     "files": [
       "out/**",
@@ -58,6 +63,7 @@
     "vitest": "^5.1.0"
   },
   "dependencies": {
+    "electron-updater": "^6.8.11",
     "mysql2": "^3.24.6"
   }
 }

@@ -27,6 +27,7 @@ export type ProblemCode =
   | 'register-timeout'
   | 'stop-unanswered'
   | 'stop-timeout'
+  | 'stop-unknown-process'
   | 'client-failed'
   | 'account-unknown'
   | 'password-wrong'
@@ -188,4 +189,27 @@ export interface BotSummary {
   mapName: string | null
   /** In the world as the server last knew it. */
   inWorld: boolean
+}
+
+/**
+ * The launcher's own update. `off`: a run that cannot update itself (not installed, such as a development run). `portable`: the portable
+ * build, which cannot replace itself, so a newer version is only pointed to. `ready`: downloaded, installed when the launcher closes.
+ */
+export type UpdateStatus = 'off' | 'idle' | 'downloading' | 'ready' | 'portable'
+
+export interface UpdateState {
+  status: UpdateStatus
+  /** The newer version, once one is found. */
+  version?: string
+  /** Of the download, 0 to 100. */
+  percent?: number
+  /** The release's notes in each language, as written (Markdown), when they could be fetched. */
+  notes?: Partial<Record<'en' | 'fr', string>>
+  /** The release's page, for the portable build. */
+  releaseUrl?: string
+}
+
+/** A launcher whose version carries a pre-release part follows the pre-releases; a stable one only the releases. */
+export function isBetaVersion(version: string): boolean {
+  return /^\d+\.\d+\.\d+-/.test(version)
 }

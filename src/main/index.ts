@@ -7,6 +7,7 @@ import { listBots } from './bots/botList'
 import { Launcher } from './launcher'
 import { validValues } from './server/serverSettings'
 import { SettingsStore } from './settings'
+import { LauncherUpdater } from './update/updater'
 
 // Lets the end-to-end tests run against a throwaway profile instead of the player's own.
 const userDataDir = process.env['ECHOES_USER_DATA_DIR']
@@ -18,6 +19,7 @@ const settings = new SettingsStore()
 const launcher = new Launcher(settings)
 const accounts = new AccountService(settings, () => launcher.currentLayout)
 const backups = new BackupService(() => launcher.currentLayout)
+const updater = new LauncherUpdater()
 
 const isText = (value: unknown, maxLength: number): value is string =>
   typeof value === 'string' && value.length > 0 && value.length <= maxLength
@@ -103,10 +105,21 @@ function registerIpc(window: BrowserWindow): void {
     }
   })
   ipcMain.handle('launcher:use-mysql-service', () => launcher.chooseMysqlOptions(null))
+  ipcMain.handle('update:get-state', () => updater.current)
+  // Not while servers start or stop; closing then asks what to do with the running ones, as any close does.
+  ipcMain.handle('update:install', () => {
+    const { activity } = launcher.getState()
+    if (activity === 'starting' || activity === 'stopping' || !updater.askInstall()) {
+      return false
+    }
+    window.close()
+    return true
+  })
   ipcMain.handle('launcher:quit-answer', async (_event, answer: QuitAnswer) => {
     if (answer === 'stop' && !(await launcher.stopAll())) {
       // A server would not stop: the window stays, and its status says why.
       launcher.setQuitRequested(false)
+      updater.cancelInstall()
       return
     }
     if (answer === 'stop' || answer === 'leave') {
@@ -115,10 +128,12 @@ function registerIpc(window: BrowserWindow): void {
       return
     }
     launcher.setQuitRequested(false)
+    updater.cancelInstall()
   })
 
   launcher.on('state', (state) => window.webContents.send('launcher:state', state))
   launcher.on('lines', (batch) => window.webContents.send('launcher:lines', batch))
+  updater.on('state', (state) => window.webContents.send('update:state', state))
 }
 
 function createWindow(): BrowserWindow {
@@ -188,8 +203,12 @@ if (!app.requestSingleInstanceLock()) {
     const window = createWindow()
     registerIpc(window)
     void settings.load().then(() => launcher.initialize())
+    updater.start()
   })
 }
+
+// The update the person asked for installs once the launcher has really quit, every question answered.
+app.on('will-quit', () => updater.installIfAsked())
 
 app.on('window-all-closed', () => {
   launcher.dispose()

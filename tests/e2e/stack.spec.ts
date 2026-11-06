@@ -1,8 +1,9 @@
+import { spawn } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { connect } from 'node:net'
 import { join } from 'node:path'
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
-import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
+import { FAKE_MAIN_CLASS, createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
 
 // The game server waits for the other two, then registers with the login server: a few seconds with the fakes.
 const READY_TIMEOUT = 30_000
@@ -191,4 +192,38 @@ test('takes over servers left running when it was closed', async () => {
   await stopAll(page)
   expect(gameLog()).toContain('Shutdown complete')
   await app.close()
+})
+
+test('does not kill a server it cannot tell from another of the same kind', async () => {
+  const first = await open()
+  await startAll(first.page)
+  await closeWindow(first.app)
+  const closed = exited(first.app)
+  await first.page.getByRole('dialog').getByRole('button', { name: 'Leave them running and quit' }).click()
+  await closed
+
+  // a second login server, as another install or one started by hand would be: its command line names the same class
+  const other = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)', FAKE_MAIN_CLASS.login], { stdio: 'ignore' })
+  try {
+    const second = await open()
+    await expect(status(second.page, 'game')).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })
+    await second.page.getByRole('button', { name: 'Stop the servers' }).click()
+    // the game server stops through its request, in its own folder; the login server is not killed on a guess
+    await expect(status(second.page, 'game')).toHaveAttribute('data-status', 'stopped', { timeout: READY_TIMEOUT })
+    expect(gameLog()).toContain('Shutdown complete')
+    await expect(second.page.getByTestId('server-login')).toContainText('cannot tell which one', { timeout: READY_TIMEOUT })
+    expect(other.exitCode).toBeNull()
+    await closeWindow(second.app)
+    const secondClosed = exited(second.app)
+    await second.page.getByRole('dialog').getByRole('button', { name: 'Leave them running and quit' }).click()
+    await secondClosed
+  } finally {
+    other.kill()
+  }
+
+  // with the other one gone, the launcher knows its own again and stops it
+  const third = await open()
+  await expect(status(third.page, 'login')).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })
+  await stopAll(third.page)
+  await third.app.close()
 })

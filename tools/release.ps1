@@ -12,7 +12,8 @@
     - docs/release-notes/current.md (French) or current.en.md (English) with no entry for the tag, or an entry that names no minimum server
       version ("Serveur minimum : vX.Y.Z..." in French, "Minimum server: vX.Y.Z..." in English), or two entries that name different ones;
     - a minimum server version other than MIN_SERVER_VERSION in src/shared/types.ts, the one the launcher names to a person whose server is too old;
-    - a failed npm test, and a build that does not produce both installers.
+    - a failed npm test, and a build that does not produce both installers and the update files (latest.yml for this version, the
+      installer's blockmap, app-update.yml in the build), which are attached too: an installed launcher updates itself from them;
 
     Once tagged, writes into release/<tag>/ (ignored by git) the release body (the English entry, the French one folded in a <details> block, then
     the downloads and the disclaimer) and the two entries as notes.en.md and notes.fr.md, then prints the gh command that publishes them.
@@ -120,9 +121,14 @@ try {
     npm run dist
     if ($LASTEXITCODE -ne 0) { throw 'npm run dist failed.' }
     $installers = @("dist\Echoes-of-Atreia-Setup-$plain.exe", "dist\Echoes-of-Atreia-$plain-portable.exe")
-    foreach ($installer in $installers) {
-        if (-not (Test-Path (Join-Path $repoRoot $installer))) { throw "The build did not produce $installer." }
+    # What an installed launcher reads to update itself: latest.yml names the installer and its hash, the blockmap lets it download only what
+    # changed, and app-update.yml inside the build says where to look. A beta launcher asks for beta.yml first and falls back on latest.yml.
+    $updateFiles = @('dist\latest.yml', "dist\Echoes-of-Atreia-Setup-$plain.exe.blockmap")
+    foreach ($file in $installers + $updateFiles + @('dist\win-unpacked\resources\app-update.yml')) {
+        if (-not (Test-Path (Join-Path $repoRoot $file))) { throw "The build did not produce $file." }
     }
+    $latest = [IO.File]::ReadAllText((Join-Path $repoRoot 'dist\latest.yml'))
+    if ($latest -notmatch "(?m)^version: $([regex]::Escape($plain))\s*$") { throw "dist\latest.yml is not for $plain: the build left an older one." }
 
     $bodyEn = ($entries.en -replace '^## [^\n]*\n', '').Trim()
     $bodyFr = ($entries.fr -replace '^## [^\n]*\n', '').Trim()
@@ -154,7 +160,7 @@ The files are not signed: Windows SmartScreen warns the first time. Click *More 
         Write-Host "Tagged $tag, not pushed. To push it: git push origin $tag" -ForegroundColor Green
     }
     $flag = if ($preRelease) { ' --prerelease' } else { '' }
-    $files = ($installers + @("release\$tag\notes.en.md", "release\$tag\notes.fr.md") | ForEach-Object { "`"$(Join-Path $repoRoot $_)`"" }) -join ' '
+    $files = ($installers + $updateFiles + @("release\$tag\notes.en.md", "release\$tag\notes.fr.md") | ForEach-Object { "`"$(Join-Path $repoRoot $_)`"" }) -join ' '
     Write-Host 'Once the tag is pushed, to publish the release:'
     Write-Host "  gh release create $tag$flag --verify-tag --title $tag --notes-file `"$out\body.md`" $files"
     if (-not $preRelease) {
