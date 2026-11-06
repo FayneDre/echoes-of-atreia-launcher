@@ -6,6 +6,32 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.2 — 2026-11-06
+
+**Install it once by hand, with the installer** (`Echoes-of-Atreia-Setup-0.3.0-beta.2.exe`, not the portable build): it is the first version
+that updates itself, and the next ones come through the launcher.
+
+**Minimum server: v0.1.0-beta.1.** The launcher now checks it by itself.
+
+**What changes**
+- **Self-update**: the launcher looks for its versions on GitHub at start, then every 4 hours (a beta follows the pre-releases, a stable
+  version only the stable ones). A newer version downloads in the background, a banner says when it is ready, with its notes in your language,
+  and it installs when the launcher closes. "Restart and install" installs it at once: if servers run, closing asks what to do with them as
+  usual, and nothing is offered during a start or a stop. The portable copy cannot replace itself: it only says a version is out and where to
+  download it.
+- **Server version**: the launcher asks the game server for its version once it is ready, and reads it from the install's `manifest.json`
+  when it is stopped. A server too old for this launcher shows a banner that says which version to install.
+- **Servers already running**: the launcher takes over a server started outside it only when there is just one of its kind on the computer.
+  When there are several, it no longer guesses which is yours, and asks you to stop it yourself in its window rather than stop another one.
+
+**Not fixed yet** (known, no need to report it)
+- **Updating from GitHub** was checked against a local test server only: the real check is the move to beta.3.
+- **The client's language** is forced to English: a client that only has French shows Korean.
+
+**Requirements**: Windows, Java 25 or later, MySQL, the Aion 4.8 client.
+
+---
+
 ## v0.3.0-beta.1 — 2026-11-06
 
 The launcher's first pre-release: it is made from the `develop` branch, and the stable version (`Latest`) stays v0.2.0.
