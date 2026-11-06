@@ -1,6 +1,7 @@
 # How the launcher runs the servers
 
 What is true of the code today. The reasons are the point: each one is a trap the server's own scripts already hit.
+The server's own update (download, check, install, return) is in [server-update.md](server-update.md).
 
 ## Finding the installation
 
