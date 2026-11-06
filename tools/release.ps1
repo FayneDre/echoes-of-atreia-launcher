@@ -146,9 +146,9 @@ The files are not signed: Windows SmartScreen warns the first time. Click *More 
         Write-Host "Tagged $tag, not pushed. To push it: git push origin $tag" -ForegroundColor Green
     }
     $flag = if ($preRelease) { ' --prerelease' } else { '' }
-    $files = ($installers + @("release\$tag\notes.en.md", "release\$tag\notes.fr.md") | ForEach-Object { "`"$_`"" }) -join ' '
+    $files = ($installers + @("release\$tag\notes.en.md", "release\$tag\notes.fr.md") | ForEach-Object { "`"$(Join-Path $repoRoot $_)`"" }) -join ' '
     Write-Host 'Once the tag is pushed, to publish the release:'
-    Write-Host "  gh release create $tag$flag --verify-tag --title $tag --notes-file `"release\$tag\body.md`" $files"
+    Write-Host "  gh release create $tag$flag --verify-tag --title $tag --notes-file `"$out\body.md`" $files"
     if (-not $preRelease) {
         Write-Host 'A stable release carries the English in full and a short French summary: shorten the French part of body.md first unless both are short.' -ForegroundColor Yellow
     }
