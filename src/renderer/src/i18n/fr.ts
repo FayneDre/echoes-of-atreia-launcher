@@ -222,6 +222,9 @@ export const fr: Record<MessageKey, string> = {
   'action.play': 'Jouer',
   'action.mysqlStart': 'Démarrer',
   'action.mysqlStop': 'Arrêter',
+  'action.mysqlOptions': 'Démarrer avec mon my.ini…',
+  'action.mysqlService': 'Utiliser le service Windows',
+  'server.mysqlOptions': 'lancé avec {file}',
   'action.forceStop': "Forcer l'arrêt",
   'action.choose': 'Choisir…',
   'action.forceConfirm':
@@ -253,6 +256,13 @@ export const fr: Record<MessageKey, string> = {
   'problem.mysql-missing': "Aucun service MySQL n'a été trouvé sur cet ordinateur.",
   'problem.mysql-refused': "Windows n'a pas autorisé le démarrage ou l'arrêt de MySQL (la demande d'autorisation a été refusée).",
   'problem.mysql-timeout': "MySQL n'a pas répondu à temps.",
+  'problem.mysql-service-stopped':
+    "Windows a démarré le service MySQL, mais MySQL s'est arrêté aussitôt : le plus souvent, le service ne lit pas la configuration avec laquelle ton MySQL fonctionne. Si tu lances MySQL toi-même avec un my.ini, choisis-le avec « Démarrer avec mon my.ini ».",
+  'problem.mysql-options-missing': "Le my.ini choisi pour MySQL n'existe plus.",
+  'problem.mysql-program-missing': "Aucun mysqld.exe trouvé pour ce my.ini : ni dans son basedir, ni dans un dossier bin à côté, ni là où le service le prend.",
+  'problem.mysql-program-exited': "MySQL s'est arrêté pendant son démarrage. Ses dernières erreurs, quand le launcher a pu les lire :",
+  'problem.mysql-shutdown-failed':
+    "MySQL a refusé de s'arrêter. Le compte de base de données du serveur de jeu doit avoir le privilège SHUTDOWN ; réponse de MySQL :",
   'problem.mysql-in-use': 'Arrête les serveurs avant MySQL : le serveur de jeu sauvegarde les personnages dans la base.',
   'problem.exited': "Le serveur s'est arrêté tout seul.",
   'problem.port-timeout': "Le serveur n'a pas ouvert son port en deux minutes.",

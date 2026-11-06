@@ -15,6 +15,8 @@ export interface Settings {
   activeAccount?: string
   /** The character played with, by account name. */
   selectedCharacters?: Record<string, number>
+  /** MySQL runs as a program with this option file (my.ini) rather than through its Windows service. */
+  mysqlOptionsFile?: string
 }
 
 function settingsFile(): string {

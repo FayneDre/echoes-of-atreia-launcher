@@ -246,6 +246,7 @@ export async function launchWith(install: FakeInstall): Promise<{ app: ElectronA
       ECHOES_FAKE_CLIENT: resolve('tests/fixtures/fake-client.mjs'),
       ECHOES_FAKE_DB: install.database,
       ECHOES_FAKE_MYSQL_TOOLS: resolve('tests/fixtures/mysql-tools'),
+      ECHOES_FAKE_MYSQLD: resolve('tests/fixtures/fake-mysqld.mjs'),
       ECHOES_FAKE_MYSQL_DATA: join(install.root, 'mysql-data')
     }
   })

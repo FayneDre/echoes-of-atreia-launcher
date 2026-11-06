@@ -221,6 +221,9 @@ export const en = {
   'action.play': 'Play',
   'action.mysqlStart': 'Start',
   'action.mysqlStop': 'Stop',
+  'action.mysqlOptions': 'Start with my own my.ini…',
+  'action.mysqlService': 'Use the Windows service',
+  'server.mysqlOptions': 'run with {file}',
   'action.forceStop': 'Force stop',
   'action.choose': 'Choose…',
   'action.forceConfirm':
@@ -251,6 +254,13 @@ export const en = {
   'problem.mysql-missing': 'No MySQL service was found on this computer.',
   'problem.mysql-refused': 'Windows did not allow MySQL to be started or stopped (the permission prompt was declined).',
   'problem.mysql-timeout': 'MySQL did not answer in time.',
+  'problem.mysql-service-stopped':
+    'Windows started the MySQL service, but MySQL stopped at once: the service most often does not read the configuration your MySQL works with. If you start MySQL yourself with a my.ini, choose it with “Start with my own my.ini”.',
+  'problem.mysql-options-missing': 'The my.ini chosen for MySQL is no longer there.',
+  'problem.mysql-program-missing': 'No mysqld.exe was found for this my.ini: neither in its basedir, nor in a bin folder beside it, nor where the service has it.',
+  'problem.mysql-program-exited': 'MySQL stopped while starting. Its last errors, when the launcher could read them:',
+  'problem.mysql-shutdown-failed':
+    'MySQL refused to shut down. The game server’s database account needs the SHUTDOWN privilege; MySQL’s answer:',
   'problem.mysql-in-use': 'Stop the servers before MySQL: the game server saves the characters into the database.',
   'problem.exited': 'The server stopped by itself.',
   'problem.port-timeout': 'The server did not open its port within two minutes.',

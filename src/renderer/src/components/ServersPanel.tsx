@@ -35,6 +35,7 @@ export function ServersPanel({ state }: { state: LauncherState }): React.JSX.Ele
   const { t } = useI18n()
   const { mysql, servers, activity, install } = state
   const idle = activity === 'idle'
+  const mysqlIdle = idle && mysql.status !== 'starting' && mysql.status !== 'stopping'
   const running = SERVER_IDS.some((id) => !['stopped', 'failed'].includes(servers[id].status) || servers[id].external)
   const gameReady = servers.game.status === 'ready'
   // A stop can interrupt a start: the game server takes minutes to load.
@@ -58,11 +59,12 @@ export function ServersPanel({ state }: { state: LauncherState }): React.JSX.Ele
               {t(`status.${mysql.status}`)}
             </span>
             {mysql.port !== null && <span className="server-meta">{t('server.port', { port: mysql.port })}</span>}
-            {mysql.serviceName && (
+            {mysql.optionsFile && <span className="server-meta">{t('server.mysqlOptions', { file: mysql.optionsFile })}</span>}
+            {(mysql.serviceName || mysql.optionsFile) && (
               <button
                 type="button"
                 className="small"
-                disabled={!idle || mysql.status === 'starting' || mysql.status === 'stopping'}
+                disabled={!mysqlIdle}
                 onClick={() => void (mysql.status === 'ready' ? window.launcher.stopMysql() : window.launcher.startMysql())}
               >
                 {mysql.status === 'ready' ? t('action.mysqlStop') : t('action.mysqlStart')}
@@ -70,6 +72,19 @@ export function ServersPanel({ state }: { state: LauncherState }): React.JSX.Ele
             )}
           </div>
           <ProblemText problem={mysql.problem} />
+          {/* How MySQL is run changes only while it is down: the way it was started is the way it is stopped. */}
+          {mysql.status !== 'ready' && mysql.status !== 'unknown' && (
+            <div className="server-line">
+              <button type="button" className="small" disabled={!mysqlIdle} onClick={() => void window.launcher.chooseMysqlOptions()}>
+                {t('action.mysqlOptions')}
+              </button>
+              {mysql.optionsFile && mysql.serviceName && (
+                <button type="button" className="small" disabled={!mysqlIdle} onClick={() => void window.launcher.useMysqlService()}>
+                  {t('action.mysqlService')}
+                </button>
+              )}
+            </div>
+          )}
         </li>
         {SERVER_IDS.map((id) => (
           <ServerRow key={id} server={servers[id]} onForceStop={() => forceStop(id)} />

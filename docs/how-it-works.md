@@ -13,7 +13,7 @@ What is true of the code today. The reasons are the point: each one is a trap th
 
 ## Starting
 
-MySQL first (through its Windows service when it is down), then chat, login and game, each waiting for the one before: the game server
+MySQL first (through its Windows service, or as a program with the person's my.ini, when it is down), then chat, login and game, each waiting for the one before: the game server
 connects to the other two while it starts.
 
 - **Each server runs as a bare JVM** with the arguments of its `start.bat`'s `JAVA` line. The batch file is not run: it reopens itself in
@@ -119,8 +119,17 @@ not offered). `mysql` reads one back. Both come from the folder of the MySQL ser
 ## MySQL
 
 Up when its port answers. Started and stopped through its Windows service (`sc start|stop`), a running one first when there are several,
-which needs administrator rights: Windows shows its permission prompt each time. A public install will bring its own database run as a
-plain process instead (phase 6). Each probe is a connection MySQL sees close before its handshake; MySQL leaves loopback connections out of
+which needs administrator rights: Windows shows its permission prompt each time. `sc start` answering 0 only means Windows took the
+request: a service that stops at once (a tester's, whose working my.ini was not the one the service reads) is reported with its state, its
+`--defaults-file` and the last `[ERROR]` lines of the log that file places.
+
+The person can instead run MySQL as a program with their own my.ini (`mysqlOptionsFile` in the launcher's settings, chosen while MySQL is
+down): `mysqld.exe --defaults-file=<it> --port=<the servers' port>`, detached and needing no permission, the program found in the file's
+`basedir`, a `bin` beside it, or the service's. It is stopped with `mysqladmin shutdown` under the game server's database account, which
+needs the SHUTDOWN privilege; a refusal is shown as MySQL words it, and MySQL is never killed (verified on MySQL 26.7: the monitor and
+its child both end, "Shutdown complete"). The same shutdown stops a MySQL started by the person's own script while the service is down.
+Windows' `MYSQLShutdown<pid>` event, which would need no account, could not be opened from outside on 26.7. A public install will bring its
+own database run this way (phase 6). Each probe is a connection MySQL sees close before its handshake; MySQL leaves loopback connections out of
 the count that blocks a host, but a database on another machine would count them.
 
 ## Tests

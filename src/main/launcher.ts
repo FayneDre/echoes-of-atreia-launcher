@@ -16,6 +16,7 @@ import {
 import { launchClient } from './client'
 import { findClientNear, isClientFolder, readServerLayout, type ServerLayout } from './server/installation'
 import { adminRequest, parseDestinations } from './server/adminChannel'
+import { addressOf } from './accounts/accountStore'
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
 import { needsStart, readServerSettings, writeServerSettings } from './server/serverSettings'
@@ -145,7 +146,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     }
     this.publish()
 
-    await this.mysql.refresh(this.layout?.mysql ?? null)
+    await this.refreshMysql()
     for (const id of SERVER_IDS) {
       await this.servers[id]?.adopt()
     }
@@ -236,6 +237,24 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
 
   forceStop(id: ServerId): Promise<boolean> {
     return this.servers[id]?.forceStop() ?? Promise.resolve(true)
+  }
+
+  private refreshMysql(): Promise<void> {
+    const layout = this.layout
+    return this.mysql.refresh({
+      address: layout?.mysql ?? null,
+      optionsFile: this.settings.current.mysqlOptionsFile ?? null,
+      credentials: async () => (layout ? addressOf(layout.servers.game.dir) : null)
+    })
+  }
+
+  /** Runs MySQL as a program with this option file from now on, or, with null, through its Windows service again. */
+  chooseMysqlOptions(optionsFile: string | null): Promise<boolean> {
+    return this.run('mysql', async () => {
+      await this.settings.update(({ mysqlOptionsFile: _previous, ...settings }) => (optionsFile ? { ...settings, mysqlOptionsFile: optionsFile } : settings))
+      await this.refreshMysql()
+      return true
+    })
   }
 
   startMysql(): Promise<boolean> {

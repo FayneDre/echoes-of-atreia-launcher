@@ -17,6 +17,11 @@ export type ProblemCode =
   | 'mysql-refused'
   | 'mysql-timeout'
   | 'mysql-in-use'
+  | 'mysql-service-stopped'
+  | 'mysql-options-missing'
+  | 'mysql-program-missing'
+  | 'mysql-program-exited'
+  | 'mysql-shutdown-failed'
   | 'exited'
   | 'port-timeout'
   | 'register-timeout'
@@ -57,6 +62,8 @@ export interface MysqlState {
   status: MysqlStatus
   /** The Windows service the launcher can start and stop, when there is one. */
   serviceName: string | null
+  /** The person's own option file (my.ini) when MySQL runs as a program with it rather than through its service. */
+  optionsFile: string | null
   port: number | null
   problem?: Problem
 }

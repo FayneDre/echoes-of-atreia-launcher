@@ -92,6 +92,17 @@ function registerIpc(window: BrowserWindow): void {
       await launcher.chooseFolder(kind as FolderKind, folder)
     }
   })
+  ipcMain.handle('launcher:choose-mysql-options', async () => {
+    const result = await dialog.showOpenDialog(window, {
+      properties: ['openFile'],
+      filters: [{ name: 'MySQL (my.ini, my.cnf)', extensions: ['ini', 'cnf'] }]
+    })
+    const file = result.filePaths[0]
+    if (!result.canceled && file) {
+      await launcher.chooseMysqlOptions(file)
+    }
+  })
+  ipcMain.handle('launcher:use-mysql-service', () => launcher.chooseMysqlOptions(null))
   ipcMain.handle('launcher:quit-answer', async (_event, answer: QuitAnswer) => {
     if (answer === 'stop' && !(await launcher.stopAll())) {
       // A server would not stop: the window stays, and its status says why.
