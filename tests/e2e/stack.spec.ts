@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { connect } from 'node:net'
 import { join } from 'node:path'
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
@@ -90,6 +90,9 @@ test('starts the servers in order, then stops the game server through its shutdo
   await startAll(page)
   await expect(status(page, 'chat')).toHaveAttribute('data-status', 'ready')
   await expect(status(page, 'login')).toHaveAttribute('data-status', 'ready')
+  // the terminals are a drawer, closed until asked for
+  await expect(page.getByRole('log')).toHaveCount(0)
+  await page.getByTestId('terminals-toggle').click()
   await expect(page.getByRole('log')).toContainText('Connected to login server')
   await expect(page.getByRole('button', { name: 'Play' })).toBeEnabled()
 
@@ -111,8 +114,52 @@ test('shows why a server stopped while starting', async () => {
   const problem = page.getByTestId('server-game').getByRole('alert')
   await expect(problem).toContainText('The server stopped by itself.')
   await expect(problem).toContainText('fake failure on start')
+  // a failure opens its log
+  await expect(page.getByTestId('terminals-toggle')).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('log')).toContainText('Fake failure on start')
 
   await stopAll(page)
+  await app.close()
+})
+
+test('gives up at once on a game server whose main thread died, says why, and starts it alone once fixed', async () => {
+  test.setTimeout(120_000)
+  writeFileSync(join(install.serverRoot, 'game-server', 'crash-on-start'), '')
+  const { app, page } = await open()
+  await page.getByRole('button', { name: 'Start the servers' }).click()
+  // not the two minutes of a port that never opens: the JVM stays up, but its log says the start is over
+  await expect(status(page, 'game')).toHaveAttribute('data-status', 'failed', { timeout: 15_000 })
+  const problem = page.getByTestId('server-game').getByRole('alert')
+  await expect(problem).toContainText('The server failed while starting:')
+  await expect(problem).toContainText('Java Compiler ERROR: package fake.handlers does not exist')
+  // the JVM left behind was ended: nothing holds the game server's folder any more
+  await expect(page.getByTestId('restart-game')).toHaveText('Start')
+
+  rmSync(join(install.serverRoot, 'game-server', 'crash-on-start'))
+  await page.getByRole('button', { name: 'Show the log' }).click()
+  await expect(page.getByRole('tab', { name: 'Game server' })).toHaveAttribute('aria-selected', 'true')
+  await page.getByTestId('restart-game').click()
+  await expect(status(page, 'game')).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })
+  await expect(problem).toHaveCount(0)
+
+  // one server restarted alone: the other two keep running
+  const loginLog = readFileSync(join(install.serverRoot, 'login-server', 'log', 'server_console.log'), 'utf8')
+  await page.getByTestId('restart-game').click()
+  await expect(status(page, 'game')).not.toHaveAttribute('data-status', 'ready')
+  await expect(status(page, 'game')).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })
+  await expect(page.getByTestId('restart-game')).toBeEnabled()
+  expect(gameLog()).toContain('Connected to login server')
+  expect(readFileSync(join(install.serverRoot, 'login-server', 'log', 'server_console.log'), 'utf8')).toBe(loginLog)
+  await expect(status(page, 'login')).toHaveAttribute('data-status', 'ready')
+
+  // "Stop the servers" during a restart wins: nothing starts again once the game server is down
+  await page.getByTestId('restart-game').click()
+  await expect(status(page, 'game')).toHaveAttribute('data-status', 'stopping')
+  await stopAll(page)
+  await page.waitForTimeout(3000)
+  for (const id of ['game', 'login', 'chat']) {
+    await expect(status(page, id)).toHaveAttribute('data-status', 'stopped')
+  }
   await app.close()
 })
 

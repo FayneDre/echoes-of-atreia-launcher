@@ -46,7 +46,7 @@ the `prune` folders lose what the bundle no longer lists.
 
 ## Going back
 
-"Return to ..." undoes the last update from its backup: what it created removed, what it replaced or removed put back, the backup then
+"Undo the vX update" undoes the last update from its backup: what it created removed, what it replaced or removed put back, the backup then
 deleted. The database keeps what the SQL changed; the dump `apply-sql.ps1` took is in the server's `backups` folder.
 
 ## Tests

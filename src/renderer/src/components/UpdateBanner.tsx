@@ -1,5 +1,6 @@
 import type { LauncherState, UpdateState } from '../../../shared/types'
 import { useI18n } from '../i18n'
+import { Markdown } from './Markdown'
 
 interface Props {
   update: UpdateState | null
@@ -42,7 +43,7 @@ export function UpdateBanner({ update, state }: Props): React.JSX.Element | null
       {notes && (
         <details className="update-notes">
           <summary>{t('update.notes')}</summary>
-          <pre data-testid="launcher-update-notes">{notes}</pre>
+          <Markdown text={notes} testId="launcher-update-notes" />
         </details>
       )}
     </div>

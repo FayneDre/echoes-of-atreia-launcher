@@ -182,11 +182,33 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   }
 
   startAll(): Promise<boolean> {
-    return this.run('starting', () => this.startServers())
+    return this.run('starting', () => {
+      this.stopRequested = false
+      return this.startServers()
+    })
   }
 
-  private async startServers(): Promise<boolean> {
-    this.stopRequested = false
+  /**
+   * Starts one server, or stops it and starts it again: the ones it needs first (MySQL, then the servers before it) are started if they are
+   * not running, the others are left as they are; the game server reconnects to a chat or login server that came back.
+   */
+  restartServer(id: ServerId): Promise<boolean> {
+    return this.run('starting', async () => {
+      this.stopRequested = false
+      const server = this.servers[id]
+      if (server && server.current.status !== 'stopped' && !(await server.stop())) {
+        return false
+      }
+      // "Stop the servers" may have been clicked while this one stopped: it wins
+      return !this.stopRequested && this.startServers(id)
+    })
+  }
+
+  /**
+   * Starts the servers in order up to `last` (all of them by default), each waiting for the one before; the ones running are kept. A stop
+   * asked since the activity began interrupts it: the caller clears the request when its activity begins, never later.
+   */
+  private async startServers(last: ServerId = 'game'): Promise<boolean> {
     if (!this.layout) {
       return this.fail({ code: 'server-missing' })
     }
@@ -204,7 +226,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
         return this.fail(problem)
       }
     }
-    for (const id of SERVER_IDS) {
+    for (const id of SERVER_IDS.slice(0, SERVER_IDS.indexOf(last) + 1)) {
       if (this.stopRequested || !(await this.servers[id]!.start(javaCommand()))) {
         return false
       }
@@ -253,6 +275,8 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       await this.detect()
       if (result === null && wasRunning) {
         stage('start')
+        // nothing can ask for a stop during an update: what an earlier stop left is cleared
+        this.stopRequested = false
         await this.startServers()
       }
       return result === null

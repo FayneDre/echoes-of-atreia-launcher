@@ -1,5 +1,6 @@
 import type { LauncherState, ServerUpdateState } from '../../../shared/types'
 import { useI18n, type MessageKey } from '../i18n'
+import { Markdown } from './Markdown'
 import { ProblemText } from './ProblemText'
 
 interface Props {
@@ -84,18 +85,20 @@ export function ServerUpdatePanel({ update, state }: Props): React.JSX.Element |
       {update.status === 'off' && update.problem && <p className="muted">{t('serverUpdate.offline')}</p>}
 
       {update.canReturnTo && update.status !== 'preparing' && update.status !== 'installing' && update.status !== 'confirm' && (
-        <div className="server-update-row">
-          <span className="muted">{t('serverUpdate.returnNote')}</span>
+        <div className="server-update-undo">
           <button type="button" className="secondary" disabled={!idle} onClick={() => void window.launcher.undoServerUpdate()}>
-            {update.canReturnTo.version ? t('serverUpdate.return', { version: update.canReturnTo.version }) : t('serverUpdate.returnToGit')}
+            {update.installed && update.installed !== 'dev' ? t('serverUpdate.undo', { version: update.installed }) : t('serverUpdate.undoLast')}
           </button>
+          <p className="muted">
+            {update.canReturnTo.version ? t('serverUpdate.undoNote', { version: update.canReturnTo.version }) : t('serverUpdate.undoNoteGit')}
+          </p>
         </div>
       )}
 
       {notes && update.available && update.status !== 'current' && (
         <details className="update-notes">
           <summary>{t('update.notes')}</summary>
-          <pre data-testid="server-update-notes">{notes}</pre>
+          <Markdown text={notes} testId="server-update-notes" />
         </details>
       )}
     </section>

@@ -39,6 +39,7 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('launcher:start', () => launcher.startAll())
   ipcMain.handle('launcher:stop', () => launcher.stopAll())
   ipcMain.handle('launcher:force-stop', (_event, id: unknown) => (isServerId(id) ? launcher.forceStop(id) : false))
+  ipcMain.handle('launcher:restart-server', (_event, id: unknown) => (isServerId(id) ? launcher.restartServer(id) : false))
   ipcMain.handle('launcher:mysql-start', () => launcher.startMysql())
   ipcMain.handle('launcher:mysql-stop', () => launcher.stopMysql())
   ipcMain.handle('launcher:play', () => launcher.play())

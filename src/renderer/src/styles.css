@@ -36,6 +36,32 @@ body {
   color: var(--text);
 }
 
+/* One thin bar, no arrows, that takes its own room instead of covering the content. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: #34405c padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a5878 padding-box;
+}
+
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-corner {
+  display: none;
+  background: transparent;
+}
+
 button {
   padding: 8px 14px;
   border: 1px solid var(--border);
@@ -117,21 +143,46 @@ button.small {
   color: var(--text);
 }
 
+/* Each page scrolls as a whole, once: nothing inside it has a height of its own and a bar of its own, the terminal apart. */
 .content {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(380px, 1fr) minmax(0, 1.4fr);
   gap: 16px;
   padding: 16px 20px;
 }
 
-.column {
+.content-home {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  padding: 0;
+}
+
+.page-scroll {
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding: 16px 20px;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.home-wide {
+  grid-column: 1 / -1;
+}
+
+@media (width < 900px) {
+  .home-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .panel {
@@ -223,16 +274,38 @@ button.small {
   margin: 0;
 }
 
+.problem-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.problem-line p {
+  flex: 1;
+  min-width: 0;
+}
+
+.problem-reason {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.problem-details summary {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .problem-detail {
   margin: 6px 0 0;
   padding: 8px;
-  max-height: 140px;
-  overflow: auto;
   background: var(--bg-sunken);
   border-radius: 4px;
   color: var(--text-muted);
   font-size: 11px;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .install-row {
@@ -264,16 +337,49 @@ button.small {
   color: var(--text-muted);
 }
 
-.terminal-panel {
+.terminal-drawer {
+  flex: none;
+  padding: 8px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-raised);
+}
+
+.terminal-drawer.open {
+  padding-bottom: 12px;
+}
+
+.drawer-bar {
   display: flex;
-  flex-direction: column;
-  min-height: 0;
+  align-items: center;
+  gap: 16px;
+}
+
+.drawer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chevron {
+  width: 10px;
+}
+
+.terminal-drawer .terminal {
+  height: 36vh;
+  margin-top: 8px;
 }
 
 .tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: 8px;
 }
 
 .tabs button {
@@ -338,22 +444,62 @@ button.small {
   flex-basis: 100%;
 }
 
-.update-notes pre {
-  max-height: 200px;
-  overflow: auto;
-  white-space: pre-wrap;
-  font-family: inherit;
+.update-notes summary {
+  cursor: pointer;
+}
+
+/* The banner stays above every page: its notes, however long, keep the page in sight. */
+.update-banner .markdown {
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.markdown {
+  line-height: 1.5;
+}
+
+.markdown p,
+.markdown ul {
+  margin: 8px 0;
+}
+
+.markdown ul {
+  padding-left: 20px;
+}
+
+.markdown li + li {
+  margin-top: 4px;
+}
+
+.markdown h4 {
+  margin: 12px 0 4px;
+  font-size: 14px;
+}
+
+.markdown hr {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.markdown code {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--bg-sunken);
+  font-family: Consolas, 'Cascadia Mono', monospace;
+  font-size: 12px;
 }
 
 .content-single {
   grid-template-columns: minmax(0, 1040px);
   justify-content: center;
+  align-content: start;
+  overflow-y: auto;
+  scrollbar-gutter: stable both-edges;
 }
 
 .settings-page {
   display: flex;
   flex-direction: column;
-  min-height: 0;
   padding-bottom: 0;
 }
 
@@ -367,19 +513,19 @@ button.small {
 }
 
 .settings-layout {
-  flex: 1;
-  min-height: 0;
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
   gap: 20px;
 }
 
+/* The page scrolls; the list of groups stays in sight beside it. */
 .group-list {
+  position: sticky;
+  top: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  overflow-y: auto;
-  padding-right: 4px;
 }
 
 .group-list button {
@@ -419,9 +565,7 @@ button.small {
 }
 
 .group-panel {
-  min-height: 0;
-  overflow-y: auto;
-  padding: 2px 4px 16px 0;
+  padding: 2px 0 16px;
 }
 
 .group-panel-header {
@@ -681,8 +825,6 @@ button.small {
 .backups-page {
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  overflow-y: auto;
 }
 
 .backup-actions {
@@ -867,24 +1009,12 @@ button.small {
   font-weight: 400;
 }
 
-/* The bots page holds two panels, its settings above the list: the page scrolls, and the settings keep the height their tabs need. */
-.content-scroll {
-  overflow-y: auto;
-  align-content: start;
-}
-
-.content-scroll .settings-page {
-  height: 600px;
-}
-
 .bot-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 480px;
   margin: 0;
   padding: 0;
-  overflow-y: auto;
   list-style: none;
 }
 
@@ -930,8 +1060,15 @@ button.small {
   padding-left: 20px;
   font-family: ui-monospace, Consolas, monospace;
   font-size: 12px;
-  max-height: 140px;
-  overflow-y: auto;
+}
+
+.server-update-undo {
+  margin-top: 12px;
+}
+
+.server-update-undo p {
+  margin: 6px 0 0;
+  font-size: 12px;
 }
 
 button.secondary {

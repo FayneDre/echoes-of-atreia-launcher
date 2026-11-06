@@ -15,6 +15,7 @@ const launcherApi = {
   start: (): Promise<boolean> => ipcRenderer.invoke('launcher:start'),
   stop: (): Promise<boolean> => ipcRenderer.invoke('launcher:stop'),
   forceStop: (server: ServerId): Promise<boolean> => ipcRenderer.invoke('launcher:force-stop', server),
+  restartServer: (server: ServerId): Promise<boolean> => ipcRenderer.invoke('launcher:restart-server', server),
   startMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-start'),
   stopMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-stop'),
   chooseMysqlOptions: (): Promise<void> => ipcRenderer.invoke('launcher:choose-mysql-options'),

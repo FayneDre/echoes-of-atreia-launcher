@@ -25,6 +25,9 @@ const PROCESS_POLL_MS = 500
 const PORT_POLL_MS = 5000
 const LOG_LINES_KEPT = 2000
 const REGISTERED_LINE = 'Connected to login server'
+// A startup that throws ends the main thread with this line, and the JVM stays up on the threads it started: it never exits by itself.
+const FATAL_LINE = 'terminated abnormally'
+const ERROR_LINE = / ERROR /
 const CONSOLE_LOG = 'server_console.log'
 // What the JVM writes before its logging starts (a wrong Java version, a missing class) goes here, the console being hidden.
 const STDERR_FILE = 'launcher-stderr.log'
@@ -64,6 +67,10 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
   private portOpened = false
   // A stop asked while the start is still under way: the start gives up at its next step instead of reporting a failure.
   private stopRequested = false
+  /** The start's main thread died (FATAL_LINE): the start gives up at once instead of waiting minutes for a port. */
+  private crashed = false
+  /** The error lines this start logged, the first of which says why it crashed. */
+  private startErrors: string[] = []
   private monitor: NodeJS.Timeout | null = null
   private readonly lines: string[] = []
   private readonly tail: LogTail
@@ -110,6 +117,12 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
     const kept = lines.slice(-LOG_LINES_KEPT)
     if (this.waitsForRegistration && kept.some((line) => line.includes(REGISTERED_LINE))) {
       this.registered = true
+    }
+    if (this.state.status === 'starting' || this.state.status === 'registering') {
+      this.startErrors.push(...kept.filter((line) => ERROR_LINE.test(line) || line.startsWith('Caused by:')).slice(0, 50 - this.startErrors.length))
+      if (kept.some((line) => line.includes(FATAL_LINE))) {
+        this.crashed = true
+      }
     }
     this.lines.push(...kept)
     this.lines.splice(0, Math.max(0, this.lines.length - LOG_LINES_KEPT))
@@ -176,7 +189,7 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
       () => this.registered,
       REGISTER_TIMEOUT_MS,
       1000,
-      () => this.exited || this.stopRequested || this.state.status === 'stopped'
+      () => this.exited || this.crashed || this.stopRequested || this.state.status === 'stopped'
     )
     if (registered && this.state.status === 'registering') {
       this.update({ status: 'ready' })
@@ -221,6 +234,8 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
     this.registered = false
     this.portOpened = false
     this.stopRequested = false
+    this.crashed = false
+    this.startErrors = []
     this.exited = false
     this.exitCode = null
     this.spawnError = null
@@ -254,9 +269,17 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
       closeSync(stderr)
     }
 
-    const listening = await waitFor(() => isPortOpen(this.definition.port), PORT_TIMEOUT_MS, 500, () => this.exited || this.stopRequested)
+    const listening = await waitFor(
+      () => isPortOpen(this.definition.port),
+      PORT_TIMEOUT_MS,
+      500,
+      () => this.exited || this.crashed || this.stopRequested
+    )
     if (this.stopRequested) {
       return false
+    }
+    if (this.crashed) {
+      return this.failCrashed()
     }
     if (!listening) {
       return this.failStart(this.exited ? 'exited' : 'port-timeout')
@@ -268,6 +291,9 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
       if (this.stopRequested) {
         return false
       }
+      if (this.crashed) {
+        return this.failCrashed()
+      }
       if (!registered) {
         return this.failStart(this.exited ? 'exited' : 'register-timeout')
       }
@@ -278,6 +304,24 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
 
   private async failStart(code: ProblemCode): Promise<false> {
     this.update({ status: 'failed', problem: { code, detail: await this.failureDetail() } })
+    return false
+  }
+
+  /**
+   * The start's main thread died: the JVM left behind holds nothing (no player is loaded before the port opens, and the registration comes
+   * last), so it is ended, and the reason is the first error the start logged. The errors that follow it come within a second.
+   */
+  private async failCrashed(): Promise<false> {
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    if (this.pid !== null) {
+      killProcess(this.pid)
+      await this.waitUntilGone(KILL_TIMEOUT_MS)
+    }
+    const errors = this.startErrors.filter((line) => !line.includes(FATAL_LINE))
+    const reason = errors.find((line) => ERROR_LINE.test(line)) ?? errors[0] ?? ''
+    // the logger's prefix (date, level, thread, class) says nothing to a player
+    const detail = reason.replace(/^.*? ERROR +\[[^\]]*\] +\S+ +- +/, '').trim()
+    this.update({ status: 'failed', problem: { code: 'start-crashed', detail } })
     return false
   }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AccountPage } from './components/AccountPage'
 import { BackupsPage } from './components/BackupsPage'
 import { BotsPage } from './components/BotsPage'
@@ -10,7 +10,7 @@ import { SettingsPage } from './components/SettingsPage'
 import { TerminalPanel } from './components/TerminalPanel'
 import { UpdateBanner } from './components/UpdateBanner'
 import { LANGUAGES, useI18n, type MessageKey } from './i18n'
-import { MIN_SERVER_API_LEVEL, MIN_SERVER_VERSION, isServerTooOld } from '../../shared/types'
+import { MIN_SERVER_API_LEVEL, MIN_SERVER_VERSION, SERVER_IDS, isServerTooOld, type ServerId } from '../../shared/types'
 import { useAccounts, useLauncherState, useServerUpdate, useUpdate } from './useLauncher'
 
 type Page = 'home' | 'account' | 'bots' | 'settings' | 'backups'
@@ -26,6 +26,17 @@ const PAGES: { id: Page; label: MessageKey }[] = [
   { id: 'backups', label: 'nav.backups' }
 ]
 
+const TERMINALS_OPEN_KEY = 'terminals-open'
+
+/** Whether the person left the terminals open; closed when nothing was kept (a first start, storage refused). */
+function readTerminalsOpen(): boolean {
+  try {
+    return localStorage.getItem(TERMINALS_OPEN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 export function App(): React.JSX.Element {
   const { language, setLanguage, t } = useI18n()
   const state = useLauncherState()
@@ -34,6 +45,28 @@ export function App(): React.JSX.Element {
   const { accounts, reload } = useAccounts(state)
   const [page, setPage] = useState<Page>('home')
   const playing = accounts?.characters.find((character) => character.id === accounts.selectedCharacterId)
+  const [terminalsOpen, setTerminalsOpenState] = useState(readTerminalsOpen)
+  const [terminal, setTerminal] = useState<ServerId>('game')
+  const setTerminalsOpen = (open: boolean): void => {
+    setTerminalsOpenState(open)
+    try {
+      localStorage.setItem(TERMINALS_OPEN_KEY, open ? '1' : '0')
+    } catch {
+      // a convenience only: the drawer starts closed next time
+    }
+  }
+  const showLog = (id: ServerId): void => {
+    setTerminal(id)
+    setTerminalsOpen(true)
+  }
+
+  // A server that fails opens its log, once per failure.
+  const failed = SERVER_IDS.find((id) => state?.servers[id].status === 'failed') ?? null
+  useEffect(() => {
+    if (failed) {
+      showLog(failed)
+    }
+  }, [failed]) // only a new failure opens the drawer
 
   return (
     <div className="app">
@@ -90,13 +123,22 @@ export function App(): React.JSX.Element {
 
       {/* Every page stays mounted and the others are hidden: what was typed on one survives a look at another. */}
       {state && (
-        <main className="content" hidden={page !== 'home'}>
-          <div className="column">
-            <ServersPanel state={state} />
-            <InstallPanel state={state} />
-            <ServerUpdatePanel update={serverUpdate} state={state} />
+        <main className="content content-home" hidden={page !== 'home'}>
+          <div className="page-scroll">
+            <div className="home-grid">
+              <div className="home-wide">
+                <ServersPanel state={state} onShowLog={showLog} />
+              </div>
+              <InstallPanel state={state} />
+              <ServerUpdatePanel update={serverUpdate} state={state} />
+            </div>
           </div>
-          <TerminalPanel />
+          <TerminalPanel
+            open={terminalsOpen}
+            server={terminal}
+            onToggle={() => setTerminalsOpen(!terminalsOpen)}
+            onSelect={setTerminal}
+          />
         </main>
       )}
       {state && (
@@ -105,7 +147,7 @@ export function App(): React.JSX.Element {
         </main>
       )}
       {state && (
-        <main className="content content-single content-scroll" hidden={page !== 'bots'}>
+        <main className="content content-single" hidden={page !== 'bots'}>
           <SettingsPage state={state} page="bots" />
           <BotsPage state={state} visible={page === 'bots'} />
         </main>

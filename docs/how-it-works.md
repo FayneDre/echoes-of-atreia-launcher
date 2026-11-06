@@ -30,9 +30,16 @@ connects to the other two while it starts.
   for one it found running. The file is replaced at every start and rolls over at 100 MB, and the reader starts over when it is; of a
   server found running only the last 256 KB are shown, and whether it has registered is searched in chunks through its console log and
   the ones it rolled over.
-- **A stop may interrupt a start**: the game server takes minutes to load. Each server gives up its start at its next step.
+- **A stop may interrupt a start**: the game server takes minutes to load. Each server gives up its start at its next step. A stop asked
+  during a one-server restart wins too: the request is cleared only when an activity begins, never after one of its waits.
+- **One server alone**: each row starts its server, or stops and starts it again, after starting whatever it needs that is down (MySQL, the
+  servers before it); the others are left running, the game server reconnecting to a chat or login server that came back.
+- **A start whose main thread died is given up at once.** A handler that does not compile ends the game server's main thread with
+  `Critical Error - Thread [main] terminated abnormally`, but the JVM stays up on the threads it started and never opens its port: the
+  launcher used to wait the two minutes of the port. It now reads that line in the log, ends the JVM (it holds nothing yet), and shows the
+  first error the start logged.
 - What the JVM writes before its logging starts (a wrong Java, a missing class) goes to `log/launcher-stderr.log`, and a failure shows its
-  last lines.
+  last lines, folded under "Details"; the terminals, a drawer at the foot of the home page, open by themselves on the failed server.
 
 ## Stopping
 

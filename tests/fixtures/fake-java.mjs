@@ -1,7 +1,8 @@
 // Stands in for java.exe in the end-to-end tests (ECHOES_FAKE_JAVA). It answers `-version`, and otherwise plays the server its main
 // class names, doing what the launcher relies on: it moves its old console log aside and writes a new one, listens on the port its
 // config names, and the game server refuses to start without the login and chat servers, registers a little later, and stops on
-// shutdown.request. Files in the server folder change how it behaves: fail-on-start makes it crash at once, slow-start opens its port
+// shutdown.request. Files in the server folder change how it behaves: fail-on-start makes it crash at once, crash-on-start loses its main
+// thread and stays up (a handler that does not compile), slow-start opens its port
 // 20 s late (a game server still loading its data), slow-register registers 20 s late (one loading its world), no-admin makes the game
 // server ignore the admin folder (a build from before it), old-api makes it answer `version` as a server older than the API levels.
 // Otherwise the game server answers the requests of `admin/`: version (level 1), reload-config, destinations, and teleport, which only
@@ -49,6 +50,15 @@ if (existsSync('fail-on-start')) {
   process.stderr.write('Exception in thread "main" java.lang.IllegalStateException: fake failure on start\n')
   log('Fake failure on start')
   process.exit(1)
+}
+if (existsSync('crash-on-start')) {
+  // what a handler that does not compile does: the main thread dies, the JVM stays up on the threads it started, the errors come after
+  const line = (level, thread, text) => appendFileSync(logFile, `${new Date().toISOString()} ${level} [${thread}] ${text}\n`)
+  line('ERROR', 'main', 'com.aionemu.commons.utils.concurrent.UncaughtExceptionHandler - Critical Error - Thread [main] terminated abnormally:')
+  appendFileSync(logFile, 'Caused by: java.lang.RuntimeException: Error while compiling classes\n')
+  line('ERROR', 'worker-1', 'com.aionemu.commons.scripting.impl.javacompiler.ErrorListener - Java Compiler ERROR: package fake.handlers does not exist')
+  setInterval(() => {}, 60_000)
+  await new Promise(() => {})
 }
 
 function reachable(port) {

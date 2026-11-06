@@ -107,7 +107,8 @@ test('installs a release over a server built from git, then puts it back', async
   expect(read('sql-calls.txt').trim()).toBe('apply mark=True')
   expect(JSON.parse(read('manifest.json'))).toMatchObject({ source: 'release', version: 'v0.2.0-beta.1' })
 
-  await panel.getByRole('button', { name: 'Return to the server built from its sources' }).click()
+  await expect(panel).toContainText('Puts back the server built from its sources. The database keeps')
+  await panel.getByRole('button', { name: 'Undo the v0.2.0-beta.1 update' }).click()
   await expect(panel).toHaveAttribute('data-status', 'available', { timeout: 60_000 })
   await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })
   expect(read('game-server/libs/stale-1.0.jar')).toBe('stale')

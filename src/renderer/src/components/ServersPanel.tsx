@@ -1,4 +1,4 @@
-import { SERVER_IDS, type LauncherState, type ServerState } from '../../../shared/types'
+import { SERVER_IDS, type LauncherState, type ServerId, type ServerState } from '../../../shared/types'
 import { useI18n } from '../i18n'
 import { ProblemText } from './ProblemText'
 
@@ -6,10 +6,19 @@ function StatusDot({ status }: { status: string }): React.JSX.Element {
   return <span className={`dot dot-${status}`} aria-hidden="true" />
 }
 
-function ServerRow({ server, onForceStop }: { server: ServerState; onForceStop: () => void }): React.JSX.Element {
+interface RowProps {
+  server: ServerState
+  /** Nothing else is under way and the install is there: the row may start or restart its server. */
+  canAct: boolean
+  onForceStop: () => void
+  onShowLog: () => void
+}
+
+function ServerRow({ server, canAct, onForceStop, onShowLog }: RowProps): React.JSX.Element {
   const { t } = useI18n()
   // Offered once a stop has gone wrong, never as a first choice.
   const canForce = server.status === 'stopping' && server.problem !== undefined
+  const action = server.status === 'ready' ? 'action.restartOne' : server.status === 'stopped' || server.status === 'failed' ? 'action.startOne' : null
   return (
     <li className="server-row" data-testid={`server-${server.id}`}>
       <div className="server-line">
@@ -25,13 +34,24 @@ function ServerRow({ server, onForceStop }: { server: ServerState; onForceStop: 
             {t('action.forceStop')}
           </button>
         )}
+        {action && !canForce && (
+          <button
+            type="button"
+            className="small"
+            data-testid={`restart-${server.id}`}
+            disabled={!canAct}
+            onClick={() => void window.launcher.restartServer(server.id)}
+          >
+            {t(action)}
+          </button>
+        )}
       </div>
-      <ProblemText problem={server.problem} />
+      <ProblemText problem={server.problem} onShowLog={onShowLog} />
     </li>
   )
 }
 
-export function ServersPanel({ state }: { state: LauncherState }): React.JSX.Element {
+export function ServersPanel({ state, onShowLog }: { state: LauncherState; onShowLog: (id: ServerId) => void }): React.JSX.Element {
   const { t } = useI18n()
   const { mysql, servers, activity, install } = state
   const idle = activity === 'idle'
@@ -87,7 +107,13 @@ export function ServersPanel({ state }: { state: LauncherState }): React.JSX.Ele
           )}
         </li>
         {SERVER_IDS.map((id) => (
-          <ServerRow key={id} server={servers[id]} onForceStop={() => forceStop(id)} />
+          <ServerRow
+            key={id}
+            server={servers[id]}
+            canAct={idle && install.serverFound}
+            onForceStop={() => forceStop(id)}
+            onShowLog={() => onShowLog(id)}
+          />
         ))}
       </ul>
 

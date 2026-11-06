@@ -23,6 +23,7 @@ export type ProblemCode =
   | 'mysql-program-exited'
   | 'mysql-shutdown-failed'
   | 'exited'
+  | 'start-crashed'
   | 'port-timeout'
   | 'register-timeout'
   | 'stop-unanswered'
