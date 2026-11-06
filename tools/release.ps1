@@ -11,6 +11,7 @@
     - a dirty tree, and a package.json whose version is not this one (electron-builder names the installers after it, the updater reads it);
     - docs/release-notes/current.md (French) or current.en.md (English) with no entry for the tag, or an entry that names no minimum server
       version ("Serveur minimum : vX.Y.Z..." in French, "Minimum server: vX.Y.Z..." in English), or two entries that name different ones;
+    - a minimum server version other than MIN_SERVER_VERSION in src/shared/types.ts, the one the launcher names to a person whose server is too old;
     - a failed npm test, and a build that does not produce both installers.
 
     Once tagged, writes into release/<tag>/ (ignored by git) the release body (the English entry, the French one folded in a <details> block, then
@@ -101,6 +102,13 @@ try {
         $minimums[$language.Name] = $minimum.Groups[1].Value
     }
     if ($minimums.fr -ne $minimums.en) { throw "The French entry names server $($minimums.fr) and the English one $($minimums.en)." }
+    # the version the launcher itself names to a person whose server is too old
+    $types = [IO.File]::ReadAllText((Join-Path $repoRoot 'src\shared\types.ts'))
+    $named = [regex]::Match($types, "export const MIN_SERVER_VERSION = '([^']+)'")
+    if (-not $named.Success) { throw 'src/shared/types.ts has no MIN_SERVER_VERSION line to read.' }
+    if ($named.Groups[1].Value -ne $minimums.en) {
+        throw "The notes name server $($minimums.en), and the launcher tells a person with a server too old to install $($named.Groups[1].Value) (MIN_SERVER_VERSION in src/shared/types.ts). Make them the same."
+    }
 
     if ($Check) {
         Write-Host "The checks that need no build passed: $tag (minimum server $($minimums.en)). Without -Check, npm test and the build come next." -ForegroundColor Green
