@@ -28,3 +28,12 @@ run against fake servers (`tests/fixtures/`), never the real installation; a tes
 - Docs stay under ~200 lines each; split by topic.
 - The launcher never edits the server's default configuration: it writes `game-server/config/mygs.properties`.
 - Keep the NCSoft disclaimer visible in the README and in the launcher.
+
+## Branches and releases
+
+- `main`: stable, the default on GitHub; stable releases `vX.Y.Z` are made from it. It moves only by merging `develop` once a version has been
+  validated in game.
+- `develop`: day-to-day work; test builds are GitHub **pre-releases** `vX.Y.Z-beta.N` made from it, so `Latest` keeps pointing at the stable one.
+- Versions are this launcher's own, independent of the server's; a release declares the lowest server version it needs. The release process
+  is the server repository's `docs/architecture/plans/release-process-plan.md`.
+- Every push and every publish is the user's call.
