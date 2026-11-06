@@ -56,7 +56,7 @@ async function open(): ReturnType<typeof launchWith> {
   const config = join(install.root, 'app-update.yml')
   writeFileSync(config, `provider: generic\nurl: ${feedUrl}\nupdaterCacheDirName: ${cacheDirName}\n`)
   const launched = await launchWith(install, { ECHOES_UPDATE_FEED: feedUrl, ECHOES_UPDATE_CONFIG: config })
-  await launched.page.getByRole('button', { name: 'EN' }).click()
+  await launched.page.getByRole('button', { name: 'EN', exact: true }).click()
   return launched
 }
 
@@ -69,7 +69,7 @@ test('downloads a newer version and offers to install it, with its notes', async
   await expect(banner.getByRole('button', { name: 'Restart and install' })).toBeEnabled()
   await banner.getByText('What’s new').click()
   await expect(page.getByTestId('launcher-update-notes')).toHaveText('What changes in 9.9.9-beta.1')
-  await page.getByRole('button', { name: 'FR' }).click()
+  await page.getByRole('button', { name: 'FR', exact: true }).click()
   await expect(page.getByTestId('launcher-update-notes')).toHaveText('Ce qui change dans 9.9.9-beta.1')
   await app.close()
 })

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SERVER_IDS, type ServerId } from '../../../shared/types'
 import { useI18n } from '../i18n'
 import { useServerLogs } from '../useLauncher'
@@ -16,8 +16,21 @@ interface Props {
  */
 export function TerminalPanel({ open, server, onToggle, onSelect }: Props): React.JSX.Element {
   const { t } = useI18n()
-  const lines = useServerLogs(server)
+  const all = useServerLogs(server)
+  const [errorsOnly, setErrorsOnly] = useState(false)
+  const [query, setQuery] = useState('')
+  const [copied, setCopied] = useState(false)
+  const needle = query.trim().toLowerCase()
+  const lines = all.filter(
+    (line) => (!errorsOnly || / (ERROR|WARN) |Exception|^Caused by:/.test(line)) && (!needle || line.toLowerCase().includes(needle))
+  )
   const output = useRef<HTMLPreElement>(null)
+  const copy = (): void => {
+    void navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    })
+  }
   // Follows the end of the log unless the person has scrolled up to read.
   const following = useRef(true)
 
@@ -62,6 +75,18 @@ export function TerminalPanel({ open, server, onToggle, onSelect }: Props): Reac
             </button>
           ))}
         </div>
+        {open && (
+          <div className="terminal-tools">
+            <input type="search" value={query} placeholder={t('terminal.search')} aria-label={t('terminal.search')} onChange={(event) => setQuery(event.currentTarget.value)} />
+            <label className="toggle-label">
+              <input type="checkbox" checked={errorsOnly} onChange={(event) => setErrorsOnly(event.currentTarget.checked)} />
+              {t('terminal.errorsOnly')}
+            </label>
+            <button type="button" className="small" disabled={lines.length === 0} onClick={copy}>
+              {copied ? t('terminal.copied') : t('terminal.copy')}
+            </button>
+          </div>
+        )}
       </div>
       <pre
         ref={output}
@@ -74,7 +99,7 @@ export function TerminalPanel({ open, server, onToggle, onSelect }: Props): Reac
           following.current = element.scrollHeight - element.scrollTop - element.clientHeight < 24
         }}
       >
-        {lines.length ? lines.join('\n') : t('terminal.empty')}
+        {lines.length ? lines.join('\n') : all.length ? t('terminal.noMatch') : t('terminal.empty')}
       </pre>
     </section>
   )

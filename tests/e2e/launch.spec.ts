@@ -48,11 +48,11 @@ for (const [system, expected] of [
 test('switches between French and English', async () => {
   const { app, page } = await launch()
 
-  await page.getByRole('button', { name: 'FR' }).click()
+  await page.getByRole('button', { name: 'FR', exact: true }).click()
   await expect(page.getByText("Atreia n'est plus jamais vide.")).toBeVisible()
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
 
-  await page.getByRole('button', { name: 'EN' }).click()
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
   await expect(page.getByText('Atreia is never empty.')).toBeVisible()
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
 
@@ -61,11 +61,11 @@ test('switches between French and English', async () => {
 
 test('remembers the chosen language after a restart', async () => {
   const first = await launch()
-  await first.page.getByRole('button', { name: 'FR' }).click()
+  await first.page.getByRole('button', { name: 'FR', exact: true }).click()
   await first.app.close()
 
   const second = await launch()
-  await expect(second.page.getByRole('button', { name: 'FR' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(second.page.getByRole('button', { name: 'FR', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await expect(second.page.getByText("Atreia n'est plus jamais vide.")).toBeVisible()
   await second.app.close()
 })

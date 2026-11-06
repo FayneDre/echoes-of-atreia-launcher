@@ -59,10 +59,6 @@ export function ServersPanel({ state, onShowLog }: { state: LauncherState; onSho
   const { mysql, servers, activity, install } = state
   const idle = activity === 'idle'
   const mysqlIdle = idle && mysql.status !== 'starting' && mysql.status !== 'stopping'
-  const running = SERVER_IDS.some((id) => !['stopped', 'failed'].includes(servers[id].status) || servers[id].external)
-  const gameReady = servers.game.status === 'ready'
-  // A stop can interrupt a start: the game server takes minutes to load.
-  const canStop = running && (idle || activity === 'starting')
 
   const forceStop = (id: ServerState['id']): void => {
     if (id !== 'game' || window.confirm(t('action.forceConfirm'))) {
@@ -121,20 +117,6 @@ export function ServersPanel({ state, onShowLog }: { state: LauncherState; onSho
         ))}
       </ul>
 
-      <div className="actions">
-        <button type="button" disabled={!idle || !install.serverFound || gameReady} onClick={() => void window.launcher.start()}>
-          <Icon name="play" />
-          {t('action.start')}
-        </button>
-        <button type="button" disabled={!canStop} onClick={() => void window.launcher.stop()}>
-          <Icon name="stop" />
-          {t('action.stop')}
-        </button>
-        <button type="button" className="button-primary button-play" disabled={!gameReady || !install.clientFound} onClick={() => void window.launcher.play()}>
-          {t('action.play')}
-        </button>
-      </div>
-      <ProblemText problem={state.problem} />
     </section>
   )
 }

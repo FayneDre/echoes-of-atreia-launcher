@@ -28,7 +28,7 @@ const mysqlStatus = (page: Page) => page.getByTestId('status-mysql')
 
 test('starts MySQL with the chosen my.ini on the servers’ port, and stops it through mysqladmin', async () => {
   const { app, page } = await launchWith(install)
-  await page.getByRole('button', { name: 'EN' }).click()
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
   await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'stopped')
   await expect(mysqlRow(page)).toContainText(optionsFile)
 
@@ -44,7 +44,7 @@ test('starts MySQL with the chosen my.ini on the servers’ port, and stops it t
 
 test('says why MySQL would not shut down, and leaves it running', async () => {
   const { app, page } = await launchWith(install)
-  await page.getByRole('button', { name: 'EN' }).click()
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
   await mysqlRow(page).getByRole('button', { name: 'Start', exact: true }).click()
   await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'ready', { timeout: 20_000 })
 

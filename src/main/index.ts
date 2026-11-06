@@ -1,10 +1,12 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
-import { SERVER_IDS, isBetaVersion, type FolderKind, type QuitAnswer, type ServerId } from '../shared/types'
+import { SERVER_IDS, isBetaVersion, type FolderKind, type HomeInfo, type QuitAnswer, type ServerId } from '../shared/types'
 import { AccountService } from './accounts/accountService'
 import { BackupService } from './backup/backupService'
 import { listBots } from './bots/botList'
 import { Launcher } from './launcher'
+import { NewsFeed } from './news'
+import { processMemoryMb } from './system/memory'
 import { validValues } from './server/serverSettings'
 import { ServerUpdater } from './serverUpdate/serverUpdater'
 import { SettingsStore } from './settings'
@@ -23,6 +25,7 @@ const backups = new BackupService(() => launcher.currentLayout)
 const updater = new LauncherUpdater()
 // A beta launcher installs the server's pre-releases too, a stable one its releases only: decided by its own version, with no setting.
 const serverUpdater = new ServerUpdater(launcher, isBetaVersion(app.getVersion()))
+const news = new NewsFeed(isBetaVersion(app.getVersion()))
 
 const isText = (value: unknown, maxLength: number): value is string =>
   typeof value === 'string' && value.length > 0 && value.length <= maxLength
@@ -109,6 +112,27 @@ function registerIpc(window: BrowserWindow): void {
     }
   })
   ipcMain.handle('launcher:use-mysql-service', () => launcher.chooseMysqlOptions(null))
+  ipcMain.handle('news:get-state', () => news.current)
+  ipcMain.handle('news:refresh', () => news.refresh())
+  ipcMain.handle('home:get-info', async (): Promise<HomeInfo> => {
+    const backupList = await backups.list()
+    const lastBackup = backupList.map((backup) => backup.createdAt).sort().at(-1) ?? null
+    const state = launcher.getState()
+    let botsInWorld: HomeInfo['botsInWorld'] = null
+    if (state.servers.game.status === 'ready') {
+      const bots = await listBots(launcher.currentLayout)
+      if (Array.isArray(bots)) {
+        const present = bots.filter((bot) => bot.inWorld)
+        botsInWorld = {
+          elyos: present.filter((bot) => bot.race === 'ELYOS').length,
+          asmodians: present.filter((bot) => bot.race === 'ASMODIANS').length
+        }
+      }
+    }
+    const pid = launcher.gameProcessId
+    const gameMemoryMb = pid !== null && state.servers.game.status !== 'stopped' ? await processMemoryMb(pid) : null
+    return { lastBackup, botsInWorld, gameMemoryMb, launcherVersion: app.getVersion() }
+  })
   ipcMain.handle('server-update:get-state', () => serverUpdater.current)
   ipcMain.handle('server-update:prepare', () => serverUpdater.prepare())
   ipcMain.handle('server-update:install', () => serverUpdater.install())
@@ -144,6 +168,7 @@ function registerIpc(window: BrowserWindow): void {
   launcher.on('lines', (batch) => window.webContents.send('launcher:lines', batch))
   updater.on('state', (state) => window.webContents.send('update:state', state))
   serverUpdater.on('state', (state) => window.webContents.send('server-update:state', state))
+  news.on('state', (state) => window.webContents.send('news:state', state))
   // The server folder found at start, or chosen later: its releases are looked at again.
   let serverRoot: string | null = null
   launcher.on('state', (state) => {
@@ -156,13 +181,16 @@ function registerIpc(window: BrowserWindow): void {
 
 function createWindow(): BrowserWindow {
   const window = new BrowserWindow({
-    width: 1100,
-    height: 720,
-    minWidth: 900,
-    minHeight: 600,
+    width: 1180,
+    height: 780,
+    minWidth: 960,
+    minHeight: 640,
     title: 'Echoes of Atreia',
-    backgroundColor: '#0d1320',
+    backgroundColor: '#070b16',
     autoHideMenuBar: true,
+    // The window's own bar in the launcher's colours: the page draws it, Windows keeps only its three buttons over it.
+    titleBarStyle: 'hidden',
+    titleBarOverlay: { color: '#080c1a', symbolColor: '#d8b46c', height: 34 },
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -225,6 +253,7 @@ if (!app.requestSingleInstanceLock()) {
       .then(() => launcher.initialize())
       .then(() => serverUpdater.start())
     updater.start()
+    news.start()
   })
 }
 

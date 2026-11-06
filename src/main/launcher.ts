@@ -75,6 +75,11 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     return this.servers[id]?.logLines ?? []
   }
 
+  /** The game server's process id when the launcher knows it. */
+  get gameProcessId(): number | null {
+    return this.servers.game?.processId ?? null
+  }
+
   get anyRunning(): boolean {
     return SERVER_IDS.some((id) => this.servers[id]?.hasProcess)
   }

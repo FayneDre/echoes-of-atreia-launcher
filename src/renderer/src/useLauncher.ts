@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { AccountsState, LauncherState, ServerId, ServerUpdateState, UpdateState } from '../../shared/types'
+import type { AccountsState, HomeInfo, LauncherState, NewsState, ServerId, ServerUpdateState, UpdateState } from '../../shared/types'
 
 /**
  * The saved accounts and the active one's characters, read again when what they depend on changes: the server folder (found at startup, or
@@ -68,6 +68,48 @@ export function useServerUpdate(): ServerUpdateState | null {
     return unsubscribe
   }, [])
   return update
+}
+
+/** The launcher's and the server's last releases, as the main process last read them; null until the first answer. */
+export function useNews(): NewsState | null {
+  const [news, setNews] = useState<NewsState | null>(null)
+  useEffect(() => {
+    const unsubscribe = window.launcher.onNews(setNews)
+    void window.launcher.getNews().then((initial) => setNews((current) => current ?? initial))
+    return unsubscribe
+  }, [])
+  return news
+}
+
+const HOME_INFO_REFRESH_MS = 60_000
+
+/**
+ * What the home page shows beside the servers (last backup, bots in the world, the game server's memory): read on arrival, when the game
+ * server changes state, then every minute while the page is shown.
+ */
+export function useHomeInfo(state: LauncherState | null, visible: boolean, tick = 0): HomeInfo | null {
+  const [info, setInfo] = useState<HomeInfo | null>(null)
+  const game = state?.servers.game.status
+  const activity = state?.activity
+  useEffect(() => {
+    if (!visible || !state || activity === 'detecting') {
+      return
+    }
+    let reading = false
+    const read = (): void => {
+      if (!reading) {
+        reading = true
+        void window.launcher
+          .getHomeInfo()
+          .then(setInfo)
+          .finally(() => (reading = false))
+      }
+    }
+    read()
+    const timer = setInterval(read, HOME_INFO_REFRESH_MS)
+    return () => clearInterval(timer)
+  }, [visible, game, activity, tick]) // read again on what changes the answer, not on every state
+  return info
 }
 
 const LINES_SHOWN = 1000

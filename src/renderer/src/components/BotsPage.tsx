@@ -49,17 +49,40 @@ export function BotsPage({ state, visible }: { state: LauncherState; visible: bo
   // The database keeps `online` set when a game server ends without saving (killed, crashed): only a running one is believed.
   const live = gameStatus === 'ready'
   const [limit, setLimit] = useState(PAGE)
-  useEffect(() => setLimit(PAGE), [filter])
+  const [classFilter, setClassFilter] = useState('')
+  const [mapFilter, setMapFilter] = useState('')
+  useEffect(() => setLimit(PAGE), [filter, classFilter, mapFilter])
   const needle = filter.trim().toLowerCase()
+  const classes = useMemo(() => [...new Set((bots ?? []).map((bot) => bot.playerClass))].sort(), [bots])
+  const maps = useMemo(() => [...new Set((bots ?? []).flatMap((bot) => (bot.mapName ? [bot.mapName] : [])))].sort(), [bots])
   const byFaction = useMemo(
     () =>
       FACTIONS.map((race) => {
         const all = (bots ?? []).filter((bot) => bot.race === race)
-        const matching = needle ? all.filter((bot) => bot.name.toLowerCase().includes(needle)) : all
+        const matching = all.filter(
+          (bot) =>
+            (!needle || bot.name.toLowerCase().includes(needle)) &&
+            (!classFilter || bot.playerClass === classFilter) &&
+            (!mapFilter || bot.mapName === mapFilter)
+        )
         return { race, all, matching: matching.sort((a, b) => b.level - a.level || a.name.localeCompare(b.name)) }
       }),
-    [bots, needle]
+    [bots, needle, classFilter, mapFilter]
   )
+  const className = (playerClass: string): string => {
+    const key = `class.${playerClass}`
+    return hasMessage(key) ? t(key) : playerClass
+  }
+  // how the bots spread over the levels, by tens
+  const bands = useMemo(() => {
+    const counts = new Map<number, number>()
+    for (const bot of bots ?? []) {
+      const band = Math.min(Math.floor(bot.level / 10), 6)
+      counts.set(band, (counts.get(band) ?? 0) + 1)
+    }
+    const most = Math.max(1, ...counts.values())
+    return [0, 1, 2, 3, 4, 5, 6].map((band) => ({ band, count: counts.get(band) ?? 0, share: (counts.get(band) ?? 0) / most }))
+  }, [bots])
 
   return (
     <section className="panel bots-page" aria-labelledby="bots-title">
@@ -69,10 +92,37 @@ export function BotsPage({ state, visible }: { state: LauncherState; visible: bo
       </header>
       <div className="bots-toolbar">
         <input type="search" value={filter} placeholder={t('bots.search')} aria-label={t('bots.search')} onChange={(event) => setFilter(event.currentTarget.value)} />
+        <select value={classFilter} aria-label={t('bots.class')} onChange={(event) => setClassFilter(event.currentTarget.value)}>
+          <option value="">{t('bots.allClasses')}</option>
+          {classes.map((playerClass) => (
+            <option key={playerClass} value={playerClass}>
+              {className(playerClass)}
+            </option>
+          ))}
+        </select>
+        <select value={mapFilter} aria-label={t('bots.map')} onChange={(event) => setMapFilter(event.currentTarget.value)}>
+          <option value="">{t('bots.allMaps')}</option>
+          {maps.map((map) => (
+            <option key={map} value={map}>
+              {map}
+            </option>
+          ))}
+        </select>
         <button type="button" className="small" onClick={() => void reload()}>
           {t('bots.refresh')}
         </button>
       </div>
+      {bots !== null && bots.length > 0 && (
+        <div className="level-bands" aria-label={t('bots.levels')} data-testid="level-bands">
+          {bands.map(({ band, count, share }) => (
+            <div key={band} className="level-band" title={t('bots.bandTitle', { count })}>
+              <span className="level-bar" style={{ height: `${Math.round(share * 100)}%` }} />
+              <span className="level-count">{count}</span>
+              <span className="level-label">{band === 6 ? '60+' : `${Math.max(1, band * 10)}–${band * 10 + 9}`}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <ProblemText problem={problem} />
       {bots !== null && bots.length === 0 && <p className="muted">{t('bots.none')}</p>}
       {bots !== null && bots.length > 0 && (

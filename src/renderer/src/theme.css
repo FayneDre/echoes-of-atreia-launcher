@@ -504,3 +504,494 @@ button:hover:not(:disabled) {
 .group-list button {
   padding: 5px 12px;
 }
+
+/* ---------- Window bar ---------- */
+
+.titlebar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  background: #080c1a;
+  color: var(--text-muted);
+  font-family: var(--title-font);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.titlebar-sigil {
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  border: 1px solid var(--gold);
+  box-shadow: 0 0 6px rgb(216 180 108 / 50%);
+}
+
+.header button,
+.header a {
+  -webkit-app-region: no-drag;
+}
+
+/* ---------- Home hero ---------- */
+
+.hero {
+  padding: 14px 22px;
+  overflow: hidden;
+}
+
+.hero::before {
+  width: 22px;
+  height: 22px;
+}
+
+.hero-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.hero-state {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero .hero-title {
+  margin: 0;
+  color: var(--gold-light);
+  font-size: 24px;
+  letter-spacing: 0.08em;
+  text-transform: none;
+}
+
+.hero .hero-title::after {
+  display: none;
+}
+
+.hero-sub {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+}
+
+/* a lozenge that glows in the colour of the state */
+.hero-sigil {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  transform: rotate(45deg);
+  border: 2px solid currentcolor;
+  color: var(--text-muted);
+}
+
+.sigil-ready {
+  color: var(--ok);
+  background: rgb(95 220 176 / 25%);
+  box-shadow: 0 0 16px var(--ok);
+}
+
+.sigil-busy {
+  color: var(--busy);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.sigil-failed {
+  color: var(--bad);
+  box-shadow: 0 0 14px var(--bad);
+}
+
+@keyframes pulse {
+  50% {
+    box-shadow: 0 0 18px var(--busy);
+    opacity: 0.6;
+  }
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgb(216 180 108 / 14%);
+}
+
+.fact {
+  min-width: 0;
+  padding-left: 12px;
+  border-left: 2px solid rgb(216 180 108 / 25%);
+}
+
+.fact-elyos {
+  border-left-color: var(--elyos);
+}
+
+.fact-asmodians {
+  border-left-color: var(--asmodian);
+}
+
+.fact dt {
+  color: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fact dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.fact .elyos {
+  color: var(--elyos);
+  font-weight: 600;
+}
+
+.fact .asmodians {
+  color: var(--asmodian);
+  font-weight: 600;
+}
+
+button.link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--aether);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+button.link:hover:not(:disabled) {
+  background: none;
+  color: var(--gold-light);
+}
+
+@media (width < 1100px) {
+  .hero-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Install, folded ---------- */
+
+.install-summary {
+  display: flex;
+  justify-content: flex-start;
+  gap: 18px;
+  width: 100%;
+  padding: 6px 2px;
+  border: none;
+  background: none;
+}
+
+.install-summary:hover:not(:disabled) {
+  background: none;
+}
+
+.install-summary:disabled {
+  opacity: 1;
+}
+
+.install-summary .chevron {
+  margin-left: auto;
+  color: var(--gold);
+}
+
+.check.ok {
+  color: var(--ok);
+}
+
+.check.missing {
+  color: var(--bad);
+}
+
+.install-rows {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgb(216 180 108 / 12%);
+}
+
+/* ---------- News ---------- */
+
+.news-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.news-tabs {
+  margin-bottom: 12px;
+}
+
+.news-tabs .badge {
+  margin-left: 6px;
+  font-family: inherit;
+  text-transform: none;
+}
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.news-item {
+  padding: 10px 14px;
+  border: 1px solid rgb(216 180 108 / 14%);
+  border-radius: 3px;
+  background: rgb(3 5 12 / 35%);
+}
+
+.news-item[open] {
+  border-color: var(--gold-line);
+}
+
+.news-item summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.news-tag {
+  color: var(--gold-light);
+  font-family: var(--title-font);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.news-date {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.news-link {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--aether);
+  font-size: 12px;
+}
+
+/* ---------- Toasts ---------- */
+
+.toasts {
+  position: fixed;
+  right: 20px;
+  bottom: 48px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 220px;
+  padding: 10px 16px;
+  border: 1px solid var(--gold-line);
+  border-left: 3px solid var(--ok);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #151d36, #0c1124);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 50%);
+  animation: toast-in 0.2s ease-out;
+}
+
+.toast-error {
+  border-left-color: var(--bad);
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+}
+
+/* ---------- Terminal tools ---------- */
+
+.drawer-bar {
+  flex-wrap: wrap;
+}
+
+.terminal-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.terminal-tools input[type='search'] {
+  width: 220px;
+  padding: 5px 10px;
+  border: 1px solid rgb(216 180 108 / 22%);
+  border-radius: 3px;
+  background: rgb(3 5 12 / 70%);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ---------- Bots: filters and levels ---------- */
+
+.bots-toolbar {
+  max-width: none;
+  flex-wrap: wrap;
+}
+
+.bots-toolbar input {
+  flex: 1 1 220px;
+}
+
+.bots-toolbar select,
+.terminal-tools select {
+  padding: 7px 10px;
+  border: 1px solid rgb(216 180 108 / 22%);
+  border-radius: 4px;
+  background: rgb(3 5 12 / 70%);
+  color: var(--text);
+  font: inherit;
+}
+
+.level-bands {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: 8px;
+  height: 92px;
+  margin: 0 0 18px;
+  padding: 8px 4px 0;
+}
+
+.level-band {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  justify-items: center;
+  height: 100%;
+}
+
+.level-bar {
+  align-self: end;
+  width: 70%;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, var(--gold-light), rgb(216 180 108 / 35%));
+}
+
+.level-count {
+  color: var(--gold-light);
+  font-size: 12px;
+}
+
+.level-label {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* ---------- Characters by faction ---------- */
+
+.character {
+  border-left: 3px solid var(--border);
+}
+
+.character.race-elyos {
+  border-left-color: var(--elyos);
+  background: linear-gradient(90deg, rgb(127 212 255 / 8%), transparent 60%), var(--bg-sunken);
+}
+
+.character.race-asmodians {
+  border-left-color: var(--asmodian);
+  background: linear-gradient(90deg, rgb(208 112 142 / 9%), transparent 60%), var(--bg-sunken);
+}
+
+.character-name {
+  font-family: var(--title-font);
+  letter-spacing: 0.03em;
+}
+
+/* ---------- Backups as a timeline ---------- */
+
+.backup-list {
+  position: relative;
+  border: none;
+  padding-left: 22px;
+}
+
+.backup-list::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 6px;
+  width: 1px;
+  background: linear-gradient(180deg, var(--gold), rgb(216 180 108 / 10%));
+}
+
+.backup {
+  position: relative;
+  margin-bottom: 8px;
+  border: 1px solid rgb(216 180 108 / 14%);
+  border-radius: 3px;
+  background: rgb(3 5 12 / 35%);
+}
+
+.backup::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -21px;
+  width: 9px;
+  height: 9px;
+  transform: translateY(-50%) rotate(45deg);
+  border: 1px solid var(--gold);
+  background: var(--bg);
+}
+
+.backup:first-child::before {
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold);
+}
+
+.backup-date {
+  font-family: var(--title-font);
+  letter-spacing: 0.03em;
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.footer-versions {
+  color: var(--gold);
+  opacity: 0.8;
+}

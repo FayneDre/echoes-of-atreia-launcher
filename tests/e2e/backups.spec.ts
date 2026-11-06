@@ -22,7 +22,7 @@ const optionFilesLeft = (app: ElectronApplication): string[] =>
 
 async function openBackups(): Promise<{ app: ElectronApplication; page: Page }> {
   const launched = await launchWith(install)
-  await launched.page.getByRole('button', { name: 'EN' }).click()
+  await launched.page.getByRole('button', { name: 'EN', exact: true }).click()
   await launched.page.getByRole('button', { name: 'Backups', exact: true }).click()
   await expect(launched.page.getByRole('button', { name: 'Back up now' })).toBeEnabled()
   return launched

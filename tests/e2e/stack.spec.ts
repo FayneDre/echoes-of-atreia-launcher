@@ -20,7 +20,7 @@ test.afterEach(async () => {
 
 async function open(): Promise<{ app: ElectronApplication; page: Page }> {
   const launched = await launchWith(install)
-  await launched.page.getByRole('button', { name: 'EN' }).click()
+  await launched.page.getByRole('button', { name: 'EN', exact: true }).click()
   return launched
 }
 

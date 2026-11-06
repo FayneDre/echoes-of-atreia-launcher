@@ -108,8 +108,17 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
     return this.child !== null || this.pid !== null
   }
 
+  /** The server's process id when the launcher knows it, for what the home page shows of it. */
+  get processId(): number | null {
+    return this.hasProcess ? (this.child?.pid ?? this.pid) : null
+  }
+
   private update(next: Partial<ServerState>): void {
-    this.state = { ...this.state, ...next }
+    const state = { ...this.state, ...next }
+    if (state.status !== 'ready') {
+      delete state.readyAt
+    }
+    this.state = state
     this.emit('state', this.state)
   }
 
@@ -192,7 +201,7 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
       () => this.exited || this.crashed || this.stopRequested || this.state.status === 'stopped'
     )
     if (registered && this.state.status === 'registering') {
-      this.update({ status: 'ready' })
+      this.update({ status: 'ready', readyAt: this.state.external ? undefined : Date.now() })
     }
     return registered
   }
@@ -298,7 +307,7 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
         return this.failStart(this.exited ? 'exited' : 'register-timeout')
       }
     }
-    this.update({ status: 'ready' })
+    this.update({ status: 'ready', readyAt: Date.now() })
     return true
   }
 

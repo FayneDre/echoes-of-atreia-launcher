@@ -10,8 +10,10 @@ import { SettingsPage } from './components/SettingsPage'
 import { TerminalPanel } from './components/TerminalPanel'
 import { UpdateBanner } from './components/UpdateBanner'
 import { LANGUAGES, useI18n, type MessageKey } from './i18n'
-import { MIN_SERVER_API_LEVEL, MIN_SERVER_VERSION, SERVER_IDS, isServerTooOld, type ServerId } from '../../shared/types'
-import { useAccounts, useLauncherState, useServerUpdate, useUpdate } from './useLauncher'
+import { MIN_SERVER_API_LEVEL, MIN_SERVER_VERSION, SERVER_IDS, isServerTooOld, type ServerId, type ServerVersion } from '../../shared/types'
+import { useAccounts, useHomeInfo, useLauncherState, useNews, useServerUpdate, useUpdate } from './useLauncher'
+import { HomeHero } from './components/HomeHero'
+import { NewsPanel } from './components/NewsPanel'
 
 type Page = 'home' | 'account' | 'bots' | 'settings' | 'backups'
 
@@ -25,6 +27,17 @@ const PAGES: { id: Page; label: MessageKey }[] = [
   { id: 'bots', label: 'nav.bots' },
   { id: 'backups', label: 'nav.backups' }
 ]
+
+/** The server's version for the footer: a release's tag, or `dev` with its revision. */
+function serverLabel(version: ServerVersion | null): string {
+  if (!version) {
+    return '—'
+  }
+  if (version.version === 'dev' || version.version === null) {
+    return version.revision ? `dev ${version.revision}` : 'dev'
+  }
+  return version.version
+}
 
 const TERMINALS_OPEN_KEY = 'terminals-open'
 
@@ -47,6 +60,10 @@ export function App(): React.JSX.Element {
   const playing = accounts?.characters.find((character) => character.id === accounts.selectedCharacterId)
   const [terminalsOpen, setTerminalsOpenState] = useState(readTerminalsOpen)
   const [terminal, setTerminal] = useState<ServerId>('game')
+  const news = useNews()
+  // a new value reads the home information again at once (after a backup made from the hero)
+  const [infoTick, setInfoTick] = useState(0)
+  const homeInfo = useHomeInfo(state, page === 'home', infoTick)
   const setTerminalsOpen = (open: boolean): void => {
     setTerminalsOpenState(open)
     try {
@@ -70,6 +87,11 @@ export function App(): React.JSX.Element {
 
   return (
     <div className="app">
+      {/* the window's bar: dragged to move the window; Windows draws its three buttons over its right end */}
+      <div className="titlebar" aria-hidden="true">
+        <span className="titlebar-sigil" />
+        Echoes of Atreia
+      </div>
       <header className="header">
         <div className="brand-block">
           <h1 className="title">Echoes of Atreia</h1>
@@ -126,12 +148,16 @@ export function App(): React.JSX.Element {
         <main className="content content-home" hidden={page !== 'home'}>
           <div className="page-scroll">
             <div className="home-grid">
+              <div className="home-wide">
+                <HomeHero state={state} accounts={accounts} info={homeInfo} onReloadInfo={() => setInfoTick(infoTick + 1)} />
+              </div>
               <div className="home-column">
                 <ServersPanel state={state} onShowLog={showLog} />
                 <InstallPanel state={state} />
               </div>
               <div className="home-column">
                 <ServerUpdatePanel update={serverUpdate} state={state} />
+                <NewsPanel news={news} />
               </div>
             </div>
           </div>
@@ -165,7 +191,15 @@ export function App(): React.JSX.Element {
         </main>
       )}
 
-      <footer className="footer">{t('footer.disclaimer')}</footer>
+      <footer className="footer">
+        <span>{t('footer.disclaimer')}</span>
+        <span className="footer-versions" data-testid="footer-versions">
+          {t('footer.versions', {
+            launcher: homeInfo?.launcherVersion ?? '…',
+            server: serverLabel(state?.serverVersion ?? null)
+          })}
+        </span>
+      </footer>
       {state?.quitRequested && <QuitDialog />}
     </div>
   )

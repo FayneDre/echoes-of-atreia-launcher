@@ -65,6 +65,8 @@ export interface ServerState {
   /** Started outside the launcher (a script, a start.bat): the launcher found it running and can still stop it. */
   external: boolean
   port: number | null
+  /** When it became ready (milliseconds since 1970), for how long it has run; unknown for a server found running. */
+  readyAt?: number
   problem?: Problem
 }
 
@@ -275,4 +277,35 @@ export interface ServerUpdateState {
   /** The version the last update can be undone to (null: a server built from git), when its backup is there. */
   canReturnTo?: { version: string | null }
   problem?: Problem
+}
+
+export type NewsSource = 'launcher' | 'server'
+
+/** A release of the launcher or the server, for the home page's news. */
+export interface NewsItem {
+  source: NewsSource
+  tag: string
+  prerelease: boolean
+  /** When it was published (ISO 8601), when GitHub says. */
+  date: string | null
+  url: string
+  notes: Partial<Record<'en' | 'fr', string>>
+}
+
+export interface NewsState {
+  items: NewsItem[]
+  /** Nothing could be read: no connection, or GitHub refused. */
+  offline?: boolean
+}
+
+/** What the home page shows beside the servers, read when it is shown and every minute after. */
+export interface HomeInfo {
+  /** The last backup's date (ISO 8601), or null when there is none. */
+  lastBackup: string | null
+  /** The bots in the world by faction, while the game server runs. */
+  botsInWorld: { elyos: number; asmodians: number } | null
+  /** The game server's memory in megabytes, while it runs and the launcher knows its process. */
+  gameMemoryMb: number | null
+  /** The launcher's own version. */
+  launcherVersion: string
 }

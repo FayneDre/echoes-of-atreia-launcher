@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test, type ElectronApplication, type Locator, type Page } from '@playwright/test'
+import { save } from './save'
 import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
 
 const READY_TIMEOUT = 30_000
@@ -17,7 +18,7 @@ test.afterEach(async () => {
 
 async function openSettings(): Promise<{ app: ElectronApplication; page: Page }> {
   const launched = await launchWith(install)
-  await launched.page.getByRole('button', { name: 'EN' }).click()
+  await launched.page.getByRole('button', { name: 'EN', exact: true }).click()
   await launched.page.getByRole('button', { name: 'Server settings' }).click()
   await expect(launched.page.getByTestId('group-xp')).toBeVisible()
   return launched
@@ -32,11 +33,6 @@ const group = (page: Page, id: string): Locator => page.getByTestId(`group-${id}
 // The families are tabs: one shows at a time.
 async function select(page: Page, title: string): Promise<void> {
   await page.getByRole('tab', { name: title }).click()
-}
-
-async function save(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Save', exact: true }).click()
-  await expect(page.getByRole('status').filter({ hasText: 'Saved.' })).toBeVisible({ timeout: 10_000 })
 }
 
 test('sets a whole group at once, or each of its settings', async () => {

@@ -59,7 +59,8 @@ function SignInForm(props: { name?: string; onDone: () => void; onCancel?: () =>
   )
 }
 
-function CharacterCard(props: { character: CharacterSummary; selected: boolean; onSelect: () => void }): React.JSX.Element {
+/** `online` is what the database says, which only a running game server keeps true: a crash or a kill leaves it set. */
+function CharacterCard(props: { character: CharacterSummary; selected: boolean; gameReady: boolean; onSelect: () => void }): React.JSX.Element {
   const { t } = useI18n()
   const { character } = props
   const classKey = `class.${character.playerClass}`
@@ -69,13 +70,13 @@ function CharacterCard(props: { character: CharacterSummary; selected: boolean; 
       type="button"
       role="radio"
       aria-checked={props.selected}
-      className={props.selected ? 'character selected' : 'character'}
+      className={`character race-${character.race.toLowerCase()}${props.selected ? ' selected' : ''}`}
       data-testid={`character-${character.name}`}
       onClick={props.onSelect}
     >
       <span className="character-top">
         <span className="character-name">{character.name}</span>
-        {character.online && <span className="tag tag-online">{t('account.online')}</span>}
+        {props.gameReady && character.online && <span className="tag tag-online">{t('account.online')}</span>}
         {character.deleting && <span className="tag tag-deleting">{t('account.deleting')}</span>}
       </span>
       <span className="character-line">
@@ -186,6 +187,7 @@ export function AccountPage(props: { accounts: AccountsState | null; gameReady: 
                         key={character.id}
                         character={character}
                         selected={character.id === accounts.selectedCharacterId}
+                        gameReady={props.gameReady}
                         onSelect={() => void act(window.launcher.selectCharacter(character.id))}
                       />
                     ))}

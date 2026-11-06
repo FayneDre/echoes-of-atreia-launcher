@@ -38,7 +38,7 @@ test.afterEach(async () => {
 
 async function open(env: Record<string, string> = {}): ReturnType<typeof launchWith> {
   const launched = await launchWith(install, { ECHOES_SERVER_FEED: feed.url, ECHOES_FAKE_JAVA_HOME: javaHome, ...env })
-  await launched.page.getByRole('button', { name: 'EN' }).click()
+  await launched.page.getByRole('button', { name: 'EN', exact: true }).click()
   return launched
 }
 

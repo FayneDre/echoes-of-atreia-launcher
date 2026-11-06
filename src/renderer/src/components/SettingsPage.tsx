@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useToast } from './Toasts'
 import {
   isAllowed,
   limitsOf,
@@ -237,6 +238,7 @@ const PAGE_TEXT: Record<SettingPage, { title: MessageKey; intro: MessageKey }> =
 /** The settings of one page of the catalog: the server's on their own page, the bots' under the bot list. */
 export function SettingsPage({ state, page = 'server' }: { state: LauncherState; page?: SettingPage }): React.JSX.Element {
   const { t } = useI18n()
+  const notify = useToast()
   const [settings, setSettings] = useState<ServerSettings | null>(null)
   const [values, setValues] = useState<Values>({})
   const [feedback, setFeedback] = useState<Feedback>(null)
@@ -300,6 +302,7 @@ export function SettingsPage({ state, page = 'server' }: { state: LauncherState;
     const saved = await window.launcher.saveServerSettings(edited)
     if (saved) {
       setSettings({ ...settings, values: { ...settings.values, ...edited } })
+      notify(t('settings.saved'))
     }
     setFeedback(saved ? 'saved' : 'failed')
   }
@@ -346,11 +349,7 @@ export function SettingsPage({ state, page = 'server' }: { state: LauncherState;
 
       <div className="save-bar">
         <span className="save-state">
-          {feedback === 'saved' && !dirty && (
-            <span className="success" role="status">
-              {t('settings.saved')}
-            </span>
-          )}
+          {/* a save that worked says so in a toast */}
           {feedback === 'failed' && (
             <span className="problem" role="alert">
               {t('settings.saveFailed')}

@@ -1,6 +1,7 @@
 import { appendFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+import { save } from './save'
 import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
 
 let install: FakeInstall
@@ -15,7 +16,7 @@ test.afterEach(async () => {
 
 test('lists the bots by faction, with their level, class and map, and believes "in the world" only from a running server', async () => {
   const { app, page } = await launchWith(install)
-  await page.getByRole('button', { name: 'EN' }).click()
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.getByRole('button', { name: 'Bots', exact: true }).click()
 
   const elyos = page.getByTestId('faction-ELYOS')
@@ -42,14 +43,9 @@ test('lists the bots by faction, with their level, class and map, and believes "
 
 const overrides = (): string => readFileSync(join(install.serverRoot, 'game-server', 'config', 'mygs.properties'), 'latin1')
 
-async function save(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Save', exact: true }).click()
-  await expect(page.getByTestId('settings-bots').getByRole('status').filter({ hasText: 'Saved.' })).toBeVisible({ timeout: 10_000 })
-}
-
 test('sets how the bots earn experience, fight, speak and trade', async () => {
   const { app, page } = await launchWith(install)
-  await page.getByRole('button', { name: 'EN' }).click()
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.getByRole('button', { name: 'Bots', exact: true }).click()
 
   await page.getByLabel('Experience — Monsters, alone').fill('5')
@@ -84,7 +80,7 @@ test('saves a bot setting while the file holds another outside what the page off
   // The server takes a smaller broker than the page offers: that value must not keep the others from being saved.
   appendFileSync(join(install.serverRoot, 'game-server', 'config', 'mygs.properties'), 'gameserver.playerbot.broker.size = 3000\n', 'latin1')
   const { app, page } = await launchWith(install)
-  await page.getByRole('button', { name: 'EN' }).click()
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.getByRole('button', { name: 'Bots', exact: true }).click()
   await page.getByLabel('Experience — Monsters, alone').fill('3')
   await save(page)
@@ -96,7 +92,7 @@ test('saves a bot setting while the file holds another outside what the page off
 
 test('asks for a restart for a bot setting the game server reads at start only, and keeps asking after a later save', async () => {
   const { app, page } = await launchWith(install)
-  await page.getByRole('button', { name: 'EN' }).click()
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.getByRole('button', { name: 'Start the servers' }).click()
   await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
   await page.getByRole('button', { name: 'Bots', exact: true }).click()

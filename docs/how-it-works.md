@@ -2,6 +2,7 @@
 
 What is true of the code today. The reasons are the point: each one is a trap the server's own scripts already hit.
 The server's own update (download, check, install, return) is in [server-update.md](server-update.md).
+The home page (banner, news, what each fact reads) is in [home-page.md](home-page.md).
 
 ## Finding the installation
 

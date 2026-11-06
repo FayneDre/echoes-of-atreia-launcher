@@ -15,7 +15,7 @@ test.afterEach(async () => {
 
 async function openAccount(): Promise<{ app: ElectronApplication; page: Page }> {
   const launched = await launchWith(install)
-  await launched.page.getByRole('button', { name: 'EN' }).click()
+  await launched.page.getByRole('button', { name: 'EN', exact: true }).click()
   await launched.page.getByRole('button', { name: 'Account', exact: true }).click()
   return launched
 }
@@ -43,7 +43,8 @@ test('signs in, lists the characters of the account, and remembers the one playe
   const aeris = page.getByTestId('character-Aeris')
   await expect(aeris).toContainText('Level 3 · Cleric · Elyos')
   await expect(aeris).toContainText('Sanctum')
-  await expect(aeris).toContainText('In game')
+  // the database says Aeris is online, but no game server runs: what a crash leaves behind, not believed
+  await expect(aeris).not.toContainText('In game')
   await expect(page.getByTestId('character-Borin')).toContainText('Level 2 · Gladiator · Asmodian')
   await expect(page.getByTestId('character-Borin')).toContainText('Ishalgen')
   // Another account's characters are not this one's.

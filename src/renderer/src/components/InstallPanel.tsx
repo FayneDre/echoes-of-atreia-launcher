@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { REQUIRED_JAVA, SERVER_IDS, type LauncherState } from '../../../shared/types'
 import { useI18n } from '../i18n'
 
@@ -26,6 +27,7 @@ function FolderRow(props: {
 
 export function InstallPanel({ state }: { state: LauncherState }): React.JSX.Element {
   const { t } = useI18n()
+  const [open, setOpen] = useState(false)
   const { install } = state
   // The folders can only change while nothing runs: the running servers belong to the current one.
   const locked =
@@ -43,9 +45,28 @@ export function InstallPanel({ state }: { state: LauncherState }): React.JSX.Ele
     )
   }
 
+  const javaOk = java !== null && java >= REQUIRED_JAVA
+  const allFound = install.serverFound && install.clientFound && javaOk
+  // Set once and rarely looked at again: one line of checks, unfolded by a click, or by itself while something is missing.
+  const unfolded = open || !allFound
+  const check = (ok: boolean, label: string): React.JSX.Element => (
+    <span className={ok ? 'check ok' : 'check missing'}>
+      <span aria-hidden="true">{ok ? '✓' : '✗'}</span> {label}
+    </span>
+  )
+
   return (
-    <section className="panel" aria-labelledby="install-title">
+    <section className="panel install-panel" aria-labelledby="install-title">
       <h2 id="install-title">{t('section.install')}</h2>
+      <button type="button" className="install-summary" data-testid="install-summary" aria-expanded={unfolded} disabled={!allFound} onClick={() => setOpen(!open)}>
+        {check(install.serverFound, t('install.server'))}
+        {check(install.clientFound, t('install.client'))}
+        {check(javaOk, java !== null ? t('install.javaVersion', { version: java }) : t('install.java'))}
+        <span className="chevron" aria-hidden="true">
+          {unfolded ? '▾' : '▸'}
+        </span>
+      </button>
+      <div hidden={!unfolded} className="install-rows">
       <FolderRow
         label={t('install.server')}
         path={install.serverRoot}
@@ -71,6 +92,7 @@ export function InstallPanel({ state }: { state: LauncherState }): React.JSX.Ele
               ? t('install.javaVersion', { version: java })
               : t('install.javaTooOld', { version: java })}
         </span>
+      </div>
       </div>
     </section>
   )

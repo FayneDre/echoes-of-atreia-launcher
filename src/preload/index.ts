@@ -1,5 +1,21 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
-import type { AccountsState, BackupSummary, BotSummary, DestinationSummary, FolderKind, LauncherState, LogBatch, Problem, QuitAnswer, ServerId, ServerSettings, ServerUpdateState, UpdateState } from '../shared/types'
+import type {
+  AccountsState,
+  BackupSummary,
+  BotSummary,
+  DestinationSummary,
+  FolderKind,
+  HomeInfo,
+  LauncherState,
+  LogBatch,
+  NewsState,
+  Problem,
+  QuitAnswer,
+  ServerId,
+  ServerSettings,
+  ServerUpdateState,
+  UpdateState
+} from '../shared/types'
 
 function subscribe<T>(channel: string, listener: (value: T) => void): () => void {
   const handler = (_event: IpcRendererEvent, value: T): void => listener(value)
@@ -16,6 +32,10 @@ const launcherApi = {
   stop: (): Promise<boolean> => ipcRenderer.invoke('launcher:stop'),
   forceStop: (server: ServerId): Promise<boolean> => ipcRenderer.invoke('launcher:force-stop', server),
   restartServer: (server: ServerId): Promise<boolean> => ipcRenderer.invoke('launcher:restart-server', server),
+  getNews: (): Promise<NewsState> => ipcRenderer.invoke('news:get-state'),
+  refreshNews: (): Promise<void> => ipcRenderer.invoke('news:refresh'),
+  onNews: (listener: (state: NewsState) => void): (() => void) => subscribe('news:state', listener),
+  getHomeInfo: (): Promise<HomeInfo> => ipcRenderer.invoke('home:get-info'),
   startMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-start'),
   stopMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-stop'),
   chooseMysqlOptions: (): Promise<void> => ipcRenderer.invoke('launcher:choose-mysql-options'),
