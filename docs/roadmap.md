@@ -35,7 +35,7 @@ Features fall in three kinds, and the kind decides the order:
 | 4. Admin channel | A folder `game-server/admin/` the running server answers (`reload-config`, `destinations`, `teleport`): saved settings apply at once, and the picked character can be teleported to any place of the server's teleport list (Account page) | yes (`AdminChannel`) |
 | 5. Bots and broker | List of the bots by faction (read from the database, no server work); bot XP rate, PvP, chat and its language, broker settings (Bots page, from the server's bot options) | yes (`PlayerBotConfig`) |
 | Postponed | The global bot density slider (to follow the living-world tests on the server first); skill learning (its rules are still to be defined) | yes |
-| 6. Distribution | Public installer, updates from published releases, SQL updates, patch notes in FR and EN (each server and launcher release carries its notes in both languages, shown as "What's new" after an update in the launcher's language; the server's test patches stay in French); see "Distribution and client options" below | releases |
+| 6. Distribution | Public installer, updates from published releases, SQL updates, patch notes in FR and EN (each server and launcher release carries its notes in both languages, shown as "What's new" after an update in the launcher's language; test releases too, since 6 November; a beta launcher installs the server's pre-releases: the server repository's `docs/architecture/plans/release-process-plan.md`); see "Distribution and client options" below | releases |
 | 6b. Client options | The client in French, several clients at once, the Vulkan renderer; see below | — |
 | 7. Linux | The servers run there; the client needs Wine | — |
 

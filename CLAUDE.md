@@ -36,4 +36,7 @@ run against fake servers (`tests/fixtures/`), never the real installation; a tes
 - `develop`: day-to-day work; test builds are GitHub **pre-releases** `vX.Y.Z-beta.N` made from it, so `Latest` keeps pointing at the stable one.
 - Versions are this launcher's own, independent of the server's; a release declares the lowest server version it needs. The release process
   is the server repository's `docs/architecture/plans/release-process-plan.md`.
+- `tools/release.ps1 -Version X.Y.Z[-beta.N]` makes a release: it refuses a wrong branch, a dirty tree, a `package.json` of another version,
+  a missing entry in `docs/release-notes/current.md` (French) or `current.en.md` (English), an entry with no minimum server version, a failed
+  `npm test` or build; then it tags and writes the GitHub body and notes under `release/<tag>/`. Both entries are written in the same pass.
 - Every push and every publish is the user's call.

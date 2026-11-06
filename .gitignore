@@ -4,3 +4,5 @@ dist/
 test-results/
 playwright-report/
 *.log
+# release notes written by tools/release.ps1
+/release/
