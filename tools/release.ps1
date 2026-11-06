@@ -128,7 +128,7 @@ try {
         if (-not (Test-Path (Join-Path $repoRoot $file))) { throw "The build did not produce $file." }
     }
     $latest = [IO.File]::ReadAllText((Join-Path $repoRoot 'dist\latest.yml'))
-    if ($latest -notmatch "(?m)^version: $([regex]::Escape($plain))\s*$") { throw "dist\latest.yml is not for $plain: the build left an older one." }
+    if ($latest -notmatch "(?m)^version: $([regex]::Escape($plain))\s*$") { throw "dist\latest.yml is not for ${plain}: the build left an older one." }
 
     $bodyEn = ($entries.en -replace '^## [^\n]*\n', '').Trim()
     $bodyFr = ($entries.fr -replace '^## [^\n]*\n', '').Trim()
