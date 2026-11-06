@@ -1,4 +1,6 @@
 import { execFile } from 'node:child_process'
+import { stat } from 'node:fs/promises'
+import { join } from 'node:path'
 
 export interface JavaCommand {
   command: string
@@ -37,5 +39,34 @@ export function javaMajorVersion(): Promise<number | null> {
       // java writes its version to stderr
       resolve(parseJavaMajor(`${stderr}\n${stdout}`))
     })
+  })
+}
+
+/**
+ * The major version of the JDK the servers would run on, or null when that Java is a JRE or there is none: the game server compiles its
+ * handlers at every start, which needs the compiler a JDK carries next to java.
+ */
+export function jdkMajorVersion(): Promise<number | null> {
+  const java = javaCommand()
+  return new Promise((resolve) => {
+    execFile(
+      java.command,
+      [...java.prefixArgs, '-XshowSettings:properties', '-version'],
+      { env: java.env, timeout: 15_000, windowsHide: true },
+      (_error, stdout, stderr) => {
+        const output = `${stderr}\n${stdout}`
+        const home = /^\s*java\.home = (.+?)\s*$/m.exec(output)?.[1]
+        const major = parseJavaMajor(output)
+        if (!home || major === null) {
+          resolve(null)
+          return
+        }
+        const javac = join(home, 'bin', process.platform === 'win32' ? 'javac.exe' : 'javac')
+        stat(javac).then(
+          () => resolve(major),
+          () => resolve(null)
+        )
+      }
+    )
   })
 }

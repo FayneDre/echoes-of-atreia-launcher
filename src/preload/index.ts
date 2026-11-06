@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
-import type { AccountsState, BackupSummary, BotSummary, DestinationSummary, FolderKind, LauncherState, LogBatch, Problem, QuitAnswer, ServerId, ServerSettings, UpdateState } from '../shared/types'
+import type { AccountsState, BackupSummary, BotSummary, DestinationSummary, FolderKind, LauncherState, LogBatch, Problem, QuitAnswer, ServerId, ServerSettings, ServerUpdateState, UpdateState } from '../shared/types'
 
 function subscribe<T>(channel: string, listener: (value: T) => void): () => void {
   const handler = (_event: IpcRendererEvent, value: T): void => listener(value)
@@ -41,7 +41,13 @@ const launcherApi = {
   onLines: (listener: (batch: LogBatch) => void): (() => void) => subscribe('launcher:lines', listener),
   getUpdate: (): Promise<UpdateState> => ipcRenderer.invoke('update:get-state'),
   installUpdate: (): Promise<boolean> => ipcRenderer.invoke('update:install'),
-  onUpdate: (listener: (state: UpdateState) => void): (() => void) => subscribe('update:state', listener)
+  onUpdate: (listener: (state: UpdateState) => void): (() => void) => subscribe('update:state', listener),
+  getServerUpdate: (): Promise<ServerUpdateState> => ipcRenderer.invoke('server-update:get-state'),
+  prepareServerUpdate: (): Promise<void> => ipcRenderer.invoke('server-update:prepare'),
+  installServerUpdate: (): Promise<Problem | null> => ipcRenderer.invoke('server-update:install'),
+  cancelServerUpdate: (): Promise<void> => ipcRenderer.invoke('server-update:cancel'),
+  undoServerUpdate: (): Promise<Problem | null> => ipcRenderer.invoke('server-update:undo'),
+  onServerUpdate: (listener: (state: ServerUpdateState) => void): (() => void) => subscribe('server-update:state', listener)
 }
 
 export type LauncherApi = typeof launcherApi

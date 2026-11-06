@@ -43,6 +43,14 @@ export type ProblemCode =
   | 'no-character'
   | 'not-in-game'
   | 'admin-failed'
+  | 'update-feed-failed'
+  | 'update-download-failed'
+  | 'update-corrupt'
+  | 'update-jdk-missing'
+  | 'update-stop-failed'
+  | 'update-files-failed'
+  | 'update-sql-failed'
+  | 'update-nothing-to-return'
 
 /** A code the interface translates, and what the system said, shown as is. */
 export interface Problem {
@@ -82,7 +90,7 @@ export interface InstallState {
  * What the launcher is doing. A stop may interrupt a start (the game server takes minutes to load), so the two are told apart; anything
  * else waits for `idle`.
  */
-export type Activity = 'detecting' | 'idle' | 'starting' | 'stopping' | 'mysql' | 'backup' | 'restore'
+export type Activity = 'detecting' | 'idle' | 'starting' | 'stopping' | 'mysql' | 'backup' | 'restore' | 'server-update'
 
 export interface LauncherState {
   install: InstallState
@@ -212,4 +220,58 @@ export interface UpdateState {
 /** A launcher whose version carries a pre-release part follows the pre-releases; a stable one only the releases. */
 export function isBetaVersion(version: string): boolean {
   return /^\d+\.\d+\.\d+-/.test(version)
+}
+
+/**
+ * Orders two versions as semantic versioning does, with or without their leading v: a beta sorts before the release it leads to. Null when
+ * either is not a version of the form X.Y.Z or X.Y.Z-beta.N (`dev`, for one).
+ */
+export function compareVersions(a: string, b: string): number | null {
+  const parse = (text: string): number[] | null => {
+    const match = /^v?(\d+)\.(\d+)\.(\d+)(?:-beta\.(\d+))?$/.exec(text)
+    return match ? [Number(match[1]), Number(match[2]), Number(match[3]), match[4] === undefined ? Infinity : Number(match[4])] : null
+  }
+  const left = parse(a)
+  const right = parse(b)
+  if (!left || !right) {
+    return null
+  }
+  for (let index = 0; index < 4; index++) {
+    if (left[index]! !== right[index]!) {
+      return left[index]! < right[index]! ? -1 : 1
+    }
+  }
+  return 0
+}
+
+/**
+ * Where the server update stands. `off`: nothing to look at (no server folder, or the releases could not be read). `dev`: an install made by
+ * the server's deploy script, never overwritten by a release. `current`: the newest release is installed. `available`: a newer one exists.
+ * `preparing`: it is downloaded and checked, no server touched yet. `confirm`: ready to install, waiting for the person. `installing`: the
+ * servers are stopped and the files changing. `failed`: the last step went wrong, `problem` says which.
+ */
+export type ServerUpdateStatus = 'off' | 'dev' | 'current' | 'available' | 'preparing' | 'confirm' | 'installing' | 'failed'
+
+export type ServerUpdateStep = 'download' | 'navmesh' | 'verify' | 'stop' | 'files' | 'sql' | 'start' | 'return'
+
+export interface ServerUpdateState {
+  status: ServerUpdateStatus
+  /** The release installed, null for a server with no manifest (built from git); `dev` for a development install. */
+  installed: string | null
+  /** The revision of a development install, shown instead of an update. */
+  revision?: string | null
+  /** The newer release, with its notes in each language when they could be fetched. */
+  available?: { version: string; notes?: Partial<Record<'en' | 'fr', string>> }
+  step?: ServerUpdateStep
+  /** Of the step, 0 to 100, when it can be told. */
+  percent?: number
+  /** Default files edited by hand: each is left as it is, the release's own put beside it as `<file>.new-<version>`. */
+  keptLocal?: string[]
+  /** The database has never been through the server's SQL script: its statements are recorded as applied, not run. */
+  markApplied?: boolean
+  /** The JDK the release needs (the game server compiles its handlers at every start), and whether this computer has it. */
+  jdk?: { needed: number; found: number | null; ok: boolean }
+  /** The version the last update can be undone to (null: a server built from git), when its backup is there. */
+  canReturnTo?: { version: string | null }
+  problem?: Problem
 }

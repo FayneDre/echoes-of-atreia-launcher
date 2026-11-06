@@ -4,13 +4,14 @@ import { BackupsPage } from './components/BackupsPage'
 import { BotsPage } from './components/BotsPage'
 import { InstallPanel } from './components/InstallPanel'
 import { QuitDialog } from './components/QuitDialog'
+import { ServerUpdatePanel } from './components/ServerUpdatePanel'
 import { ServersPanel } from './components/ServersPanel'
 import { SettingsPage } from './components/SettingsPage'
 import { TerminalPanel } from './components/TerminalPanel'
 import { UpdateBanner } from './components/UpdateBanner'
 import { LANGUAGES, useI18n, type MessageKey } from './i18n'
 import { MIN_SERVER_API_LEVEL, MIN_SERVER_VERSION, isServerTooOld } from '../../shared/types'
-import { useAccounts, useLauncherState, useUpdate } from './useLauncher'
+import { useAccounts, useLauncherState, useServerUpdate, useUpdate } from './useLauncher'
 
 type Page = 'home' | 'account' | 'bots' | 'settings' | 'backups'
 
@@ -29,6 +30,7 @@ export function App(): React.JSX.Element {
   const { language, setLanguage, t } = useI18n()
   const state = useLauncherState()
   const update = useUpdate()
+  const serverUpdate = useServerUpdate()
   const { accounts, reload } = useAccounts(state)
   const [page, setPage] = useState<Page>('home')
   const playing = accounts?.characters.find((character) => character.id === accounts.selectedCharacterId)
@@ -92,6 +94,7 @@ export function App(): React.JSX.Element {
           <div className="column">
             <ServersPanel state={state} />
             <InstallPanel state={state} />
+            <ServerUpdatePanel update={serverUpdate} state={state} />
           </div>
           <TerminalPanel />
         </main>

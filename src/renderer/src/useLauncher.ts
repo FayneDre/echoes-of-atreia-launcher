@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { AccountsState, LauncherState, ServerId, UpdateState } from '../../shared/types'
+import type { AccountsState, LauncherState, ServerId, ServerUpdateState, UpdateState } from '../../shared/types'
 
 /**
  * The saved accounts and the active one's characters, read again when what they depend on changes: the server folder (found at startup, or
@@ -54,6 +54,17 @@ export function useUpdate(): UpdateState | null {
   useEffect(() => {
     const unsubscribe = window.launcher.onUpdate(setUpdate)
     void window.launcher.getUpdate().then((initial) => setUpdate((current) => current ?? initial))
+    return unsubscribe
+  }, [])
+  return update
+}
+
+/** The server's update, as the main process last published it; null until the first answer. */
+export function useServerUpdate(): ServerUpdateState | null {
+  const [update, setUpdate] = useState<ServerUpdateState | null>(null)
+  useEffect(() => {
+    const unsubscribe = window.launcher.onServerUpdate(setUpdate)
+    void window.launcher.getServerUpdate().then((initial) => setUpdate((current) => current ?? initial))
     return unsubscribe
   }, [])
   return update

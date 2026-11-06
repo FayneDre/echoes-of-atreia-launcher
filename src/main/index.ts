@@ -1,11 +1,12 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
-import { SERVER_IDS, type FolderKind, type QuitAnswer, type ServerId } from '../shared/types'
+import { SERVER_IDS, isBetaVersion, type FolderKind, type QuitAnswer, type ServerId } from '../shared/types'
 import { AccountService } from './accounts/accountService'
 import { BackupService } from './backup/backupService'
 import { listBots } from './bots/botList'
 import { Launcher } from './launcher'
 import { validValues } from './server/serverSettings'
+import { ServerUpdater } from './serverUpdate/serverUpdater'
 import { SettingsStore } from './settings'
 import { LauncherUpdater } from './update/updater'
 
@@ -20,6 +21,8 @@ const launcher = new Launcher(settings)
 const accounts = new AccountService(settings, () => launcher.currentLayout)
 const backups = new BackupService(() => launcher.currentLayout)
 const updater = new LauncherUpdater()
+// A beta launcher installs the server's pre-releases too, a stable one its releases only: decided by its own version, with no setting.
+const serverUpdater = new ServerUpdater(launcher, isBetaVersion(app.getVersion()))
 
 const isText = (value: unknown, maxLength: number): value is string =>
   typeof value === 'string' && value.length > 0 && value.length <= maxLength
@@ -105,6 +108,11 @@ function registerIpc(window: BrowserWindow): void {
     }
   })
   ipcMain.handle('launcher:use-mysql-service', () => launcher.chooseMysqlOptions(null))
+  ipcMain.handle('server-update:get-state', () => serverUpdater.current)
+  ipcMain.handle('server-update:prepare', () => serverUpdater.prepare())
+  ipcMain.handle('server-update:install', () => serverUpdater.install())
+  ipcMain.handle('server-update:cancel', () => serverUpdater.cancel())
+  ipcMain.handle('server-update:undo', () => serverUpdater.undo())
   ipcMain.handle('update:get-state', () => updater.current)
   // Not while servers start or stop; closing then asks what to do with the running ones, as any close does.
   ipcMain.handle('update:install', () => {
@@ -134,6 +142,15 @@ function registerIpc(window: BrowserWindow): void {
   launcher.on('state', (state) => window.webContents.send('launcher:state', state))
   launcher.on('lines', (batch) => window.webContents.send('launcher:lines', batch))
   updater.on('state', (state) => window.webContents.send('update:state', state))
+  serverUpdater.on('state', (state) => window.webContents.send('server-update:state', state))
+  // The server folder found at start, or chosen later: its releases are looked at again.
+  let serverRoot: string | null = null
+  launcher.on('state', (state) => {
+    if (state.activity !== 'detecting' && state.install.serverRoot !== serverRoot) {
+      serverRoot = state.install.serverRoot
+      void serverUpdater.check()
+    }
+  })
 }
 
 function createWindow(): BrowserWindow {
@@ -159,7 +176,8 @@ function createWindow(): BrowserWindow {
   // Closing while servers run asks first: stop them (the game server saves the players), leave them running, or stay.
   window.on('close', (event) => {
     // A restore stopped half-way leaves one database restored and the other not: the window waits for it to end.
-    if (launcher.getState().activity === 'restore') {
+    // A server update stopped half-way leaves files of two versions: the window waits for it too.
+    if (launcher.getState().activity === 'restore' || launcher.getState().activity === 'server-update') {
       event.preventDefault()
       return
     }
@@ -202,7 +220,9 @@ if (!app.requestSingleInstanceLock()) {
   void app.whenReady().then(() => {
     const window = createWindow()
     registerIpc(window)
-    void settings.load().then(() => launcher.initialize())
+    void settings.load()
+      .then(() => launcher.initialize())
+      .then(() => serverUpdater.start())
     updater.start()
   })
 }

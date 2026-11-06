@@ -14,6 +14,10 @@ const TAB = String.fromCharCode(9)
 const NEWLINE = String.fromCharCode(10)
 const args = process.argv.slice(2)
 if (args.includes('-version')) {
+  // with -XshowSettings:properties, the JDK the tests lay out (ECHOES_FAKE_JAVA_HOME, holding bin/javac.exe), or none: then it is a JRE
+  if (args.includes('-XshowSettings:properties') && process.env.ECHOES_FAKE_JAVA_HOME) {
+    process.stderr.write(`Property settings:\n    java.home = ${process.env.ECHOES_FAKE_JAVA_HOME}\n`)
+  }
   process.stderr.write('openjdk version "25.0.1" 2025-10-21\n')
   process.exit(0)
 }

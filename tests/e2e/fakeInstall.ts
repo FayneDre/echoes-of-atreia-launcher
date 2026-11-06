@@ -258,6 +258,8 @@ export async function launchWith(install: FakeInstall, env: Record<string, strin
       ECHOES_FAKE_MYSQL_TOOLS: resolve('tests/fixtures/mysql-tools'),
       ECHOES_FAKE_MYSQLD: resolve('tests/fixtures/fake-mysqld.mjs'),
       ECHOES_FAKE_MYSQL_DATA: join(install.root, 'mysql-data'),
+      // never GitHub: a port nothing listens on, so the server's releases cannot be read unless a test serves them
+      ECHOES_SERVER_FEED: 'http://127.0.0.1:9',
       ...env
     }
   })

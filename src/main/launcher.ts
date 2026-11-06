@@ -182,32 +182,34 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   }
 
   startAll(): Promise<boolean> {
-    return this.run('starting', async () => {
-      this.stopRequested = false
-      if (!this.layout) {
-        return this.fail({ code: 'server-missing' })
+    return this.run('starting', () => this.startServers())
+  }
+
+  private async startServers(): Promise<boolean> {
+    this.stopRequested = false
+    if (!this.layout) {
+      return this.fail({ code: 'server-missing' })
+    }
+    const java = await javaMajorVersion()
+    this.install = { ...this.install, javaVersion: java }
+    if (java === null) {
+      return this.fail({ code: 'java-missing' })
+    }
+    if (java < REQUIRED_JAVA) {
+      return this.fail({ code: 'java-too-old', detail: String(java) })
+    }
+    if (this.mysql.current.status !== 'ready') {
+      const problem = await this.mysql.start()
+      if (problem) {
+        return this.fail(problem)
       }
-      const java = await javaMajorVersion()
-      this.install = { ...this.install, javaVersion: java }
-      if (java === null) {
-        return this.fail({ code: 'java-missing' })
+    }
+    for (const id of SERVER_IDS) {
+      if (this.stopRequested || !(await this.servers[id]!.start(javaCommand()))) {
+        return false
       }
-      if (java < REQUIRED_JAVA) {
-        return this.fail({ code: 'java-too-old', detail: String(java) })
-      }
-      if (this.mysql.current.status !== 'ready') {
-        const problem = await this.mysql.start()
-        if (problem) {
-          return this.fail(problem)
-        }
-      }
-      for (const id of SERVER_IDS) {
-        if (this.stopRequested || !(await this.servers[id]!.start(javaCommand()))) {
-          return false
-        }
-      }
-      return true
-    })
+    }
+    return true
   }
 
   /**
@@ -219,20 +221,51 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       return Promise.resolve(false)
     }
     this.stopRequested = true
-    return this.run(
-      'stopping',
-      async () => {
-        for (const id of [...SERVER_IDS].reverse()) {
-          // A server that failed has nothing left to stop, and stopping it clears the failure.
-          const server = this.servers[id]
-          if (server && server.current.status !== 'stopped' && !(await server.stop())) {
-            return false
-          }
-        }
-        return true
-      },
-      this.activity === 'starting'
-    )
+    return this.run('stopping', () => this.stopServers(), this.activity === 'starting')
+  }
+
+  private async stopServers(): Promise<boolean> {
+    for (const id of [...SERVER_IDS].reverse()) {
+      // A server that failed has nothing left to stop, and stopping it clears the failure.
+      const server = this.servers[id]
+      if (server && server.current.status !== 'stopped' && !(await server.stop())) {
+        return false
+      }
+    }
+    return true
+  }
+
+  /**
+   * Changes the server's files with every server stopped, the game server the usual way (never killed: it saves the players), as the
+   * launcher's one activity: no start, stop, backup or restore crosses it. The install is read again afterwards (its start scripts and
+   * manifest may have changed), and the servers that ran are started again once the work succeeded.
+   */
+  async withServersStopped(work: () => Promise<Problem | null>, stage: (step: 'stop' | 'start') => void): Promise<Problem | null> {
+    let result: Problem | null = { code: 'launcher-busy' }
+    await this.run('server-update', async () => {
+      const wasRunning = this.anyRunning
+      stage('stop')
+      if (!(await this.stopServers())) {
+        result = { code: 'update-stop-failed' }
+        return false
+      }
+      result = await work()
+      await this.detect()
+      if (result === null && wasRunning) {
+        stage('start')
+        await this.startServers()
+      }
+      return result === null
+    })
+    return result
+  }
+
+  /** MySQL started if it is not, for the server's SQL script; the problem when it cannot be. */
+  async ensureMysql(): Promise<Problem | null> {
+    if (this.mysql.current.status === 'ready') {
+      return null
+    }
+    return this.mysql.start()
   }
 
   /**
