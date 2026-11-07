@@ -190,7 +190,7 @@ function createWindow(): BrowserWindow {
     autoHideMenuBar: true,
     // The window's own bar in the launcher's colours: the page draws it, Windows keeps only its three buttons over it.
     titleBarStyle: 'hidden',
-    titleBarOverlay: { color: '#080c1a', symbolColor: '#d8b46c', height: 34 },
+    titleBarOverlay: { color: '#080c1a', symbolColor: '#d8b46c', height: 46 },
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

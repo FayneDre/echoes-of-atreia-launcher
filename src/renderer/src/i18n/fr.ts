@@ -247,7 +247,7 @@ export const fr: Record<MessageKey, string> = {
   'account.level': 'Niveau {level}',
   'account.online': 'En jeu',
   'account.deleting': 'Suppression en cours',
-  'account.playing': 'Personnage : {name}',
+  'account.playingLabel': 'Personnage',
   'account.noMap': 'Carte inconnue',
 
   'backups.intro':

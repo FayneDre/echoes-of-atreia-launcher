@@ -52,7 +52,7 @@ test('signs in, lists the characters of the account, and remembers the one playe
 
   await page.getByTestId('character-Borin').click()
   await expect(page.getByTestId('character-Borin')).toHaveAttribute('aria-checked', 'true')
-  await expect(page.getByTestId('playing')).toHaveText('Playing: Borin')
+  await expect(page.getByTestId('playing')).toHaveText('PlayingBorin')
 
   // Kept, and never in clear.
   expect(savedSettings()).not.toContain('secret')
@@ -60,7 +60,7 @@ test('signs in, lists the characters of the account, and remembers the one playe
 
   const second = await openAccount()
   page = second.page
-  await expect(page.getByTestId('playing')).toHaveText('Playing: Borin')
+  await expect(page.getByTestId('playing')).toHaveText('PlayingBorin')
   await expect(page.getByTestId('character-Borin')).toHaveAttribute('aria-checked', 'true')
   await second.app.close()
 })
@@ -76,16 +76,16 @@ test('keeps several accounts, each with its own character, and switches between 
   await expect(page.getByTestId('character-Cyra')).toContainText('Being deleted')
   await expect(page.getByTestId('character-Cyra')).toContainText('Unknown map')
   await page.getByTestId('character-Cyra').click()
-  await expect(page.getByTestId('playing')).toHaveText('Playing: Cyra')
+  await expect(page.getByTestId('playing')).toHaveText('PlayingCyra')
 
   await page.getByRole('tab', { name: 'player1' }).click()
-  await expect(page.getByTestId('playing')).toHaveText('Playing: Aeris')
+  await expect(page.getByTestId('playing')).toHaveText('PlayingAeris')
   await expect(page.getByTestId('character-Aeris')).toHaveAttribute('aria-checked', 'true')
 
   page.once('dialog', (dialog) => void dialog.accept())
   await page.getByRole('button', { name: 'Forget this account' }).click()
   await expect(page.getByRole('tab', { name: 'player1' })).toHaveCount(0)
-  await expect(page.getByTestId('playing')).toHaveText('Playing: Cyra')
+  await expect(page.getByTestId('playing')).toHaveText('PlayingCyra')
   await app.close()
 })
 

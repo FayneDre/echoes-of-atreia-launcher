@@ -87,20 +87,21 @@ export function App(): React.JSX.Element {
 
   return (
     <div className="app">
-      {/* the window's bar: dragged to move the window; Windows draws its three buttons over its right end */}
-      <div className="titlebar" aria-hidden="true">
-        <span className="titlebar-sigil" />
-        Echoes of Atreia
+      {/* the window's bar, holding the title: dragged to move the window; Windows draws its three buttons over its right end */}
+      <div className="titlebar">
+        <span className="titlebar-sigil" aria-hidden="true" />
+        <h1 className="title">Echoes of Atreia</h1>
+        <p className="tagline">{t('home.tagline')}</p>
       </div>
+      {/* one row, one height: the character played, the pages, the languages */}
       <header className="header">
-        <div className="brand-block">
-          <h1 className="title">Echoes of Atreia</h1>
-          <p className="tagline">{t('home.tagline')}</p>
-        </div>
-        {playing && (
+        {playing ? (
           <button type="button" className="playing" data-testid="playing" onClick={() => setPage('account')}>
-            {t('account.playing', { name: playing.name })}
+            <span className="playing-label">{t('account.playingLabel')}</span>
+            <span className="playing-name">{playing.name}</span>
           </button>
+        ) : (
+          <span />
         )}
         <nav className="nav" aria-label={t('nav.label')}>
           {PAGES.map((entry) => (

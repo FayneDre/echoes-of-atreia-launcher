@@ -507,20 +507,96 @@ button:hover:not(:disabled) {
 
 /* ---------- Window bar ---------- */
 
+/* the title lives in the window's bar; its right end is left to the three buttons Windows draws over it */
 .titlebar {
   display: flex;
   flex: none;
   align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 14px;
+  gap: 12px;
+  height: 46px;
+  padding: 0 150px 0 18px;
+  overflow: hidden;
   background: #080c1a;
-  color: var(--text-muted);
-  font-family: var(--title-font);
-  font-size: 12px;
-  letter-spacing: 0.12em;
+  white-space: nowrap;
   user-select: none;
   -webkit-app-region: drag;
+}
+
+.titlebar .title {
+  flex: none;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.titlebar .tagline {
+  min-width: 0;
+  margin: 3px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+/* the character, the pages and the languages: one row, one height */
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 14px;
+  padding: 8px 18px 9px;
+}
+
+.header > :first-child {
+  justify-self: start;
+}
+
+.header .nav {
+  margin: 0;
+}
+
+.header .language-switch {
+  justify-self: end;
+}
+
+.header .playing,
+.header .nav,
+.header .language-switch {
+  height: 38px;
+}
+
+.header .nav button,
+.header .language-switch button {
+  height: 100%;
+  padding: 0 14px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.playing {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 16px;
+  border-radius: 4px;
+  line-height: 1.15;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.playing-label {
+  color: var(--text-muted);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.playing-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
 }
 
 .titlebar-sigil {

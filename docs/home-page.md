@@ -40,6 +40,7 @@ A tab shows a "new" badge until it has been opened with that release at its top;
 
 ## The window
 
-The system title bar is replaced by a themed one (`titleBarStyle: 'hidden'` with a `titleBarOverlay` in the theme's colours): Windows
-still draws the minimise, maximise and close buttons, the strip above the header is the drag area. A short message after an action
+The system title bar is replaced by a themed one (`titleBarStyle: 'hidden'` with a `titleBarOverlay` in the theme's colours) that holds
+the title and the tagline: Windows still draws the minimise, maximise and close buttons over its right end, and the bar is the drag area.
+Below it, one row of one height: the character played, the pages, the languages. Nothing in either wraps down to the minimum width (960). A short message after an action
 (saved, backup made) is a toast in a corner for four seconds; the same message again replaces the one shown.

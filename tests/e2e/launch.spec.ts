@@ -39,7 +39,7 @@ for (const [system, expected] of [
 ] as const) {
   test(`opens the first time in ${expected} on a system in ${system}`, async () => {
     const { app, page } = await launch([`--lang=${system}`])
-    await expect(page.getByRole('button', { name: expected.toUpperCase() })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('button', { name: expected.toUpperCase(), exact: true })).toHaveAttribute('aria-pressed', 'true')
     await expect(page.locator('html')).toHaveAttribute('lang', expected)
     await app.close()
   })

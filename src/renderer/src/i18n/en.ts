@@ -246,7 +246,7 @@ export const en = {
   'account.level': 'Level {level}',
   'account.online': 'In game',
   'account.deleting': 'Being deleted',
-  'account.playing': 'Playing: {name}',
+  'account.playingLabel': 'Playing',
   'account.noMap': 'Unknown map',
 
   'backups.intro':
