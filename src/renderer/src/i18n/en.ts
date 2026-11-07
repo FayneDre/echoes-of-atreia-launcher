@@ -41,6 +41,8 @@ export const en = {
   'news.prerelease': 'beta',
   'news.read': 'Read the notes',
   'news.close': 'Close',
+  'news.previous': 'Previous versions ({count})',
+  'news.versions': 'Versions',
   'news.open': 'See it on GitHub',
   'footer.versions': 'Launcher {launcher} · Server {server}',
   'terminal.search': 'Search the log',

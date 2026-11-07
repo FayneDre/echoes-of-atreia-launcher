@@ -26,13 +26,25 @@ export function summaryOf(notes: string): string {
   return ''
 }
 
-/** A release's whole notes, over the page: closed by its button, Escape or a click beside it. */
-function NotesDialog({ item, notes, onClose }: { item: NewsItem; notes: string | undefined; onClose: () => void }): React.JSX.Element {
-  const { t } = useI18n()
+const notesOf = (item: NewsItem, language: string): string | undefined =>
+  item.notes[language as keyof NewsItem['notes']] ?? item.notes.en ?? item.notes.fr
+
+const dateOf = (item: NewsItem, language: string): string | null =>
+  item.date ? new Date(item.date).toLocaleDateString(language, { dateStyle: 'medium' }) : null
+
+/**
+ * The whole notes of a tab's releases, over the page: the versions on the left, the notes of the one picked on the right. Closed by its
+ * button, Escape or a click beside it.
+ */
+function NotesDialog({ items, first, onClose }: { items: NewsItem[]; first: number; onClose: () => void }): React.JSX.Element {
+  const { language, t } = useI18n()
   const dialog = useRef<HTMLDialogElement>(null)
+  const [picked, setPicked] = useState(first)
   useEffect(() => {
     dialog.current?.showModal()
   }, [])
+  const item = items[picked] ?? items[0]!
+  const notes = notesOf(item, language)
   return (
     <dialog
       ref={dialog}
@@ -49,7 +61,21 @@ function NotesDialog({ item, notes, onClose }: { item: NewsItem; notes: string |
       <h2 id="news-dialog-title">
         {t(`news.${item.source}`)} {item.tag}
       </h2>
-      <div className="news-dialog-body">{notes ? <Markdown text={notes} /> : <p className="muted">{t('news.noNotes')}</p>}</div>
+      <div className="news-dialog-main">
+        {items.length > 1 && (
+          <nav className="news-versions" aria-label={t('news.versions')}>
+            {items.map((entry, index) => (
+              <button key={entry.tag} type="button" aria-current={index === picked ? 'true' : undefined} onClick={() => setPicked(index)}>
+                <span className="news-tag">{entry.tag}</span>
+                <span className="news-date">{dateOf(entry, language)}</span>
+              </button>
+            ))}
+          </nav>
+        )}
+        <div className="news-dialog-body" key={item.tag}>
+          {notes ? <Markdown text={notes} /> : <p className="muted">{t('news.noNotes')}</p>}
+        </div>
+      </div>
       <div className="dialog-actions">
         <a href={item.url} target="_blank" rel="noreferrer" className="news-link">
           {t('news.open')}
@@ -63,15 +89,17 @@ function NotesDialog({ item, notes, onClose }: { item: NewsItem; notes: string |
 }
 
 /**
- * What changed in the launcher and the server: a tab each, the newest release with a summary of its notes in the person's language, the
- * ones before on a line each; any of them opens its whole notes in a dialog. A tab whose newest release has not been opened yet says "new".
+ * What changed in the launcher and the server: a tab each, showing its newest release alone, with a summary of its notes in the person's
+ * language, so the panel keeps its height however many releases come out. The whole notes, and the releases before, open in a dialog. A
+ * tab whose newest release has not been opened yet says "new".
  */
 export function NewsPanel({ news }: { news: NewsState | null }): React.JSX.Element {
   const { language, t } = useI18n()
   const [source, setSource] = useState<NewsSource>('launcher')
   const [seen, setSeen] = useState(readSeen)
-  const [reading, setReading] = useState<NewsItem | null>(null)
+  const [reading, setReading] = useState<number | null>(null)
   const items = (news?.items ?? []).filter((item) => item.source === source)
+  const latest = items[0]
   const newest = (of: NewsSource): string | undefined => news?.items.find((item) => item.source === of)?.tag
 
   // The tab shown counts as read.
@@ -88,6 +116,8 @@ export function NewsPanel({ news }: { news: NewsState | null }): React.JSX.Eleme
     }
   }, [shownNewest, source, seen])
 
+  const notes = latest ? notesOf(latest, language) : undefined
+  const summary = notes ? summaryOf(notes) : ''
   return (
     <section className="panel news-panel" aria-labelledby="news-title" data-testid="news">
       <h2 id="news-title">{t('news.title')}</h2>
@@ -105,32 +135,31 @@ export function NewsPanel({ news }: { news: NewsState | null }): React.JSX.Eleme
       {news === null && <p className="muted">{t('news.loading')}</p>}
       {news?.offline && <p className="muted">{t('news.offline')}</p>}
       {news && !news.offline && items.length === 0 && <p className="muted">{t('news.none')}</p>}
-      <div className="news-list">
-        {items.map((item, index) => {
-          const notes = item.notes[language] ?? item.notes.en ?? item.notes.fr
-          const summary = index === 0 && notes ? summaryOf(notes) : ''
-          return (
-            <article key={item.tag} className={index === 0 ? 'news-item news-latest' : 'news-item'} data-testid={`news-${item.source}-${item.tag}`}>
-              <div className="news-head">
-                <span className="news-tag">{item.tag}</span>
-                {item.prerelease && <span className="tag tag-manual">{t('news.prerelease')}</span>}
-                {item.date && <span className="news-date">{new Date(item.date).toLocaleDateString(language, { dateStyle: 'medium' })}</span>}
-                <button type="button" className="link news-read" onClick={() => setReading(item)}>
-                  {t('news.read')}
-                </button>
-              </div>
-              {summary && (
-                <div className="news-summary">
-                  <Markdown text={summary} />
-                </div>
-              )}
-            </article>
-          )
-        })}
-      </div>
-      {reading && (
-        <NotesDialog item={reading} notes={reading.notes[language] ?? reading.notes.en ?? reading.notes.fr} onClose={() => setReading(null)} />
+      {latest && (
+        <article className="news-item news-latest" data-testid={`news-${latest.source}-${latest.tag}`}>
+          <div className="news-head">
+            <span className="news-tag">{latest.tag}</span>
+            {latest.prerelease && <span className="tag tag-manual">{t('news.prerelease')}</span>}
+            <span className="news-date">{dateOf(latest, language)}</span>
+          </div>
+          {summary && (
+            <div className="news-summary">
+              <Markdown text={summary} />
+            </div>
+          )}
+          <div className="news-actions">
+            <button type="button" className="link" onClick={() => setReading(0)}>
+              {t('news.read')}
+            </button>
+            {items.length > 1 && (
+              <button type="button" className="link" onClick={() => setReading(1)}>
+                {t('news.previous', { count: items.length - 1 })}
+              </button>
+            )}
+          </div>
+        </article>
       )}
+      {reading !== null && items.length > 0 && <NotesDialog items={items} first={reading} onClose={() => setReading(null)} />}
     </section>
   )
 }

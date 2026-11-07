@@ -67,16 +67,20 @@ test('shows where the stack stands, the news of both projects, the install folde
   const latest = news.getByTestId('news-launcher-v0.4.0-beta.1')
   await expect(latest.locator('strong')).toHaveText('Bold launcher news')
   await expect(latest).not.toContainText('one change')
-  await expect(news.getByTestId('news-launcher-v0.3.0')).not.toContainText('the body')
+  // the newest alone: the panel keeps its height however many releases come out
+  await expect(news.getByTestId('news-launcher-v0.3.0')).toHaveCount(0)
   // the whole notes open over the page, and close on Escape
   await latest.getByRole('button', { name: 'Read the notes' }).click()
   const dialog = page.getByTestId('news-dialog')
   await expect(dialog).toContainText('one change')
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
-  // a release without notes files shows its body
-  await news.getByTestId('news-launcher-v0.3.0').getByRole('button', { name: 'Read the notes' }).click()
+  // the releases before are in the same dialog, the one before the newest picked; a release without notes files shows its body
+  await latest.getByRole('button', { name: 'Previous versions (1)' }).click()
+  await expect(dialog.getByRole('heading')).toHaveText('Launcher v0.3.0')
   await expect(dialog).toContainText('the body')
+  await dialog.getByRole('button', { name: /v0\.4\.0-beta\.1/ }).click()
+  await expect(dialog).toContainText('one change')
   await dialog.getByRole('button', { name: 'Close' }).click()
   await expect(dialog).toHaveCount(0)
   // the server's tab has not been opened yet

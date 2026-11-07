@@ -41,6 +41,8 @@ export const fr: Record<MessageKey, string> = {
   'news.prerelease': 'beta',
   'news.read': 'Lire la note',
   'news.close': 'Fermer',
+  'news.previous': 'Versions précédentes ({count})',
+  'news.versions': 'Versions',
   'news.open': 'Voir sur GitHub',
   'footer.versions': 'Launcher {launcher} · Serveur {server}',
   'terminal.search': 'Chercher dans le journal',

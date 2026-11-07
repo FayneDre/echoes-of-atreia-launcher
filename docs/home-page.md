@@ -26,9 +26,10 @@ game server's status or of the activity (`home:get-info`, `useHomeInfo`).
 and every four hours; a source that cannot be read is left out, and the panel says so when neither could be. The tests point it at a local feed (`ECHOES_NEWS_FEED`, `/launcher.json`
 and `/server.json`).
 
-The newest release of a tab shows its summary, the first paragraph of its notes above their headings and lists, cut to four lines;
-the ones before take a line each. "Read the notes" opens the whole notes in a dialog (a native `<dialog>`: Escape, its button or a click
-beside it closes it). The home page's two columns therefore end at the same height whatever a release says.
+A tab shows its newest release alone, with its summary (the first paragraph of its notes, above their headings and lists, cut to
+four lines), so the panel keeps its height however many releases come out and the home page's columns end together. "Read the notes"
+opens the whole notes in a dialog (a native `<dialog>`: Escape, its button or a click beside it closes it); "Previous versions (n)"
+opens the same dialog on the release before, with every release of the tab listed on its left.
 
 A tab shows a "new" badge until it has been opened with that release at its top; what was seen is kept in the renderer's local storage
 (`news-seen`), a convenience only: losing it only shows the badge again.
