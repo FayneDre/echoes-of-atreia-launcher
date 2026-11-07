@@ -1,4 +1,4 @@
-import { statfs } from 'node:fs/promises'
+import { rm, statfs } from 'node:fs/promises'
 import { dirname, join, parse } from 'node:path'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import {
@@ -23,7 +23,7 @@ import { NewsFeed } from './news'
 import { processMemoryMb } from './system/memory'
 import { validValues } from './server/serverSettings'
 import { ServerUpdater } from './serverUpdate/serverUpdater'
-import { isDeveloperMode, SettingsStore } from './settings'
+import { isAutoCleanup, isDeveloperMode, SettingsStore } from './settings'
 import { createReport, issueUrl } from './report'
 import { cleanUp } from './system/cleanup'
 import { readSystemOptions, setSystemOption } from './system/systemOptions'
@@ -421,8 +421,10 @@ if (!app.requestSingleInstanceLock()) {
         news.start()
         // what piles up, once a start: the archived logs past a month or a gigabyte, the reports past the ten newest
         const layout = launcher.currentLayout
-        if (layout && settings.current.autoCleanup !== false) {
-          void cleanUp(layout).then((result) => launcher.setLastCleanup(result))
+        if (layout && isAutoCleanup(settings.current)) {
+          // to the recycle bin; the end-to-end tests delete, so a test run leaves nothing there
+          const remove = process.env['ECHOES_CLEANUP_DELETE'] ? (path: string) => rm(path) : (path: string) => shell.trashItem(path)
+          void cleanUp(layout, remove).then((result) => launcher.setLastCleanup(result))
         }
         // the option asked for it: the servers that are down start, those found running are kept
         const state = launcher.getState()

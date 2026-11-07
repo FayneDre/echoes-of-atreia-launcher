@@ -1,4 +1,4 @@
-import { readdir, rm, stat } from 'node:fs/promises'
+import { readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { SERVER_IDS, type CleanupResult } from '../../shared/types'
 import type { ServerLayout } from '../server/installation'
@@ -47,10 +47,16 @@ async function zipsIn(folder: string, pattern: RegExp): Promise<Candidate[]> {
 
 /**
  * What piles up and nothing reads after a while: the servers' archived logs and the problem reports. The current logs, the backups, the
- * measurements and the server update's own files are never touched. A file that cannot be removed (open in another program) is left for
- * the next start.
+ * measurements and the server update's own files are never touched. Each file goes through `remove`: the launcher sends it to the recycle
+ * bin, so a rule that took too much can be undone (the first run on the development server took 54 archives a month old). A file that
+ * cannot be removed (open in another program) is left for the next start.
  */
-export async function cleanUp(layout: ServerLayout, now = Date.now(), rules = CLEANUP_RULES): Promise<CleanupResult> {
+export async function cleanUp(
+  layout: ServerLayout,
+  remove: (path: string) => Promise<void>,
+  now = Date.now(),
+  rules = CLEANUP_RULES
+): Promise<CleanupResult> {
   const doomed: Candidate[] = []
   const archives = (
     await Promise.all(SERVER_IDS.map((id) => zipsIn(join(layout.servers[id].dir, 'log', 'archived'), /\.zip$/i)))
@@ -71,7 +77,7 @@ export async function cleanUp(layout: ServerLayout, now = Date.now(), rules = CL
   const result: CleanupResult = { files: 0, bytes: 0 }
   for (const file of doomed) {
     try {
-      await rm(file.path)
+      await remove(file.path)
       result.files++
       result.bytes += file.bytes
     } catch {

@@ -375,8 +375,9 @@ export const fr: Record<MessageKey, string> = {
   'install.desktopShortcut': 'Raccourci sur le bureau',
   'install.installedOnly': 'Seulement pour le launcher installé.',
   'install.cleanup': 'Nettoyer les anciens journaux et rapports à chaque démarrage',
-  'install.cleanupHint': 'Les journaux archivés des serveurs au-delà de 30 jours ou de 1 Go, les rapports au-delà des 10 plus récents. Les sauvegardes ne sont jamais touchées.',
-  'install.cleanupDone': 'À ce démarrage : {count} fichiers supprimés, {size} libérés. Archives au-delà de 30 jours ou de 1 Go, rapports au-delà des 10 plus récents.',
+  'install.cleanupHint':
+    'Vers la corbeille : les journaux archivés des serveurs au-delà de 30 jours ou de 1 Go, les rapports au-delà des 10 plus récents. Les sauvegardes ne sont jamais touchées. Désactivé par défaut en mode développeur.',
+  'install.cleanupDone': 'À ce démarrage : {count} fichiers mis à la corbeille, {size}. Archives au-delà de 30 jours ou de 1 Go, rapports au-delà des 10 plus récents.',
   'bots.history': 'Bots dans le monde, dernière heure',
   'bots.historyEmpty': 'La courbe commence quand le serveur de jeu est prêt, un point par minute.',
   'bots.historyNow': 'maintenant',

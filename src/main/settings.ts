@@ -21,7 +21,7 @@ export interface Settings {
   developerMode?: boolean
   /** The servers start by themselves when the launcher opens. */
   startServersOnLaunch?: boolean
-  /** Old archived logs and reports are removed at each start; on unless the person turned it off. */
+  /** Old archived logs and reports go to the recycle bin at each start; unset, on except in the developer mode. */
   autoCleanup?: boolean
 }
 
@@ -31,6 +31,14 @@ export interface Settings {
  */
 export function isDeveloperMode(settings: Settings): boolean {
   return settings.developerMode ?? (process.env['ECHOES_DEVELOPER_DEFAULT'] === 'off' ? false : !app.isPackaged)
+}
+
+/**
+ * Whether old archived logs and reports are cleaned up at each start: as the person set it, else on, except in the developer mode, where
+ * the archives are read back for a tester's notes of weeks ago.
+ */
+export function isAutoCleanup(settings: Settings): boolean {
+  return settings.autoCleanup ?? !isDeveloperMode(settings)
 }
 
 function settingsFile(): string {

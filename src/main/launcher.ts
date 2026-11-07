@@ -24,7 +24,7 @@ import { addressOf } from './accounts/accountStore'
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
 import { needsStart, readServerSettings, writeServerSettings } from './server/serverSettings'
-import { isDeveloperMode, type SettingsStore } from './settings'
+import { isAutoCleanup, isDeveloperMode, type SettingsStore } from './settings'
 import { javaCommand, javaMajorVersion } from './system/java'
 
 /**
@@ -73,7 +73,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       serverVersion: this.serverVersion,
       developerMode: isDeveloperMode(this.settings.current),
       startServersOnLaunch: this.settings.current.startServersOnLaunch === true,
-      autoCleanup: this.settings.current.autoCleanup !== false,
+      autoCleanup: isAutoCleanup(this.settings.current),
       lastCleanup: this.lastCleanup
     }
   }

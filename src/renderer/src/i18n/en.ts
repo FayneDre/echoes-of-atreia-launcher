@@ -373,8 +373,9 @@ export const en = {
   'install.desktopShortcut': 'Shortcut on the desktop',
   'install.installedOnly': 'For the installed launcher only.',
   'install.cleanup': 'Clean up old logs and reports at each start',
-  'install.cleanupHint': 'The servers’ archived logs past 30 days or 1 GB, the reports past the 10 newest. Backups are never touched.',
-  'install.cleanupDone': 'At this start: {count} files removed, {size} freed. Archives past 30 days or 1 GB, reports past the 10 newest.',
+  'install.cleanupHint':
+    'To the recycle bin: the servers’ archived logs past 30 days or 1 GB, the reports past the 10 newest. Backups are never touched. Off by default in the developer mode.',
+  'install.cleanupDone': 'At this start: {count} files sent to the recycle bin, {size}. Archives past 30 days or 1 GB, reports past the 10 newest.',
   'bots.history': 'Bots in the world, last hour',
   'bots.historyEmpty': 'The curve starts once the game server is ready, a point a minute.',
   'bots.historyNow': 'now',

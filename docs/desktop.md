@@ -36,9 +36,10 @@ while one is in the background shows the hidden window instead.
 - **Shortcut on the desktop**: `Echoes of Atreia.lnk`, the name the installer gives its own, so unticking removes that one too.
 - Run from its sources, the launcher is `electron.exe`: the two Windows options are shown disabled ("for the installed launcher only").
   The end-to-end tests give a folder for the shortcut (`ECHOES_DESKTOP_DIR`), which offers it there too.
-- **Clean up old logs and reports at each start** (`autoCleanup`, on unless turned off; `src/main/system/cleanup.ts`): the three servers'
-  archived logs (`log/archived/*.zip`) past 30 days, then the oldest while they hold more than 1 GB together, and the reports past the
-  10 newest. Measured on the development server: about 160 MB of archives for ten days of tests, nearly all the game server's. Never
+- **Clean up old logs and reports at each start** (`autoCleanup`; `src/main/system/cleanup.ts`): to the **recycle bin**, the three
+  servers' archived logs (`log/archived/*.zip`) past 30 days, then the oldest while they hold more than 1 GB together, and the reports past
+  the 10 newest. Unset, it is on, except in the developer mode, where old archives are read back for a tester's notes (`isAutoCleanup`):
+  its first run on the development server took 54 chat and login archives a month old, deleted for good before the recycle bin. Measured on the development server: about 160 MB of archives for ten days of tests, nearly all the game server's. Never
   touched: the current logs, the backups, `log/bot-measures`, the server update's files. A file still open somewhere waits for the next
   start. The option says what this start removed; a tester's `//bot note` older than a month is gone with its archive.
 - **Developer mode**: see [home-page.md](home-page.md).
