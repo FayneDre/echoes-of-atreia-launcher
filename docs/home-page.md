@@ -31,6 +31,13 @@ four lines, and the room of four kept when it is shorter or missing), so the pan
 opens the whole notes in a dialog (a native `<dialog>`: Escape, its button or a click beside it closes it); "Previous versions (n)"
 opens the same dialog on the release before, with every release of the tab listed on its left.
 
+**GitHub's 60 questions an hour.** Without an account, GitHub's API answers 60 questions an hour to an address, then refuses until the
+hour is over; the launcher asks 3 at each start (the two news listings and the server's releases) and every four hours. `github/cachedJson.ts`
+keeps each answer in the profile folder (`github-cache/`): younger than ten minutes it is used without asking, so relaunching costs
+nothing; older, the question carries its ETag, which spares the download when nothing changed (a 304 still counts without an account:
+checked on GitHub on 2026-11-07); refused, the kept answer is shown instead of an error. The server version panel reads its releases the
+same way. Tests set the ten minutes with `ECHOES_GITHUB_FRESH_MS`.
+
 A tab shows a "new" badge until it has been opened with that release at its top; what was seen is kept in the renderer's local storage
 (`news-seen`), a convenience only: losing it only shows the badge again.
 

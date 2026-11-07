@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { compareVersions, type NewsItem, type NewsState, type NewsSource } from '../shared/types'
+import { fetchGithubJson } from './github/cachedJson'
 
 const REPOSITORIES: Record<NewsSource, string> = {
   launcher: 'FayneDre/echoes-of-atreia-launcher',
@@ -27,6 +28,8 @@ interface ReleaseListing {
  */
 export class NewsFeed extends EventEmitter<{ state: [NewsState] }> {
   private state: NewsState = { items: [] }
+  /** What each source gave last: reused when GitHub says nothing changed, so the notes are not downloaded again. */
+  private readonly last = new Map<NewsSource, NewsItem[]>()
 
   constructor(
     private readonly beta: boolean,
@@ -61,11 +64,12 @@ export class NewsFeed extends EventEmitter<{ state: [NewsState] }> {
 
   private async read(source: NewsSource): Promise<NewsItem[]> {
     const url = this.base ? `${this.base}/${source}.json` : `https://api.github.com/repos/${REPOSITORIES[source]}/releases?per_page=20`
-    const response = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } })
-    if (!response.ok) {
-      throw new Error(`the releases answered ${response.status}`)
+    const { body, freshness } = await fetchGithubJson<ReleaseListing[]>(url)
+    const known = this.last.get(source)
+    if (freshness !== 'fetched' && known) {
+      return known
     }
-    const listing = ((await response.json()) as ReleaseListing[])
+    const listing = body
       .filter((release) => !release.draft && (this.beta || !release.prerelease) && compareVersions(release.tag_name, '0.0.0') !== null)
       .sort((a, b) => compareVersions(b.tag_name, a.tag_name)!)
       .slice(0, KEPT)
@@ -91,6 +95,7 @@ export class NewsFeed extends EventEmitter<{ state: [NewsState] }> {
       }
       items.push({ source, tag: release.tag_name, prerelease: release.prerelease, date: release.published_at, url: release.html_url, notes })
     }
+    this.last.set(source, items)
     return items
   }
 }

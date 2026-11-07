@@ -1,4 +1,5 @@
 import { compareVersions } from '../../shared/types'
+import { fetchGithubJson } from '../github/cachedJson'
 import { parseReleaseManifest, type ReleaseManifest } from './manifest'
 
 const REPOSITORY = 'FayneDre/aion-server-playerbots'
@@ -43,11 +44,7 @@ export class ServerFeed {
    * a manifest it can read. Throws when the releases cannot be listed.
    */
   async newest(beta: boolean): Promise<ServerRelease | null> {
-    const response = await fetch(this.listingUrl, { headers: { Accept: 'application/vnd.github+json' } })
-    if (!response.ok) {
-      throw new Error(`the releases answered ${response.status}`)
-    }
-    const listing = (await response.json()) as ReleaseListing[]
+    const { body: listing } = await fetchGithubJson<ReleaseListing[]>(this.listingUrl)
     const candidates = listing
       .filter((release) => !release.draft && (beta || !release.prerelease) && compareVersions(release.tag_name, '0.0.0') !== null)
       .sort((a, b) => compareVersions(b.tag_name, a.tag_name)!)

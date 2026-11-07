@@ -2,10 +2,11 @@ import { statfs } from 'node:fs/promises'
 import { join, parse } from 'node:path'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { LAUNCHER_VERSION_ARG, SERVER_IDS, isBetaVersion, type FolderKind, type HomeInfo, type QuitAnswer, type ServerId } from '../shared/types'
-import { accountStoreFor } from './accounts/accountStore'
 import { AccountService } from './accounts/accountService'
+import { accountStoreFor } from './accounts/accountStore'
 import { BackupService } from './backup/backupService'
 import { listBots } from './bots/botList'
+import { setGithubCacheDir } from './github/cachedJson'
 import { Launcher } from './launcher'
 import { NewsFeed } from './news'
 import { processMemoryMb } from './system/memory'
@@ -19,6 +20,8 @@ const userDataDir = process.env['ECHOES_USER_DATA_DIR']
 if (userDataDir) {
   app.setPath('userData', userDataDir)
 }
+// GitHub's answers kept between runs: asked again with their ETag, given back when GitHub refuses
+setGithubCacheDir(join(app.getPath('userData'), 'github-cache'), Number(process.env['ECHOES_GITHUB_FRESH_MS'] ?? 10 * 60 * 1000))
 
 const settings = new SettingsStore()
 const launcher = new Launcher(settings)

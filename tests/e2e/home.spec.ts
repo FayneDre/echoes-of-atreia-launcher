@@ -6,6 +6,10 @@ import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
 let install: FakeInstall
 let feed: Server
 let feedUrl: string
+/** GitHub once the hour's questions are spent: the listings refused. */
+let refusing = false
+const conditional: string[] = []
+let listingsAsked = 0
 
 const release = (tag: string, date: string, prerelease: boolean, notes: Record<string, string>, base: string) => ({
   tag_name: tag,
@@ -19,6 +23,9 @@ const release = (tag: string, date: string, prerelease: boolean, notes: Record<s
 
 test.beforeEach(async () => {
   install = await createFakeInstall()
+  refusing = false
+  conditional.length = 0
+  listingsAsked = 0
   const notes: Record<string, string> = {
     'v0.4.0-beta.1/en': '**Bold launcher news**\n\n- one change',
     'v0.4.0-beta.1/fr': '**Nouveautés du launcher**\n\n- un changement',
@@ -28,6 +35,18 @@ test.beforeEach(async () => {
   feed = createServer((request, response) => {
     const base = `http://127.0.0.1:${(feed.address() as AddressInfo).port}`
     const path = request.url ?? ''
+    if (path.endsWith('.json')) {
+      listingsAsked++
+      if (request.headers['if-none-match']) {
+        conditional.push(path)
+      }
+      if (refusing) {
+        response.statusCode = 403
+        response.end('{"message":"API rate limit exceeded"}')
+        return
+      }
+      response.setHeader('ETag', `"${path}"`)
+    }
     if (path === '/launcher.json') {
       response.end(JSON.stringify([release('v0.4.0-beta.1', '2026-11-07T10:00:00Z', true, { en: '', fr: '' }, base), release('v0.3.0', '2026-11-01T10:00:00Z', false, {}, base)]))
     } else if (path === '/server.json') {
@@ -116,4 +135,30 @@ test('shows where the stack stands, the news of both projects, the install folde
   await news.getByRole('tab', { name: 'Launcher' }).click()
   await expect(news.getByTestId('news-launcher-v0.4.0-beta.1').locator('strong')).toHaveText('Nouveautés du launcher')
   await app.close()
+})
+
+test('keeps the news GitHub gave last, asks again only whether it changed, and shows it when GitHub refuses', async () => {
+  const first = await launchWith(install, { ECHOES_NEWS_FEED: feedUrl })
+  await first.page.getByRole('button', { name: 'EN', exact: true }).click()
+  await expect(first.page.getByTestId('news-launcher-v0.4.0-beta.1')).toBeVisible()
+  await first.app.close()
+
+  // the hour's questions spent: what was read last is shown rather than an error (asked again at once, not after the minutes an answer
+  // is used without asking)
+  refusing = true
+  const second = await launchWith(install, { ECHOES_NEWS_FEED: feedUrl, ECHOES_GITHUB_FRESH_MS: '0' })
+  const news = second.page.getByTestId('news')
+  await expect(news.getByTestId('news-launcher-v0.4.0-beta.1').locator('strong')).toHaveText('Bold launcher news')
+  await expect(news).not.toContainText('could not be read')
+  // and the question carried the ETag kept, so an unchanged list is not downloaded again
+  expect(conditional).toEqual(expect.arrayContaining(['/launcher.json', '/server.json']))
+  await second.app.close()
+
+  // relaunched within minutes: nothing asked at all
+  refusing = false
+  const asked = listingsAsked
+  const third = await launchWith(install, { ECHOES_NEWS_FEED: feedUrl })
+  await expect(third.page.getByTestId('news-launcher-v0.4.0-beta.1')).toBeVisible()
+  expect(listingsAsked).toBe(asked)
+  await third.app.close()
 })
