@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { createConnection, type RowDataPacket } from 'mysql2/promise'
+import type { DatabaseInfo } from '../../shared/types'
 import type { ServerLayout } from '../server/installation'
 import { readServerConfig } from '../server/properties'
 
@@ -40,6 +41,8 @@ export interface AccountStore {
   findAccount(name: string): Promise<AccountRecord | null>
   listCharacters(accountId: number): Promise<CharacterRecord[]>
   listBots(): Promise<BotRecord[]>
+  /** The game server's database: what its tables take, and MySQL's version. */
+  databaseInfo(): Promise<DatabaseInfo>
 }
 
 /** The login server's password hash (`AccountUtils.encodePassword`), so a password is checked exactly as the server checks it. */
@@ -147,13 +150,32 @@ export class MysqlAccountStore implements AccountStore {
       inWorld: Boolean(row['in_world'])
     }))
   }
+
+  async databaseInfo(): Promise<DatabaseInfo> {
+    const address = await addressOf(this.layout.servers.game.dir)
+    if (!address) {
+      throw new Error('The game server has no database.url')
+    }
+    const rows = await query<RowDataPacket>(
+      address,
+      'SELECT VERSION() AS `version`, (SELECT COALESCE(SUM(`data_length` + `index_length`), 0) FROM `information_schema`.`tables` ' +
+        'WHERE `table_schema` = DATABASE()) AS `bytes`',
+      []
+    )
+    return { bytes: Number(rows[0]?.['bytes'] ?? 0), mysqlVersion: String(rows[0]?.['version'] ?? '').split('-')[0]! }
+  }
 }
 
 /** The end-to-end tests' stand-in for the databases (ECHOES_FAKE_DB): a JSON file of accounts and characters, read at every question. */
 export class FileAccountStore implements AccountStore {
   constructor(private readonly file: string) {}
 
-  private async read(): Promise<{ accounts: AccountRecord[]; characters: (CharacterRecord & { accountId: number })[]; bots?: BotRecord[] }> {
+  private async read(): Promise<{
+    accounts: AccountRecord[]
+    characters: (CharacterRecord & { accountId: number })[]
+    bots?: BotRecord[]
+    database?: DatabaseInfo
+  }> {
     return JSON.parse(await readFile(this.file, 'utf8'))
   }
 
@@ -167,6 +189,14 @@ export class FileAccountStore implements AccountStore {
 
   async listBots(): Promise<BotRecord[]> {
     return (await this.read()).bots ?? []
+  }
+
+  async databaseInfo(): Promise<DatabaseInfo> {
+    const database = (await this.read()).database
+    if (!database) {
+      throw new Error('The fake database says nothing of its size')
+    }
+    return database
   }
 }
 

@@ -1,5 +1,6 @@
 import { useRef } from 'react'
-import { REQUIRED_JAVA, SERVER_IDS, type LauncherState } from '../../../shared/types'
+import { LOW_DISK_BYTES, REQUIRED_JAVA, SERVER_IDS, type HomeInfo, type LauncherState } from '../../../shared/types'
+import { formatSize } from '../format'
 import { useI18n } from '../i18n'
 
 function FolderRow(props: {
@@ -27,10 +28,11 @@ function FolderRow(props: {
 
 /**
  * Set once and rarely looked at again: one line of checks on the page, whatever its state, so the home page never moves; the folders and
- * Java are in a dialog that line opens.
+ * Java are in a dialog that line opens. Below, what the install takes: the drive's free space, the backups, the database.
  */
-export function InstallPanel({ state }: { state: LauncherState }): React.JSX.Element {
-  const { t } = useI18n()
+export function InstallPanel(props: { state: LauncherState; info: HomeInfo | null; onOpenBackups: () => void }): React.JSX.Element {
+  const { state, info } = props
+  const { language, t } = useI18n()
   const dialog = useRef<HTMLDialogElement>(null)
   const { install } = state
   // The folders can only change while nothing runs: the running servers belong to the current one.
@@ -72,6 +74,36 @@ export function InstallPanel({ state }: { state: LauncherState }): React.JSX.Ele
         {check(javaOk, java !== null ? t('install.javaVersion', { version: java }) : t('install.java'))}
         <span className={allFound ? 'install-edit' : 'install-edit install-fix'}>{t(allFound ? 'install.edit' : 'install.fix')}</span>
       </button>
+      <dl className="install-facts">
+        <div className={info?.disk && info.disk.freeBytes < LOW_DISK_BYTES ? 'fact fact-low' : 'fact'}>
+          <dt>{t('install.disk')}</dt>
+          <dd data-testid="install-disk" title={info?.disk && info.disk.freeBytes < LOW_DISK_BYTES ? t('install.lowDisk') : undefined}>
+            {info?.disk ? t('install.diskValue', { drive: info.disk.drive, size: formatSize(info.disk.freeBytes, language) }) : '—'}
+          </dd>
+        </div>
+        <div className="fact">
+          <dt>{t('install.backups')}</dt>
+          <dd data-testid="install-backups">
+            {info ? (
+              <button type="button" className="link install-fact-link" onClick={props.onOpenBackups}>
+                {info.backups.count === 0
+                  ? t('install.noBackups')
+                  : t('install.backupsValue', { count: info.backups.count, size: formatSize(info.backups.bytes, language) })}
+              </button>
+            ) : (
+              '—'
+            )}
+          </dd>
+        </div>
+        <div className="fact">
+          <dt>{t('install.database')}</dt>
+          <dd data-testid="install-database">
+            {info?.database
+              ? t('install.databaseValue', { size: formatSize(info.database.bytes, language), version: info.database.mysqlVersion })
+              : '—'}
+          </dd>
+        </div>
+      </dl>
       {/* always there, closed: what the rows say is read the same way whether it is open or not */}
       <dialog
         ref={dialog}

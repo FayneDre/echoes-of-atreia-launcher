@@ -154,7 +154,7 @@ export function App(): React.JSX.Element {
               </div>
               <div className="home-column">
                 <ServersPanel state={state} onShowLog={showLog} />
-                <InstallPanel state={state} />
+                <InstallPanel state={state} info={homeInfo} onOpenBackups={() => setPage('backups')} />
               </div>
               <div className="home-column">
                 <ServerUpdatePanel update={serverUpdate} state={state} />

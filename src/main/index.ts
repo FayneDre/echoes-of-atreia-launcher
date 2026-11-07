@@ -1,6 +1,8 @@
+import { statfs } from 'node:fs/promises'
+import { join, parse } from 'node:path'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
-import { join } from 'node:path'
 import { LAUNCHER_VERSION_ARG, SERVER_IDS, isBetaVersion, type FolderKind, type HomeInfo, type QuitAnswer, type ServerId } from '../shared/types'
+import { accountStoreFor } from './accounts/accountStore'
 import { AccountService } from './accounts/accountService'
 import { BackupService } from './backup/backupService'
 import { listBots } from './bots/botList'
@@ -117,7 +119,27 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('home:get-info', async (): Promise<HomeInfo> => {
     const backupList = await backups.list()
     const lastBackup = backupList.map((backup) => backup.createdAt).sort().at(-1) ?? null
+    const backupBytes = backupList.reduce((sum, backup) => sum + backup.databases.reduce((total, database) => total + database.bytes, 0), 0)
     const state = launcher.getState()
+    const layout = launcher.currentLayout
+    let disk: HomeInfo['disk'] = null
+    if (layout) {
+      try {
+        const stats = await statfs(layout.root)
+        disk = { drive: parse(layout.root).root.replace(/[\\/]+$/, ''), freeBytes: stats.bavail * stats.bsize }
+      } catch {
+        // a drive that cannot be asked: nothing said
+      }
+    }
+    // only while MySQL answers: a connection to a stopped one would hold the page for its timeout
+    let database: HomeInfo['database'] = null
+    if (layout && state.mysql.status === 'ready') {
+      try {
+        database = await accountStoreFor(layout).databaseInfo()
+      } catch {
+        // the game server's database not created yet, or the account refused
+      }
+    }
     let botsInWorld: HomeInfo['botsInWorld'] = null
     if (state.servers.game.status === 'ready') {
       const bots = await listBots(launcher.currentLayout)
@@ -131,7 +153,7 @@ function registerIpc(window: BrowserWindow): void {
     }
     const pid = launcher.gameProcessId
     const gameMemoryMb = pid !== null && state.servers.game.status !== 'stopped' ? await processMemoryMb(pid) : null
-    return { lastBackup, botsInWorld, gameMemoryMb }
+    return { lastBackup, botsInWorld, gameMemoryMb, disk, backups: { count: backupList.length, bytes: backupBytes }, database }
   })
   ipcMain.handle('server-update:get-state', () => serverUpdater.current)
   ipcMain.handle('server-update:prepare', () => serverUpdater.prepare())

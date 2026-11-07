@@ -67,6 +67,19 @@ test('shows where the stack stands, the news of both projects, the install folde
   expect((await installPanel.boundingBox())!.height).toBe(panelHeight)
   await page.getByTestId('install-dialog').getByRole('button', { name: 'Close' }).click()
   await expect(page.getByTestId('install-server')).toBeHidden()
+  // what the install takes, in the room the line leaves: the drive, the backups, the database as MySQL reports it
+  await expect(page.getByTestId('install-disk')).toContainText(/^[A-Z]: [\d.,]+ (GB|MB) free$/)
+  await expect(page.getByTestId('install-database')).toHaveText('19.4 MB · MySQL 8.4.3')
+  await expect(page.getByTestId('install-backups')).toHaveText('None')
+  await page.getByTestId('install-backups').getByRole('button').click()
+  await expect(page.getByRole('button', { name: 'Backups', exact: true })).toHaveAttribute('aria-current', 'page')
+  await page.getByRole('button', { name: 'Home', exact: true }).click()
+  // the two columns end together
+  const bottom = async (selector: string): Promise<number> => {
+    const box = (await page.locator(selector).boundingBox())!
+    return Math.round(box.y + box.height)
+  }
+  expect(await bottom('.install-panel')).toBe(await bottom('[data-testid=news]'))
 
   const news = page.getByTestId('news')
   // the newest release with the first paragraph of its notes, drawn as Markdown in the person's language; the list stays out of it

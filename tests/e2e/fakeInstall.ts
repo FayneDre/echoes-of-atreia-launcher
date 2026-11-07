@@ -107,7 +107,9 @@ export function writeFakeDatabase(install: FakeInstall, accounts: FakeAccount[] 
     JSON.stringify({
       accounts: accounts.map((account) => ({ id: account.id, name: account.name, passwordHash: hash(account.password) })),
       characters,
-      bots
+      bots,
+      // what the game server's database takes, as the launcher reads it from MySQL
+      database: { bytes: 20_316_160, mysqlVersion: '8.4.3' }
     })
   )
 }

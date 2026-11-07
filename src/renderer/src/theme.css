@@ -802,6 +802,37 @@ button.link:hover:not(:disabled) {
   font-weight: 600;
 }
 
+/* what the install takes, in the room the one line of checks leaves */
+.install-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgb(216 180 108 / 12%);
+}
+
+.install-facts dd {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.install-fact-link {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 13px;
+  text-decoration-color: rgb(216 180 108 / 40%);
+  text-overflow: ellipsis;
+}
+
+.fact-low {
+  border-left-color: var(--bad);
+}
+
+.fact-low dd {
+  color: var(--bad);
+}
+
 .install-dialog {
   width: min(720px, calc(100% - 48px));
   padding: 20px 24px;

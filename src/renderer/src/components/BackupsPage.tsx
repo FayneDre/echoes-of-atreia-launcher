@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { SERVER_IDS, type BackupSummary, type LauncherState, type Problem } from '../../../shared/types'
+import { formatSize } from '../format'
 import { useI18n } from '../i18n'
 import { ProblemText } from './ProblemText'
 
 type Outcome = { done: 'created' | 'restored' } | { problem: Problem } | null
-
-function formatSize(bytes: number): string {
-  return bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`
-}
 
 export function BackupsPage({ state, visible }: { state: LauncherState; visible: boolean }): React.JSX.Element {
   const { t, language } = useI18n()
@@ -92,7 +89,7 @@ export function BackupsPage({ state, visible }: { state: LauncherState; visible:
                 <span className={backup.kind === 'manual' ? 'tag tag-manual' : 'tag tag-safety'}>{t(`backups.kind.${backup.kind}`)}</span>
               </span>
               <span className="backup-databases">
-                {backup.databases.map((database) => `${database.name} ${formatSize(database.bytes)}`).join(' · ')}
+                {backup.databases.map((database) => `${database.name} ${formatSize(database.bytes, language)}`).join(' · ')}
               </span>
               <span className="header-actions">
                 <button type="button" className="small" disabled={busy || running} onClick={() => void restore(backup)}>

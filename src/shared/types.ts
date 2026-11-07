@@ -306,7 +306,22 @@ export interface HomeInfo {
   botsInWorld: { elyos: number; asmodians: number } | null
   /** The game server's memory in megabytes, while it runs and the launcher knows its process. */
   gameMemoryMb: number | null
+  /** The free space of the drive holding the server, or null when it cannot be read. */
+  disk: { drive: string; freeBytes: number } | null
+  /** The backups kept and what they take. */
+  backups: { count: number; bytes: number }
+  /** The game server's database and MySQL's version, while MySQL answers. */
+  database: DatabaseInfo | null
 }
+
+/** What the game server's database takes on disk, and the MySQL holding it. */
+export interface DatabaseInfo {
+  bytes: number
+  mysqlVersion: string
+}
+
+/** Below this, the free space shows as a warning: a server update downloads close to 2 GB, and backups pile up. */
+export const LOW_DISK_BYTES = 5 * 1024 ** 3
 
 /** The command-line argument the window's preload reads the launcher's version from: known at once, before anything is detected. */
 export const LAUNCHER_VERSION_ARG = '--echoes-launcher-version='

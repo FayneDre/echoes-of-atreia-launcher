@@ -39,6 +39,9 @@ A tab shows a "new" badge until it has been opened with that release at its top;
 - **Servers**: one row each, with its own Start or Restart (see [how-it-works.md](how-it-works.md), "One server alone").
 - **Installation**: one line of checks, whatever passes or fails, with "Change…" ("Fix…" while something is missing); the folders and
   Java are in a dialog that line opens, so nothing on the page moves.
+  Below the line, in the room it leaves (the block keeps its height): the free space of the server's drive (`statfs`, red under 5 GB,
+  since a server update downloads close to 2 GB), the backups kept and their size (a link to the Backups page), and the game server's
+  database size with MySQL's version (`information_schema`, asked only while MySQL answers).
 - **Server version** ([server-update.md](server-update.md)) sits above the news, so both columns fit the default window (1180×780).
 - **Terminals**: the drawer at the foot, with a search, an "errors only" filter (ERROR and WARN lines, exceptions and their causes) and a
   copy of what the filter shows.
