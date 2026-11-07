@@ -21,6 +21,8 @@ export interface Settings {
   developerMode?: boolean
   /** The servers start by themselves when the launcher opens. */
   startServersOnLaunch?: boolean
+  /** Old archived logs and reports are removed at each start; on unless the person turned it off. */
+  autoCleanup?: boolean
 }
 
 /**

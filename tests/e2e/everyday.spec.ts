@@ -1,4 +1,4 @@
-import { appendFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdirSync, readdirSync, utimesSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
 import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
@@ -116,5 +116,36 @@ test('starts the servers when the launcher opens, once asked, and makes the desk
   const { app, page } = await open()
   await expect(gameStatus(page)).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })
   await stopAll(page)
+  await app.close()
+})
+
+test('cleans up an archived log past a month at start, says so, and can be turned off', async () => {
+  const archived = join(install.serverRoot, 'game-server', 'log', 'archived')
+  mkdirSync(archived, { recursive: true })
+  const old = join(archived, '2026-09-01 10.00 to 2026-09-01 12.00.zip')
+  const recent = join(archived, 'recent.zip')
+  writeFileSync(old, Buffer.alloc(2048))
+  writeFileSync(recent, Buffer.alloc(2048))
+  const monthsAgo = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000)
+  utimesSync(old, monthsAgo, monthsAgo)
+
+  const first = await open()
+  await expect.poll(() => existsSync(old)).toBe(false)
+  expect(existsSync(recent)).toBe(true)
+  await first.page.getByTestId('install-summary').click()
+  const option = first.page.getByTestId('option-cleanup')
+  await expect(option.getByRole('checkbox')).toBeChecked()
+  await expect(option).toContainText('At this start: 1 files removed')
+  await option.getByRole('checkbox').click()
+  await expect(option.getByRole('checkbox')).not.toBeChecked()
+  await first.app.close()
+
+  // turned off: an old one stays
+  writeFileSync(old, Buffer.alloc(2048))
+  utimesSync(old, monthsAgo, monthsAgo)
+  const { app, page } = await open()
+  await expect(page.getByTestId('install-summary')).toBeVisible()
+  await page.waitForTimeout(1_000)
+  expect(existsSync(old)).toBe(true)
   await app.close()
 })

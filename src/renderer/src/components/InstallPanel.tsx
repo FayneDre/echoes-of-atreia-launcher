@@ -186,6 +186,17 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
             onChange={(on) => void window.launcher.setStartServersOnLaunch(on)}
           />
           <OptionRow
+            label={t('install.cleanup')}
+            hint={
+              state.lastCleanup && state.lastCleanup.files > 0
+                ? t('install.cleanupDone', { count: state.lastCleanup.files, size: formatSize(state.lastCleanup.bytes, language) })
+                : t('install.cleanupHint')
+            }
+            checked={state.autoCleanup}
+            testId="option-cleanup"
+            onChange={(on) => void window.launcher.setAutoCleanup(on)}
+          />
+          <OptionRow
             label={t('install.startWithWindows')}
             hint={system.startWithWindows === null ? t('install.installedOnly') : undefined}
             checked={system.startWithWindows === true}

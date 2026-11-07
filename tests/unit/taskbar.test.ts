@@ -19,7 +19,9 @@ function stateWith(statuses: [ServerStatus, ServerStatus, ServerStatus], activit
     restartNeeded: false,
     serverVersion: null,
     developerMode: false,
-    startServersOnLaunch: false
+    startServersOnLaunch: false,
+    autoCleanup: true,
+    lastCleanup: null
   }
 }
 

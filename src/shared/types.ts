@@ -112,6 +112,10 @@ export interface LauncherState {
   developerMode: boolean
   /** The servers start by themselves when the launcher opens. */
   startServersOnLaunch: boolean
+  /** Old archived logs and reports are removed at each start. */
+  autoCleanup: boolean
+  /** What the cleanup removed at this start, once it has run. */
+  lastCleanup: CleanupResult | null
 }
 
 /** Where the whole stack stands, in one word: the home's phrase, the taskbar's mark and the tray's tooltip all read it. */
@@ -338,6 +342,12 @@ export interface HomeInfo {
   backups: { count: number; bytes: number }
   /** The game server's database and MySQL's version, while MySQL answers. */
   database: DatabaseInfo | null
+}
+
+/** The files a cleanup removed, and what they took. */
+export interface CleanupResult {
+  files: number
+  bytes: number
 }
 
 /** What the game server's database takes on disk, and the MySQL holding it. */

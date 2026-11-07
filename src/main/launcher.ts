@@ -4,6 +4,7 @@ import {
   REQUIRED_JAVA,
   SERVER_IDS,
   type Activity,
+  type CleanupResult,
   type DestinationSummary,
   type FolderKind,
   type InstallState,
@@ -44,6 +45,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   private startOnlyPending = false
   private problem: Problem | undefined
   private serverVersion: ServerVersion | null = null
+  private lastCleanup: CleanupResult | null = null
   /** The game server's last status, so its version is asked once when it becomes ready, not at every state it publishes. */
   private gameStatus: ServerState['status'] = 'stopped'
 
@@ -70,7 +72,9 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       problem: this.problem,
       serverVersion: this.serverVersion,
       developerMode: isDeveloperMode(this.settings.current),
-      startServersOnLaunch: this.settings.current.startServersOnLaunch === true
+      startServersOnLaunch: this.settings.current.startServersOnLaunch === true,
+      autoCleanup: this.settings.current.autoCleanup !== false,
+      lastCleanup: this.lastCleanup
     }
   }
 
@@ -83,6 +87,18 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   /** Whether the servers start by themselves when the launcher opens, kept in the settings. */
   async setStartServersOnLaunch(on: boolean): Promise<void> {
     await this.settings.update((settings) => ({ ...settings, startServersOnLaunch: on }))
+    this.publish()
+  }
+
+  /** Whether old archived logs and reports are removed at each start, kept in the settings. */
+  async setAutoCleanup(on: boolean): Promise<void> {
+    await this.settings.update((settings) => ({ ...settings, autoCleanup: on }))
+    this.publish()
+  }
+
+  /** What the start's cleanup removed, told to the window. */
+  setLastCleanup(result: CleanupResult): void {
+    this.lastCleanup = result
     this.publish()
   }
 

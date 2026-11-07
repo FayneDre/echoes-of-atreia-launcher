@@ -36,6 +36,7 @@ const launcherApi = {
   openLogFolder: (server: ServerId): Promise<void> => ipcRenderer.invoke('launcher:open-log-folder', server),
   setLanguage: (language: 'fr' | 'en'): Promise<void> => ipcRenderer.invoke('launcher:set-language', language),
   setStartServersOnLaunch: (on: boolean): Promise<void> => ipcRenderer.invoke('settings:set-start-servers', on),
+  setAutoCleanup: (on: boolean): Promise<void> => ipcRenderer.invoke('settings:set-auto-cleanup', on),
   getSystemOptions: (): Promise<SystemOptions> => ipcRenderer.invoke('system:get-options'),
   setSystemOption: (option: SystemOption, on: boolean): Promise<SystemOptions> => ipcRenderer.invoke('system:set-option', option, on),
   createReport: (): Promise<ReportResult | null> => ipcRenderer.invoke('report:create'),

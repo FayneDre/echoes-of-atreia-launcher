@@ -25,6 +25,7 @@ import { validValues } from './server/serverSettings'
 import { ServerUpdater } from './serverUpdate/serverUpdater'
 import { isDeveloperMode, SettingsStore } from './settings'
 import { createReport, issueUrl } from './report'
+import { cleanUp } from './system/cleanup'
 import { readSystemOptions, setSystemOption } from './system/systemOptions'
 import { TaskbarPresence, type TrayLanguage } from './taskbar'
 import { LauncherUpdater } from './update/updater'
@@ -227,6 +228,11 @@ function registerIpc(window: BrowserWindow, presence: TaskbarPresence): void {
       await launcher.setStartServersOnLaunch(on)
     }
   })
+  ipcMain.handle('settings:set-auto-cleanup', async (_event, on: unknown) => {
+    if (typeof on === 'boolean') {
+      await launcher.setAutoCleanup(on)
+    }
+  })
   ipcMain.handle('system:get-options', () => readSystemOptions())
   ipcMain.handle('system:set-option', async (_event, option: unknown, on: unknown) => {
     if ((option === 'startWithWindows' || option === 'desktopShortcut') && typeof on === 'boolean') {
@@ -413,6 +419,11 @@ if (!app.requestSingleInstanceLock()) {
       .then(() => {
         updater.start(isDeveloperMode(settings.current))
         news.start()
+        // what piles up, once a start: the archived logs past a month or a gigabyte, the reports past the ten newest
+        const layout = launcher.currentLayout
+        if (layout && settings.current.autoCleanup !== false) {
+          void cleanUp(layout).then((result) => launcher.setLastCleanup(result))
+        }
         // the option asked for it: the servers that are down start, those found running are kept
         const state = launcher.getState()
         if (settings.current.startServersOnLaunch && state.install.serverFound && state.servers.game.status !== 'ready') {

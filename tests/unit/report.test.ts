@@ -20,7 +20,9 @@ const state: LauncherState = {
   restartNeeded: false,
   serverVersion: { from: 'manifest', version: 'v0.1.0-beta.2', revision: 'c979e97', apiLevel: 1 },
   developerMode: false,
-  startServersOnLaunch: false
+  startServersOnLaunch: false,
+  autoCleanup: true,
+  lastCleanup: null
 }
 
 const context: ReportContext = {
