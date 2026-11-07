@@ -35,6 +35,10 @@ const userDataDir = process.env['ECHOES_USER_DATA_DIR']
 if (userDataDir) {
   app.setPath('userData', userDataDir)
 }
+// Drawn without the graphics card: a page of text and a small chart gains nothing from it, and its process held 110 to 190 MB more,
+// measured on the real install (private memory 250-350 MB against 157-171 MB, idle CPU 0.5 % against 0.3 % of a core). The game
+// shares that card and that memory.
+app.disableHardwareAcceleration()
 // GitHub's answers kept between runs: asked again at each start with their ETag, given back when GitHub refuses
 setGithubCacheDir(join(app.getPath('userData'), 'github-cache'))
 

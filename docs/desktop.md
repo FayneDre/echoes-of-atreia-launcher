@@ -76,3 +76,10 @@ The Bots page draws it (`BotHistoryChart.tsx`): one 2-pixel line a faction, labe
 counts on hover, and a hidden table for screen readers. The faction colours are checked for colour blindness against the panels' surface;
 the interface's light Elyos blue was too light for a line there, so the chart uses a deeper one. The page asks for the points every 20
 seconds while it shows; the tests ask the launcher for a point every few hundred milliseconds (`ECHOES_BOT_SAMPLE_MS`).
+
+## Memory
+
+The window is drawn without the graphics card (`app.disableHardwareAcceleration()` in `src/main/index.ts`): its GPU process held 110 to
+190 MB more for a page of text and one chart. Measured on the real install, the launcher idle on its home page: private memory 250-350 MB
+with the card, 157-171 MB without, idle CPU 0.5 % against 0.3 % of a core, and the pages look the same. The game shares the card and the
+memory. Running from its sources, the development server of the page (`node`, 350 MB) comes on top: the installed launcher has none.

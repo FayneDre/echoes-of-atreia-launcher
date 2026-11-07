@@ -4,6 +4,8 @@ import { expect, test, type ElectronApplication, type Page } from '@playwright/t
 import { createFakeInstall, launchWith, writeLanguagePack, type FakeInstall } from './fakeInstall'
 
 const READY_TIMEOUT = 30_000
+// each test starts the servers, and the first opens the launcher twice: past the default 30 s when the whole suite runs at once
+test.describe.configure({ timeout: 90_000 })
 
 let install: FakeInstall
 

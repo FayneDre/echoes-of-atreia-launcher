@@ -1157,6 +1157,7 @@ button.link:hover:not(:disabled) {
 }
 
 .bots-toolbar select,
+.install-client-check select,
 .terminal-tools select {
   padding: 7px 10px;
   border: 1px solid rgb(216 180 108 / 22%);
