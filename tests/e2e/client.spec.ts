@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
 import { createFakeInstall, launchWith, writeLanguagePack, type FakeInstall } from './fakeInstall'
@@ -79,6 +79,11 @@ test('refuses to start a client that lacks an engine file, and names it', async 
 
   await page.getByTestId('install-summary').click()
   await expect(page.getByTestId('install-client-missing')).toContainText('bin64/Cry3DEngine.dll')
+  // put back, checked again: the refusal goes
+  writeFileSync(join(install.clientRoot, 'bin64', 'Cry3DEngine.dll'), '')
+  await page.getByTestId('install-check-client').click()
+  await expect(page.getByTestId('install-client-missing')).toHaveCount(0)
+  await expect(page.getByRole('alert')).toHaveCount(0)
   await closeInstall(page)
   await stopAll(page)
   await app.close()

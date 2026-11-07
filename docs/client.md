@@ -6,10 +6,12 @@ What the launcher checks in the client folder before Play, and how it chooses th
 ## What the 4.8 client reads
 
 - `bin64/aion.bin` takes `-lang:<code>` among `RUS CHS JPN CHT TRK PLK ESN ITA FRA DEU ENG ENU KOR` (the strings of `aion.bin` and
-  `crysystem.dll`). For that code it reads `L10N/<code>.pak` and `L10N/<code>/...`: the folder of a pack holds `<code>.pak` and
-  `Data/Data.pak`, the game's texts, and the localized cutscenes and voices.
-- An unknown code falls back to English without a word: the `-lang:EN` the server's start scripts were given before is one, which is why a
-  client with a French pack still started in English.
+  `crysystem.dll`). For that code it reads the folder `L10N/<code>`, which holds `<code>.pak` (`L10N/enu/enu.pak`, `L10N/FRA/FRA.pak`)
+  and `Data/Data.pak`, the game's texts, and the localized cutscenes and voices.
+- `EN`, which the start scripts passed until now (`-lang:EN`), is not in that list: what the client does with an unknown code was not
+  measured. The launcher passes only a code of the list, for a pack it found complete.
+- Not checked either: whether a pack of another build than 4.8 shows every text the 4.8 data asks for. Its files are there; what it holds
+  is only seen in game.
 - Windows is case-insensitive and the packs are not consistent (`data/data.pak` in the English one, `Data/Data.pak` in a French one): every
   name is compared in lower case.
 

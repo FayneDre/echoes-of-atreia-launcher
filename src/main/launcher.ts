@@ -113,6 +113,14 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     const { clientRoot, clientFound } = this.install
     if (clientRoot && clientFound) {
       this.install = { ...this.install, ...this.clientFacts(await checkClient(clientRoot)) }
+      // a refusal of Play the folder no longer deserves goes once the folder is checked again
+      const { code } = this.problem ?? {}
+      if (
+        (code === 'client-incomplete' && this.install.clientMissing.length === 0) ||
+        (code === 'client-language-missing' && this.install.clientLanguage !== null)
+      ) {
+        this.problem = undefined
+      }
       this.publish()
     }
   }

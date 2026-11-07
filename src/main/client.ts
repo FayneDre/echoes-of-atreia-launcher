@@ -4,7 +4,7 @@ import { clientExecutable } from './server/installation'
 
 /**
  * The arguments the 4.8 client needs to reach a local login server, and the language it starts in. The start.bat a repack ships passes
- * `-lang:EN`, a code the client does not know (its list is `ENU`, `FRA`, `DEU`...): it falls back to English whatever pack is there.
+ * `-lang:EN`, which is not among the codes the client lists (`ENU`, `FRA`, `DEU`...): only a code of that list is passed.
  */
 export function clientArguments(loginPort: number, language: ClientLanguageCode): string[] {
   return ['-ip:127.0.0.1', `-port:${loginPort}`, '-loginex', `-lang:${language}`]

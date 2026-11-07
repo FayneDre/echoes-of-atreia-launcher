@@ -48,9 +48,9 @@ async function filesUnder(folder: string): Promise<string[]> {
 }
 
 /**
- * The language packs of a client: each folder of `L10N` named after a code the client knows. The client reads `L10N/<code>.pak` and
- * `L10N/<code>/...` for the code given as `-lang:<code>` (the strings of `aion.bin` and `crysystem.dll`), so a pack is complete with its
- * `<code>.pak` and its `Data/Data.pak`. Against the English pack the client was shipped with, the files a pack lacks are counted: a French
+ * The language packs of a client: each folder of `L10N` named after a code the client knows. The client reads `L10N/<code>` for the code
+ * given as `-lang:<code>` (the strings of `aion.bin` and `crysystem.dll`), and that folder holds `<code>.pak` (`L10N/enu/enu.pak`) and
+ * `Data/Data.pak`: a pack is complete with both. Against the English pack the client was shipped with, the files a pack lacks are counted: a French
  * pack taken from another build of the game lacks the 4.8 intro and two cutscene sound archives, which leaves those cutscenes silent.
  */
 export async function findLanguagePacks(clientRoot: string): Promise<ClientLanguagePack[]> {
