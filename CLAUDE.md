@@ -4,7 +4,8 @@ A public launcher for a self-hosted Aion 4.8 server with bots: it installs or fi
 the server up and acts on the player's character. The server itself lives in its own repository (`aion-server-playerbots`, locally
 `D:\Jeux\Aion\source\aion-server-4.8`); work on the server happens there, never here.
 
-[docs/roadmap.md](docs/roadmap.md) says what is left, by phase, and why each decision was made. Start there.
+[docs/roadmap.md](docs/roadmap.md) says what is done and what is left, by theme in priority order. Start there.
+[docs/decisions.md](docs/decisions.md) says why the launcher works the way it does, and what kind of work each feature needs.
 [docs/how-it-works.md](docs/how-it-works.md) says how the servers are started and stopped, and why; read it before touching `src/main/server/`.
 [docs/desktop.md](docs/desktop.md) says what the launcher does outside its window (taskbar, tray, Windows options, problem report).
 [docs/client.md](docs/client.md) says what is checked in the client folder and how the game language is chosen (`-lang:<code>`).

@@ -10,7 +10,7 @@ The server it drives is [aion-server-playerbots](https://github.com/FayneDre/aio
 ## Status
 
 Early development. The launcher finds the server, the client, Java and MySQL; starts the servers in order and stops them without losing
-data; shows their terminals; and launches the game. See [docs/roadmap.md](docs/roadmap.md) for what comes next and
+data; shows their terminals; and launches the game. See [docs/roadmap.md](docs/roadmap.md) for what is done and what comes next and
 [docs/how-it-works.md](docs/how-it-works.md) for how it runs the servers.
 
 ## Download
