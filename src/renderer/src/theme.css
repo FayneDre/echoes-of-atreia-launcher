@@ -534,9 +534,18 @@ button:hover:not(:disabled) {
   line-height: 1;
 }
 
+/* the title and the tagline on one baseline, the title's capitals centred on the emblem's ring (measured on a capture) */
+.titlebar-text {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+  margin-top: 3px;
+}
+
 .titlebar .tagline {
   min-width: 0;
-  margin: 3px 0 0;
+  margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 13px;
@@ -605,12 +614,12 @@ button:hover:not(:disabled) {
   font-size: 14px;
 }
 
-.titlebar-sigil {
-  width: 10px;
-  height: 10px;
-  transform: rotate(45deg);
-  border: 1px solid var(--gold);
-  box-shadow: 0 0 6px rgb(216 180 108 / 50%);
+/* the launcher's emblem, the one of its icon without the tile (tools/make-icon.py draws both) */
+.titlebar-emblem {
+  flex: none;
+  height: 30px;
+  filter: drop-shadow(0 0 4px rgb(216 180 108 / 35%));
+  -webkit-user-drag: none;
 }
 
 .header button,

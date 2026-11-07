@@ -240,6 +240,9 @@ function createWindow(): BrowserWindow {
     title: 'Echoes of Atreia',
     backgroundColor: '#070b16',
     autoHideMenuBar: true,
+    // installed, the window takes the executable's icon (electron-builder puts build/icon.ico in it); from the sources, electron.exe has
+    // Electron's own, so the launcher's is given here
+    ...(app.isPackaged ? {} : { icon: join(app.getAppPath(), 'build', 'icon.ico') }),
     // The window's own bar in the launcher's colours: the page draws it, Windows keeps only its three buttons over it.
     titleBarStyle: 'hidden',
     titleBarOverlay: { color: '#080c1a', symbolColor: '#d8b46c', height: 46 },

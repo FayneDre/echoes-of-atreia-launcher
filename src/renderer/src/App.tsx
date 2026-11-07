@@ -14,6 +14,7 @@ import { MIN_SERVER_API_LEVEL, MIN_SERVER_VERSION, SERVER_IDS, isServerTooOld, t
 import { useAccounts, useHomeInfo, useLauncherState, useNews, useServerUpdate, useUpdate } from './useLauncher'
 import { HomeHero } from './components/HomeHero'
 import { NewsPanel } from './components/NewsPanel'
+import emblem from './assets/emblem.png'
 
 type Page = 'home' | 'account' | 'bots' | 'settings' | 'backups'
 
@@ -89,9 +90,11 @@ export function App(): React.JSX.Element {
     <div className="app">
       {/* the window's bar, holding the title: dragged to move the window; Windows draws its three buttons over its right end */}
       <div className="titlebar">
-        <span className="titlebar-sigil" aria-hidden="true" />
-        <h1 className="title">Echoes of Atreia</h1>
-        <p className="tagline">{t('home.tagline')}</p>
+        <img className="titlebar-emblem" src={emblem} alt="" aria-hidden="true" />
+        <div className="titlebar-text">
+          <h1 className="title">Echoes of Atreia</h1>
+          <p className="tagline">{t('home.tagline')}</p>
+        </div>
       </div>
       {/* one row, one height: the character played, the pages, the languages */}
       <header className="header">
