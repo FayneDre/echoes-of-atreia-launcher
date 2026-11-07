@@ -44,11 +44,15 @@ test('keeps the servers in the background when the window is closed, and comes b
   await startAll(page)
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.close())
   await page.getByTestId('quit-background').click()
-  await expect.poll(() => windowVisible(app)).toBe(false)
-  // the launcher is still there, the servers still its own
-  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.show())
-  await expect(gameStatus(page)).toHaveAttribute('data-status', 'ready')
-  await stopAll(page)
+  // closed, not hidden: no window holds its page any more, and the launcher is still there
+  await expect.poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length)).toBe(0)
+  await new Promise((wait) => setTimeout(wait, 1_000))
+  expect(await app.evaluate(({ app }) => app.isReady())).toBe(true)
+  // what the icon of the notification area does, as a second launcher would: a new window, the servers still its own
+  const [again] = await Promise.all([app.waitForEvent('window'), app.evaluate(({ app }) => app.emit('second-instance'))])
+  await expect(gameStatus(again)).toHaveAttribute('data-status', 'ready')
+  await expect.poll(() => windowVisible(app)).toBe(true)
+  await stopAll(again)
   await app.close()
 })
 
@@ -87,7 +91,7 @@ test('draws the bots in the world over the last hour', async () => {
   await page.getByRole('button', { name: 'Home', exact: true }).click()
   await startAll(page)
   // a point is counted every 300 ms; the page reads them when it opens
-  await page.waitForTimeout(1_000)
+  await new Promise((wait) => setTimeout(wait, 1_000))
   await page.getByRole('button', { name: 'Bots', exact: true }).click()
   await expect(page.getByTestId('bot-history-elyos')).toHaveText('Elyos 1')
   await expect(page.getByTestId('bot-history-asmodians')).toHaveText('Asmodian 1')
@@ -146,7 +150,7 @@ test('cleans up an archived log past a month at start, says so, and can be turne
   utimesSync(old, monthsAgo, monthsAgo)
   const { app, page } = await open({ ECHOES_CLEANUP_DELETE: '1' })
   await expect(page.getByTestId('install-summary')).toBeVisible()
-  await page.waitForTimeout(1_000)
+  await new Promise((wait) => setTimeout(wait, 1_000))
   expect(existsSync(old)).toBe(true)
   await app.close()
 })
@@ -162,7 +166,7 @@ test('does not clean up in the developer mode unless asked', async () => {
   await page.getByTestId('install-summary').click()
   await expect(page.getByTestId('option-developer').getByRole('checkbox')).toBeChecked()
   await expect(page.getByTestId('option-cleanup').getByRole('checkbox')).not.toBeChecked()
-  await page.waitForTimeout(1_000)
+  await new Promise((wait) => setTimeout(wait, 1_000))
   expect(existsSync(old)).toBe(true)
   await app.close()
 })

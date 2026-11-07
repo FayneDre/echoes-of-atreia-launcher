@@ -17,14 +17,15 @@ two never disagree.
 
 ## The notification area
 
-An icon by the clock from the start (`TaskbarPresence`): a click shows the window; its menu opens the launcher, plays, starts or stops the
+An icon by the clock from the start (`TaskbarPresence`): a click shows the window, or opens one in the background; its menu opens the launcher, plays, starts or stops the
 servers, and quits. Its tooltip says the stack's state. The menu speaks the interface's language, which the page sends at each change
 (`launcher:set-language`).
 
 **Closing the window while servers run** offers a fourth answer beside stop, leave and stay: **keep them in the background**. The window
-hides and the launcher keeps the servers exactly as when it shows: their logs followed, a stop still asked for in the proper way. Quitting
-from the tray's menu shows the window and closes it as its own button would, so the same question is asked. A second launcher started
-while one is in the background shows the hidden window instead.
+is closed, not hidden (`inBackground` in `src/main/index.ts`), and the launcher keeps the servers exactly as with it: their logs followed,
+a stop still asked for in the proper way, the bots' curve sampled. The tray's icon opens a new window, which asks for the state, the logs
+and the curve like any window at its start. Quitting from the tray's menu opens the window and closes it as its own button would, so the
+same question is asked. A second launcher started while one is in the background opens the window instead.
 
 ## Options in the Installation window
 
@@ -82,4 +83,5 @@ seconds while it shows; the tests ask the launcher for a point every few hundred
 The window is drawn without the graphics card (`app.disableHardwareAcceleration()` in `src/main/index.ts`): its GPU process held 110 to
 190 MB more for a page of text and one chart. Measured on the real install, the launcher idle on its home page: private memory 250-350 MB
 with the card, 157-171 MB without, idle CPU 0.5 % against 0.3 % of a core, and the pages look the same. The game shares the card and the
-memory. Running from its sources, the development server of the page (`node`, 350 MB) comes on top: the installed launcher has none.
+memory. In the background, the window's page goes too: 121 MB against 194 MB with the window open (`app.getAppMetrics()`, servers
+running, end-to-end fakes). Running from its sources, the development server of the page (`node`, 350 MB) comes on top: the installed launcher has none.

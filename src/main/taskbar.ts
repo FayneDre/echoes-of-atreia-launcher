@@ -102,6 +102,8 @@ const TEXTS: Record<TrayLanguage, Record<StackPhase | 'open' | 'play' | 'start' 
 }
 
 export interface TrayActions {
+  /** Brings the window to the front, or opens one when the launcher runs in the background. */
+  open: () => void
   play: () => void
   start: () => void
   stop: () => void
@@ -119,12 +121,20 @@ export class TaskbarPresence {
   private state: LauncherState | null = null
   private update: ServerUpdateState | null = null
   private shown: string | null = null
+  /** The window whose taskbar button shows the dot and the progress; none while the launcher runs in the background. */
+  private window: BrowserWindow | null = null
 
   constructor(
-    private readonly window: BrowserWindow,
     private readonly icon: string,
     private readonly actions: TrayActions
   ) {}
+
+  /** A new window: its taskbar button is drawn from the current state. */
+  attach(window: BrowserWindow): void {
+    this.window = window
+    this.shown = null
+    this.render()
+  }
 
   /** The icon in the notification area, from the start: it is how a window put in the background comes back. */
   start(): void {
@@ -132,16 +142,8 @@ export class TaskbarPresence {
     // a state that came before the icon was drawn on the overlay only: the menu is built now
     this.shown = null
     this.tray.setToolTip('Echoes of Atreia')
-    this.tray.on('click', () => this.showWindow())
+    this.tray.on('click', () => this.actions.open())
     this.render()
-  }
-
-  showWindow(): void {
-    if (this.window.isMinimized()) {
-      this.window.restore()
-    }
-    this.window.show()
-    this.window.focus()
   }
 
   setLanguage(language: TrayLanguage): void {
@@ -165,7 +167,7 @@ export class TaskbarPresence {
   }
 
   private render(): void {
-    if (!this.state || this.window.isDestroyed()) {
+    if (!this.state) {
       return
     }
     const status = taskbarStatus(this.state, this.update)
@@ -179,10 +181,13 @@ export class TaskbarPresence {
       return
     }
     this.shown = key
-    this.window.setOverlayIcon(status.mark ? markImage(status.mark) : null, status.mark ? texts[status.phase] : '')
-    this.window.setProgressBar(status.progress === null ? -1 : status.progress === 'indeterminate' ? 2 : status.progress, {
-      mode: status.progress === 'indeterminate' ? 'indeterminate' : status.progress === null ? 'none' : 'normal'
-    })
+    // without a window, the menu alone: the window opened later is drawn on its arrival (attach)
+    if (this.window && !this.window.isDestroyed()) {
+      this.window.setOverlayIcon(status.mark ? markImage(status.mark) : null, status.mark ? texts[status.phase] : '')
+      this.window.setProgressBar(status.progress === null ? -1 : status.progress === 'indeterminate' ? 2 : status.progress, {
+        mode: status.progress === 'indeterminate' ? 'indeterminate' : status.progress === null ? 'none' : 'normal'
+      })
+    }
     if (!this.tray) {
       return
     }
@@ -190,7 +195,7 @@ export class TaskbarPresence {
     this.tray.setToolTip(`Echoes of Atreia — ${texts[status.phase]}`)
     this.tray.setContextMenu(
       Menu.buildFromTemplate([
-        { label: texts.open, click: () => this.showWindow() },
+        { label: texts.open, click: this.actions.open },
         { type: 'separator' },
         { label: texts.play, enabled: status.phase === 'ready' && this.state.install.clientFound, click: this.actions.play },
         { label: texts.start, enabled: idle && status.phase !== 'ready', click: this.actions.start },

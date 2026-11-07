@@ -1,6 +1,6 @@
 import { rm, statfs } from 'node:fs/promises'
 import { dirname, join, parse } from 'node:path'
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent, type OpenDialogOptions } from 'electron'
 import {
   LAUNCHER_VERSION_ARG,
   SERVER_IDS,
@@ -96,12 +96,55 @@ const isText = (value: unknown, maxLength: number): value is string =>
   typeof value === 'string' && value.length > 0 && value.length <= maxLength
 // Set once the person has said what to do with running servers, so the window may close.
 let quitAllowed = false
+/** The window, while there is one: put in the background, it is closed, not hidden, and the icon in the notification area opens another. */
+let mainWindow: BrowserWindow | null = null
+/**
+ * Set while the launcher runs without a window: its page and its drawing held 40 to 60 MB nothing reads there. The servers, the icon in the
+ * notification area and the bots' curve go on in this process; a new window reads them all back.
+ */
+let inBackground = false
+let presence: TaskbarPresence | null = null
+
+/** What the launcher publishes, to the window when there is one: a window opened later asks for the current state itself. */
+function send(channel: string, payload: unknown): void {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, payload)
+  }
+}
+
+/** The window, brought to the front, or opened again after the background. */
+function openWindow(): BrowserWindow {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore()
+    }
+    mainWindow.show()
+    mainWindow.focus()
+    return mainWindow
+  }
+  inBackground = false
+  const window = createWindow()
+  mainWindow = window
+  window.on('closed', () => {
+    if (mainWindow === window) {
+      mainWindow = null
+    }
+  })
+  presence?.attach(window)
+  return window
+}
+
+/** A file dialog over the window that asked for it. */
+function openDialog(event: IpcMainInvokeEvent, options: OpenDialogOptions): ReturnType<typeof dialog.showOpenDialog> {
+  const owner = BrowserWindow.fromWebContents(event.sender)
+  return owner ? dialog.showOpenDialog(owner, options) : dialog.showOpenDialog(options)
+}
 
 function isServerId(value: unknown): value is ServerId {
   return typeof value === 'string' && (SERVER_IDS as readonly string[]).includes(value)
 }
 
-function registerIpc(window: BrowserWindow, presence: TaskbarPresence): void {
+function registerIpc(presence: TaskbarPresence): void {
   ipcMain.handle('launcher:get-state', () => launcher.getState())
   ipcMain.handle('launcher:get-logs', (_event, id: unknown) => (isServerId(id) ? launcher.getLogs(id) : []))
   ipcMain.handle('launcher:open-log-folder', async (_event, id: unknown) => {
@@ -205,18 +248,18 @@ function registerIpc(window: BrowserWindow, presence: TaskbarPresence): void {
     const values = validValues(value)
     return values ? launcher.saveServerSettings(values) : false
   })
-  ipcMain.handle('launcher:choose-folder', async (_event, kind: unknown) => {
+  ipcMain.handle('launcher:choose-folder', async (event, kind: unknown) => {
     if (kind !== 'server' && kind !== 'client') {
       return
     }
-    const result = await dialog.showOpenDialog(window, { properties: ['openDirectory'] })
+    const result = await openDialog(event, { properties: ['openDirectory'] })
     const folder = result.filePaths[0]
     if (!result.canceled && folder) {
       await launcher.chooseFolder(kind as FolderKind, folder)
     }
   })
-  ipcMain.handle('launcher:choose-mysql-options', async () => {
-    const result = await dialog.showOpenDialog(window, {
+  ipcMain.handle('launcher:choose-mysql-options', async (event) => {
+    const result = await openDialog(event, {
       properties: ['openFile'],
       filters: [{ name: 'MySQL (my.ini, my.cnf)', extensions: ['ini', 'cnf'] }]
     })
@@ -297,15 +340,17 @@ function registerIpc(window: BrowserWindow, presence: TaskbarPresence): void {
     if (activity === 'starting' || activity === 'stopping' || activity === 'server-update' || !updater.askInstall()) {
       return false
     }
-    window.close()
+    mainWindow?.close()
     return true
   })
   ipcMain.handle('launcher:quit-answer', async (_event, answer: QuitAnswer) => {
     if (answer === 'background') {
-      // the servers keep running under the launcher, which stays in the notification area: its icon brings the window back
+      // the servers keep running under the launcher, which stays in the notification area: its icon opens a window again
       launcher.setQuitRequested(false)
       updater.cancelInstall()
-      window.hide()
+      inBackground = true
+      // destroyed, not closed: closing asks again what to do with the running servers
+      mainWindow?.destroy()
       return
     }
     if (answer === 'stop' && !(await launcher.stopAll())) {
@@ -316,20 +361,20 @@ function registerIpc(window: BrowserWindow, presence: TaskbarPresence): void {
     }
     if (answer === 'stop' || answer === 'leave') {
       quitAllowed = true
-      window.close()
+      mainWindow?.close()
       return
     }
     launcher.setQuitRequested(false)
     updater.cancelInstall()
   })
 
-  launcher.on('state', (state) => window.webContents.send('launcher:state', state))
+  launcher.on('state', (state) => send('launcher:state', state))
   launcher.on('state', (state) => presence.setState(state))
   serverUpdater.on('state', (state) => presence.setServerUpdate(state))
-  launcher.on('lines', (batch) => window.webContents.send('launcher:lines', batch))
-  updater.on('state', (state) => window.webContents.send('update:state', state))
-  serverUpdater.on('state', (state) => window.webContents.send('server-update:state', state))
-  news.on('state', (state) => window.webContents.send('news:state', state))
+  launcher.on('lines', (batch) => send('launcher:lines', batch))
+  updater.on('state', (state) => send('update:state', state))
+  serverUpdater.on('state', (state) => send('server-update:state', state))
+  news.on('state', (state) => send('news:state', state))
   // The server folder found at start, or chosen later: its releases are looked at again.
   let serverRoot: string | null = null
   launcher.on('state', (state) => {
@@ -402,22 +447,20 @@ function createWindow(): BrowserWindow {
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
-  let presence: TaskbarPresence | null = null
-  // the window may be in the background, hidden: it is shown again
-  app.on('second-instance', () => presence?.showWindow())
+  // the window may be in the background, closed: one is opened again
+  app.on('second-instance', () => openWindow())
   void app.whenReady().then(() => {
-    const window = createWindow()
-    presence = new TaskbarPresence(window, appIcon, {
+    presence = new TaskbarPresence(appIcon, {
+      open: () => openWindow(),
       play: () => void launcher.play(),
       start: () => void launcher.startAll(),
       stop: () => void launcher.stopAll(),
-      quit: () => {
-        presence?.showWindow()
-        window.close()
-      }
+      // as the window's own button: running servers are asked about first, in a window opened for it
+      quit: () => openWindow().close()
     })
     presence.start()
-    registerIpc(window, presence)
+    registerIpc(presence)
+    openWindow()
     botHistory.start()
     // Everything GitHub is asked is asked once, here: the start is what shows a new version. After the settings (the developer mode) and the
     // server folder (where the repositories' notes are), the server's releases once the launcher has found its folder (below).
@@ -446,6 +489,10 @@ if (!app.requestSingleInstanceLock()) {
 app.on('will-quit', () => updater.installIfAsked())
 
 app.on('window-all-closed', () => {
+  // put in the background: the launcher stays, in the notification area
+  if (inBackground) {
+    return
+  }
   botHistory.stop()
   launcher.dispose()
   app.quit()
