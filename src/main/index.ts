@@ -1,6 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
-import { SERVER_IDS, isBetaVersion, type FolderKind, type HomeInfo, type QuitAnswer, type ServerId } from '../shared/types'
+import { LAUNCHER_VERSION_ARG, SERVER_IDS, isBetaVersion, type FolderKind, type HomeInfo, type QuitAnswer, type ServerId } from '../shared/types'
 import { AccountService } from './accounts/accountService'
 import { BackupService } from './backup/backupService'
 import { listBots } from './bots/botList'
@@ -131,7 +131,7 @@ function registerIpc(window: BrowserWindow): void {
     }
     const pid = launcher.gameProcessId
     const gameMemoryMb = pid !== null && state.servers.game.status !== 'stopped' ? await processMemoryMb(pid) : null
-    return { lastBackup, botsInWorld, gameMemoryMb, launcherVersion: app.getVersion() }
+    return { lastBackup, botsInWorld, gameMemoryMb }
   })
   ipcMain.handle('server-update:get-state', () => serverUpdater.current)
   ipcMain.handle('server-update:prepare', () => serverUpdater.prepare())
@@ -194,6 +194,8 @@ function createWindow(): BrowserWindow {
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
+      // the launcher's version, known before anything is read: the footer does not wait for the servers' detection
+      additionalArguments: [`${LAUNCHER_VERSION_ARG}${app.getVersion()}`],
       contextIsolation: true,
       sandbox: true,
       nodeIntegration: false

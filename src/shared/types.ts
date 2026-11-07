@@ -306,6 +306,7 @@ export interface HomeInfo {
   botsInWorld: { elyos: number; asmodians: number } | null
   /** The game server's memory in megabytes, while it runs and the launcher knows its process. */
   gameMemoryMb: number | null
-  /** The launcher's own version. */
-  launcherVersion: string
 }
+
+/** The command-line argument the window's preload reads the launcher's version from: known at once, before anything is detected. */
+export const LAUNCHER_VERSION_ARG = '--echoes-launcher-version='

@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
+import { LAUNCHER_VERSION_ARG } from '../shared/types'
 import type {
   AccountsState,
   BackupSummary,
@@ -68,7 +69,9 @@ const launcherApi = {
   installServerUpdate: (): Promise<Problem | null> => ipcRenderer.invoke('server-update:install'),
   cancelServerUpdate: (): Promise<void> => ipcRenderer.invoke('server-update:cancel'),
   undoServerUpdate: (): Promise<Problem | null> => ipcRenderer.invoke('server-update:undo'),
-  onServerUpdate: (listener: (state: ServerUpdateState) => void): (() => void) => subscribe('server-update:state', listener)
+  onServerUpdate: (listener: (state: ServerUpdateState) => void): (() => void) => subscribe('server-update:state', listener),
+  /** The launcher's own version, handed over on the window's command line. */
+  version: process.argv.find((arg) => arg.startsWith(LAUNCHER_VERSION_ARG))?.slice(LAUNCHER_VERSION_ARG.length) ?? null
 }
 
 export type LauncherApi = typeof launcherApi

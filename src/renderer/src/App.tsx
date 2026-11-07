@@ -196,7 +196,7 @@ export function App(): React.JSX.Element {
         <span>{t('footer.disclaimer')}</span>
         <span className="footer-versions" data-testid="footer-versions">
           {t('footer.versions', {
-            launcher: homeInfo?.launcherVersion ?? '…',
+            launcher: window.launcher.version ?? '…',
             server: serverLabel(state?.serverVersion ?? null)
           })}
         </span>
