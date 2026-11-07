@@ -91,8 +91,8 @@ desktop shortcut; the old logs and reports cleaned up to the recycle bin; the pr
 
 **Left**:
 1. **Publish them as v0.3.0-beta.4**, with notes in French and English.
-2. **Make the news test (`home.spec`, "asks at each start whether the news changed") hold under load**: it fails when the whole suite runs with
-   little memory free.
+2. **Tests that fail under load**: the news and client tests now have 90 s; a test that opens the launcher twice or starts the servers
+   may still need the same when the whole suite runs with little memory free (the MySQL test failed so once on 7 November).
 
 ## 7. Client options
 

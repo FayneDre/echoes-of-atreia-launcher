@@ -140,6 +140,8 @@ test('shows where the stack stands, the news of both projects, the install folde
 })
 
 test('asks at each start whether the news changed, and shows the news GitHub gave last when it refuses', async () => {
+  // the launcher opened twice: past the default 30 s when the whole suite runs with little memory free
+  test.setTimeout(90_000)
   const first = await launchWith(install, { ECHOES_NEWS_FEED: feedUrl })
   await first.page.getByRole('button', { name: 'EN', exact: true }).click()
   await expect(first.page.getByTestId('news-launcher-v0.4.0-beta.1')).toBeVisible()
