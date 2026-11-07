@@ -8,8 +8,8 @@ const LANGUAGES = ['en', 'fr'] as const
 
 /**
  * The launcher updates itself from its GitHub releases (`build.publish` in package.json, read from the installer's app-update.yml): a beta
- * follows the pre-releases, a stable one only the releases, decided by its own version, with no setting. It checks at start, then every few
- * hours; a newer version downloads in the background and installs when the launcher closes, which the person can ask for at once. Closing
+ * follows the pre-releases, a stable one only the releases, decided by its own version, with no setting. It checks once, at start (never in
+ * the developer mode); a newer version downloads in the background and installs when the launcher closes, which the person can ask for at once. Closing
  * goes through the window's usual question when servers run, so an update never stops a server by itself, and nothing is offered while a
  * start or a stop is under way.
  *

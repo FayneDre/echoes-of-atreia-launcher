@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import yauzl from 'yauzl'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { botNotes, createReport, issueUrl, reportStamp, reportSummary, type ReportContext } from '../../src/main/report'
+import { botNotes, createReport, issueUrl, reportStamp, reportSummary, withoutProfile, type ReportContext } from '../../src/main/report'
 import type { ServerLayout } from '../../src/main/server/installation'
 import type { LauncherState } from '../../src/shared/types'
 
@@ -79,6 +79,15 @@ describe('the report', () => {
 
   afterEach(async () => {
     await rm(root, { recursive: true, force: true })
+  })
+
+  it('writes the profile folder as ~, whatever its slashes and case, so a public issue names no Windows account', () => {
+    const profile = String.raw`C:\Users\Some.One`
+    expect(withoutProfile(String.raw`Server folder: C:\Users\Some.One\Aion\server`, profile)).toBe(String.raw`Server folder: ~\Aion\server`)
+    // a log written as JSON doubles its backslashes; another tool writes forward slashes, in lower case
+    expect(withoutProfile(String.raw`at c:/users/some.one/aion and C:\\Users\\Some.One\\x`, profile)).toBe(String.raw`at ~/aion and ~\\x`)
+    // a dot is a dot: another account is left alone
+    expect(withoutProfile(String.raw`C:\Users\SomeXOne\x`, profile)).toBe(String.raw`C:\Users\SomeXOne\x`)
   })
 
   it('is named by its date, in a form Windows takes as a file name', () => {

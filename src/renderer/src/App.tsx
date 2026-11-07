@@ -168,6 +168,7 @@ export function App(): React.JSX.Element {
           </div>
           <TerminalPanel
             open={terminalsOpen}
+            serverFound={state.install.serverFound}
             server={terminal}
             onToggle={() => setTerminalsOpen(!terminalsOpen)}
             onSelect={setTerminal}

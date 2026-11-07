@@ -1,5 +1,5 @@
 import { Menu, nativeImage, Tray, type BrowserWindow, type NativeImage } from 'electron'
-import { stackPhase, type LauncherState, type ServerUpdateState, type StackPhase } from '../shared/types'
+import { SERVER_IDS, stackPhase, type LauncherState, type ServerUpdateState, type StackPhase } from '../shared/types'
 
 /** The dot over the taskbar's icon: green when one can play, red when a server failed, amber for anything between; none when stopped. */
 export type TaskbarMark = 'ready' | 'busy' | 'failed' | null
@@ -129,6 +129,8 @@ export class TaskbarPresence {
   /** The icon in the notification area, from the start: it is how a window put in the background comes back. */
   start(): void {
     this.tray = new Tray(this.icon)
+    // a state that came before the icon was drawn on the overlay only: the menu is built now
+    this.shown = null
     this.tray.setToolTip('Echoes of Atreia')
     this.tray.on('click', () => this.showWindow())
     this.render()
@@ -168,8 +170,11 @@ export class TaskbarPresence {
     }
     const status = taskbarStatus(this.state, this.update)
     const texts = TEXTS[this.language]
+    const { servers } = this.state
+    // any server up, as the home's banner counts them: after a failure, the others may still need stopping
+    const running = SERVER_IDS.some((id) => !['stopped', 'failed'].includes(servers[id].status) || servers[id].external)
     // the overlay and the menu are rebuilt only when what they show changes: the state is published at every log line's status check
-    const key = JSON.stringify([status, this.language, this.state.activity, this.state.install.clientFound])
+    const key = JSON.stringify([status, this.language, this.state.activity, this.state.install.clientFound, running])
     if (key === this.shown) {
       return
     }
@@ -182,7 +187,6 @@ export class TaskbarPresence {
       return
     }
     const idle = this.state.activity === 'idle'
-    const running = status.phase !== 'stopped' && status.phase !== 'failed'
     this.tray.setToolTip(`Echoes of Atreia — ${texts[status.phase]}`)
     this.tray.setContextMenu(
       Menu.buildFromTemplate([

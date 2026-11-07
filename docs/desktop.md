@@ -49,7 +49,8 @@ while one is in the background shows the hidden window instead.
   and its `log/launcher-stderr.log`;
 - `bot-notes.txt`: every `//bot note` line (`BOT NOTE`) of the game server's current log, searched line by line through the whole file.
 
-Nothing is sent. The dialog then shows the file in Explorer, or opens a new issue on the server's repository, its text in the person's
+Wherever a path names the person's profile folder (and so their Windows account), it is written `~`: a report is meant for a public
+issue. Nothing is sent. The dialog then shows the file in Explorer, or opens a new issue on the server's repository, its text in the person's
 language with the versions and the file's name to drag onto the page (a URL cannot carry a file). The page may only ask for the last
 report made: it never names a path to show.
 

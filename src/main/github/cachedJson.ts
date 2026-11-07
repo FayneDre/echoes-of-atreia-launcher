@@ -51,7 +51,7 @@ async function writeEntry(entry: CacheEntry): Promise<void> {
 
 /**
  * A JSON answer of GitHub's API, which answers 60 questions an hour to an address without an account, then refuses until the hour is over.
- * Every question goes out (at each start of the launcher, and every few hours): what changed must show at once. The last answer is kept on
+ * Every question goes out (at each start of the launcher, the only time it asks): what changed must show at once. The last answer is kept on
  * disk, and the question carries its ETag (`If-None-Match`): a "304 nothing changed" spares downloading it again (it still counts against
  * the 60 without an account: checked on GitHub). When GitHub refuses (the hour's questions spent, no connection), the kept answer is given instead, so a page shows what it
  * showed last rather than an error. Throws only when it refuses and nothing was kept.

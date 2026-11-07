@@ -9,6 +9,8 @@ const WARN_LINE = / WARN /
 
 interface Props {
   open: boolean
+  /** Without a server folder there is no log folder to open. */
+  serverFound: boolean
   server: ServerId
   onToggle: () => void
   onSelect: (server: ServerId) => void
@@ -18,7 +20,7 @@ interface Props {
  * The three servers' consoles, in a drawer at the foot of the home page: closed, it is one bar and the panels have the whole window; it opens
  * on a click, on "Show the log" next to a problem, and by itself when a server fails.
  */
-export function TerminalPanel({ open, server, onToggle, onSelect }: Props): React.JSX.Element {
+export function TerminalPanel({ open, serverFound, server, onToggle, onSelect }: Props): React.JSX.Element {
   const { t } = useI18n()
   const all = useServerLogs(server)
   const [errorsOnly, setErrorsOnly] = useState(false)
@@ -89,7 +91,13 @@ export function TerminalPanel({ open, server, onToggle, onSelect }: Props): Reac
             <button type="button" className="small" disabled={lines.length === 0} onClick={copy}>
               {copied ? t('terminal.copied') : t('terminal.copy')}
             </button>
-            <button type="button" className="small" data-testid="terminal-folder" onClick={() => void window.launcher.openLogFolder(server)}>
+            <button
+              type="button"
+              className="small"
+              data-testid="terminal-folder"
+              disabled={!serverFound}
+              onClick={() => void window.launcher.openLogFolder(server)}
+            >
               {t('terminal.openFolder')}
             </button>
           </div>

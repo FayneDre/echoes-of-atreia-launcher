@@ -1,6 +1,6 @@
 import { createReadStream, createWriteStream } from 'node:fs'
 import { mkdir, open, readFile, stat } from 'node:fs/promises'
-import { release, totalmem } from 'node:os'
+import { homedir, release, totalmem } from 'node:os'
 import { join } from 'node:path'
 import { createInterface } from 'node:readline'
 import yazl from 'yazl'
@@ -20,6 +20,18 @@ export interface ReportContext {
   character: CharacterSummary | null
   botsInWorld: { elyos: number; asmodians: number } | null
   language: 'fr' | 'en'
+}
+
+/**
+ * A report is meant to be posted on a public issue: the person's profile folder, which names their Windows account, becomes `~` wherever a
+ * path holds it, in either slash and any case.
+ */
+export function withoutProfile(text: string, profile = homedir()): string {
+  if (!profile) {
+    return text
+  }
+  const escaped = profile.replace(/[\\/]+/g, '/').replace(/[.*+?^${}()|[\]]/g, '\\$&').replace(/\//g, '[\\\\/]+')
+  return text.replace(new RegExp(escaped, 'gi'), '~')
 }
 
 /** `2026-11-07_14-03-22`: sorts by date, and holds no character Windows refuses in a file name. */
@@ -54,7 +66,7 @@ export function reportSummary(context: ReportContext, now: Date): string {
     '',
     `Character: ${character ? `${character.name}, level ${character.level} ${character.playerClass}, ${character.race}, on ${character.mapName ?? 'an unnamed map'}` : 'none chosen'}`
   ]
-  return `${lines.join('\r\n')}\r\n`
+  return withoutProfile(`${lines.join('\r\n')}\r\n`)
 }
 
 /** The page of a new issue on the server's repository, its text filled with the versions and the report's name, to attach by hand. */
@@ -138,12 +150,13 @@ export async function createReport(layout: ServerLayout | null, folder: string, 
       for (const name of ['server_console.log', 'launcher-stderr.log']) {
         const content = await tail(join(logs, name), LOG_TAIL_BYTES)
         if (content) {
-          zip.addBuffer(content, `${id}/${name}`)
+          zip.addBuffer(Buffer.from(withoutProfile(content.toString('utf8')), 'utf8'), `${id}/${name}`)
         }
       }
     }
     const notes = await botNotes(join(layout.servers.game.dir, 'log', 'server_console.log'))
-    zip.addBuffer(Buffer.from(notes.length ? `${notes.join('\r\n')}\r\n` : 'No bot note in this run of the game server.\r\n', 'utf8'), 'bot-notes.txt')
+    const text = notes.length ? `${notes.join('\r\n')}\r\n` : 'No bot note in this run of the game server.\r\n'
+    zip.addBuffer(Buffer.from(withoutProfile(text), 'utf8'), 'bot-notes.txt')
   }
   zip.end()
   await new Promise<void>((resolve, reject) => {
