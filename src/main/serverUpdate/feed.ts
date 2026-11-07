@@ -2,7 +2,7 @@ import { compareVersions } from '../../shared/types'
 import { fetchGithubJson } from '../github/cachedJson'
 import { parseReleaseManifest, type ReleaseManifest } from './manifest'
 
-const REPOSITORY = 'FayneDre/aion-server-playerbots'
+export const SERVER_REPOSITORY = 'FayneDre/aion-server-playerbots'
 const LANGUAGES = ['en', 'fr'] as const
 
 /** A server release that carries a bundle: what the launcher can install. */
@@ -31,12 +31,12 @@ export class ServerFeed {
   constructor(private readonly base = process.env['ECHOES_SERVER_FEED'] ?? null) {}
 
   private get listingUrl(): string {
-    return this.base ? `${this.base}/releases.json` : `https://api.github.com/repos/${REPOSITORY}/releases?per_page=30`
+    return this.base ? `${this.base}/releases.json` : `https://api.github.com/repos/${SERVER_REPOSITORY}/releases?per_page=30`
   }
 
   /** Where an asset of a release is, by name: what the navmesh entries of a manifest point to. */
   assetUrl(tag: string, name: string): string {
-    return this.base ? `${this.base}/${tag}/${name}` : `https://github.com/${REPOSITORY}/releases/download/${tag}/${name}`
+    return this.base ? `${this.base}/${tag}/${name}` : `https://github.com/${SERVER_REPOSITORY}/releases/download/${tag}/${name}`
   }
 
   /**

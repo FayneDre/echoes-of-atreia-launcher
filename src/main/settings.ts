@@ -19,6 +19,8 @@ export interface Settings {
   mysqlOptionsFile?: string
   /** The person develops the launcher and the server: GitHub is never asked, the news come from the notes of the repositories. */
   developerMode?: boolean
+  /** The servers start by themselves when the launcher opens. */
+  startServersOnLaunch?: boolean
 }
 
 /**

@@ -3,6 +3,7 @@ import { LAUNCHER_VERSION_ARG } from '../shared/types'
 import type {
   AccountsState,
   BackupSummary,
+  BotSample,
   BotSummary,
   DestinationSummary,
   FolderKind,
@@ -12,9 +13,12 @@ import type {
   NewsState,
   Problem,
   QuitAnswer,
+  ReportResult,
   ServerId,
   ServerSettings,
   ServerUpdateState,
+  SystemOption,
+  SystemOptions,
   UpdateState
 } from '../shared/types'
 
@@ -29,6 +33,15 @@ const launcherApi = {
   platform: process.platform,
   getState: (): Promise<LauncherState> => ipcRenderer.invoke('launcher:get-state'),
   getLogs: (server: ServerId): Promise<string[]> => ipcRenderer.invoke('launcher:get-logs', server),
+  openLogFolder: (server: ServerId): Promise<void> => ipcRenderer.invoke('launcher:open-log-folder', server),
+  setLanguage: (language: 'fr' | 'en'): Promise<void> => ipcRenderer.invoke('launcher:set-language', language),
+  setStartServersOnLaunch: (on: boolean): Promise<void> => ipcRenderer.invoke('settings:set-start-servers', on),
+  getSystemOptions: (): Promise<SystemOptions> => ipcRenderer.invoke('system:get-options'),
+  setSystemOption: (option: SystemOption, on: boolean): Promise<SystemOptions> => ipcRenderer.invoke('system:set-option', option, on),
+  createReport: (): Promise<ReportResult | null> => ipcRenderer.invoke('report:create'),
+  showReport: (): Promise<void> => ipcRenderer.invoke('report:show'),
+  openReportIssue: (): Promise<void> => ipcRenderer.invoke('report:open-issue'),
+  getBotHistory: (): Promise<BotSample[]> => ipcRenderer.invoke('bots:history'),
   start: (): Promise<boolean> => ipcRenderer.invoke('launcher:start'),
   stop: (): Promise<boolean> => ipcRenderer.invoke('launcher:stop'),
   forceStop: (server: ServerId): Promise<boolean> => ipcRenderer.invoke('launcher:force-stop', server),

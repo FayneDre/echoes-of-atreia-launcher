@@ -3,6 +3,10 @@ import { SERVER_IDS, type ServerId } from '../../../shared/types'
 import { useI18n } from '../i18n'
 import { useServerLogs } from '../useLauncher'
 
+/** An error line, or a line of its stack trace; a warning. Shown in colour, and what "Errors only" keeps. */
+const ERROR_LINE = / ERROR |Exception|^Caused by:|^\s+at |^\s+\.\.\. \d+ more/
+const WARN_LINE = / WARN /
+
 interface Props {
   open: boolean
   server: ServerId
@@ -22,7 +26,7 @@ export function TerminalPanel({ open, server, onToggle, onSelect }: Props): Reac
   const [copied, setCopied] = useState(false)
   const needle = query.trim().toLowerCase()
   const lines = all.filter(
-    (line) => (!errorsOnly || / (ERROR|WARN) |Exception|^Caused by:/.test(line)) && (!needle || line.toLowerCase().includes(needle))
+    (line) => (!errorsOnly || ERROR_LINE.test(line) || WARN_LINE.test(line)) && (!needle || line.toLowerCase().includes(needle))
   )
   const output = useRef<HTMLPreElement>(null)
   const copy = (): void => {
@@ -85,6 +89,9 @@ export function TerminalPanel({ open, server, onToggle, onSelect }: Props): Reac
             <button type="button" className="small" disabled={lines.length === 0} onClick={copy}>
               {copied ? t('terminal.copied') : t('terminal.copy')}
             </button>
+            <button type="button" className="small" data-testid="terminal-folder" onClick={() => void window.launcher.openLogFolder(server)}>
+              {t('terminal.openFolder')}
+            </button>
           </div>
         )}
       </div>
@@ -99,7 +106,22 @@ export function TerminalPanel({ open, server, onToggle, onSelect }: Props): Reac
           following.current = element.scrollHeight - element.scrollTop - element.clientHeight < 24
         }}
       >
-        {lines.length ? lines.join('\n') : all.length ? t('terminal.noMatch') : t('terminal.empty')}
+        {lines.length
+          ? lines.map((line, index) => {
+              const kind = ERROR_LINE.test(line) ? 'log-error' : WARN_LINE.test(line) ? 'log-warn' : undefined
+              // one text node a line, the colour on the lines that need it: copying the selection gives the log as it was
+              return kind ? (
+                <span key={index} className={kind}>
+                  {line}
+                  {'\n'}
+                </span>
+              ) : (
+                `${line}\n`
+              )
+            })
+          : all.length
+            ? t('terminal.noMatch')
+            : t('terminal.empty')}
       </pre>
     </section>
   )

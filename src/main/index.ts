@@ -1,10 +1,21 @@
 import { statfs } from 'node:fs/promises'
 import { dirname, join, parse } from 'node:path'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
-import { LAUNCHER_VERSION_ARG, SERVER_IDS, isBetaVersion, type FolderKind, type HomeInfo, type QuitAnswer, type ServerId } from '../shared/types'
+import {
+  LAUNCHER_VERSION_ARG,
+  SERVER_IDS,
+  isBetaVersion,
+  type FolderKind,
+  type HomeInfo,
+  type QuitAnswer,
+  type ReportResult,
+  type ServerId
+} from '../shared/types'
+import appIcon from '../../build/icon.ico?asset'
 import { AccountService } from './accounts/accountService'
 import { accountStoreFor } from './accounts/accountStore'
 import { BackupService } from './backup/backupService'
+import { BotHistory } from './bots/botHistory'
 import { listBots } from './bots/botList'
 import { setGithubCacheDir } from './github/cachedJson'
 import { Launcher } from './launcher'
@@ -13,6 +24,9 @@ import { processMemoryMb } from './system/memory'
 import { validValues } from './server/serverSettings'
 import { ServerUpdater } from './serverUpdate/serverUpdater'
 import { isDeveloperMode, SettingsStore } from './settings'
+import { createReport, issueUrl } from './report'
+import { readSystemOptions, setSystemOption } from './system/systemOptions'
+import { TaskbarPresence, type TrayLanguage } from './taskbar'
 import { LauncherUpdater } from './update/updater'
 
 // Lets the end-to-end tests run against a throwaway profile instead of the player's own.
@@ -49,6 +63,30 @@ function localRepositories(): Record<'launcher' | 'server', string | null> | nul
 
 const news = new NewsFeed(isBetaVersion(app.getVersion()), localRepositories)
 
+/** The bots in the world by faction while the game server is ready, else null: what the home shows and the last hour's curve counts. */
+async function botsInWorld(): Promise<HomeInfo['botsInWorld']> {
+  if (launcher.getState().servers.game.status !== 'ready') {
+    return null
+  }
+  const bots = await listBots(launcher.currentLayout)
+  if (!Array.isArray(bots)) {
+    return null
+  }
+  const present = bots.filter((bot) => bot.inWorld)
+  return {
+    elyos: present.filter((bot) => bot.race === 'ELYOS').length,
+    asmodians: present.filter((bot) => bot.race === 'ASMODIANS').length
+  }
+}
+
+// a point a minute; the end-to-end tests ask for one every few hundred milliseconds
+const botHistory = new BotHistory(botsInWorld, Number(process.env['ECHOES_BOT_SAMPLE_MS'] ?? 60_000))
+
+/** The interface's language, which the tray's menu and a report's issue text follow. */
+let language: TrayLanguage = 'fr'
+/** The last report made: the only file the page may ask to show, and the issue page made for it. */
+let lastReport: ReportResult | null = null
+
 const isText = (value: unknown, maxLength: number): value is string =>
   typeof value === 'string' && value.length > 0 && value.length <= maxLength
 // Set once the person has said what to do with running servers, so the window may close.
@@ -58,9 +96,21 @@ function isServerId(value: unknown): value is ServerId {
   return typeof value === 'string' && (SERVER_IDS as readonly string[]).includes(value)
 }
 
-function registerIpc(window: BrowserWindow): void {
+function registerIpc(window: BrowserWindow, presence: TaskbarPresence): void {
   ipcMain.handle('launcher:get-state', () => launcher.getState())
   ipcMain.handle('launcher:get-logs', (_event, id: unknown) => (isServerId(id) ? launcher.getLogs(id) : []))
+  ipcMain.handle('launcher:open-log-folder', async (_event, id: unknown) => {
+    const folder = isServerId(id) ? launcher.logFolder(id) : null
+    if (folder) {
+      await shell.openPath(folder)
+    }
+  })
+  ipcMain.handle('launcher:set-language', (_event, value: unknown) => {
+    if (value === 'fr' || value === 'en') {
+      language = value
+      presence.setLanguage(value)
+    }
+  })
   ipcMain.handle('launcher:start', () => launcher.startAll())
   ipcMain.handle('launcher:stop', () => launcher.stopAll())
   ipcMain.handle('launcher:force-stop', (_event, id: unknown) => (isServerId(id) ? launcher.forceStop(id) : false))
@@ -79,6 +129,42 @@ function registerIpc(window: BrowserWindow): void {
     Number.isInteger(id) ? accounts.selectCharacter(id as number) : undefined
   )
   ipcMain.handle('bots:list', () => listBots(launcher.currentLayout))
+  ipcMain.handle('bots:history', () => botHistory.current)
+  ipcMain.handle('report:create', async (): Promise<ReportResult | null> => {
+    const layout = launcher.currentLayout
+    let character = null
+    try {
+      const accountState = await accounts.getState()
+      character = accountState.characters.find((candidate) => candidate.id === accountState.selectedCharacterId) ?? null
+    } catch {
+      // no database to read the character from: the report says none
+    }
+    const context = {
+      launcherVersion: app.getVersion(),
+      state: launcher.getState(),
+      serverUpdate: serverUpdater.current,
+      character,
+      botsInWorld: await botsInWorld().catch(() => null),
+      language
+    }
+    try {
+      const path = await createReport(layout, join(layout?.root ?? app.getPath('userData'), 'reports'), context)
+      lastReport = { path, issueUrl: issueUrl(context, parse(path).base) }
+      return lastReport
+    } catch {
+      return null
+    }
+  })
+  ipcMain.handle('report:show', () => {
+    if (lastReport) {
+      shell.showItemInFolder(lastReport.path)
+    }
+  })
+  ipcMain.handle('report:open-issue', async () => {
+    if (lastReport) {
+      await shell.openExternal(lastReport.issueUrl)
+    }
+  })
   ipcMain.handle('game:destinations', () => launcher.listDestinations())
   ipcMain.handle('game:teleport', async (_event, destinationId: unknown) => {
     // Through the account's state, so the stored password is checked again as for everything else the page shows.
@@ -136,6 +222,18 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('launcher:use-mysql-service', () => launcher.chooseMysqlOptions(null))
   ipcMain.handle('news:get-state', () => news.current)
   ipcMain.handle('news:refresh', () => news.refresh())
+  ipcMain.handle('settings:set-start-servers', async (_event, on: unknown) => {
+    if (typeof on === 'boolean') {
+      await launcher.setStartServersOnLaunch(on)
+    }
+  })
+  ipcMain.handle('system:get-options', () => readSystemOptions())
+  ipcMain.handle('system:set-option', async (_event, option: unknown, on: unknown) => {
+    if ((option === 'startWithWindows' || option === 'desktopShortcut') && typeof on === 'boolean') {
+      await setSystemOption(option, on)
+    }
+    return readSystemOptions()
+  })
   ipcMain.handle('settings:set-developer-mode', async (_event, on: unknown) => {
     if (typeof on !== 'boolean') {
       return
@@ -170,20 +268,9 @@ function registerIpc(window: BrowserWindow): void {
         // the game server's database not created yet, or the account refused
       }
     }
-    let botsInWorld: HomeInfo['botsInWorld'] = null
-    if (state.servers.game.status === 'ready') {
-      const bots = await listBots(launcher.currentLayout)
-      if (Array.isArray(bots)) {
-        const present = bots.filter((bot) => bot.inWorld)
-        botsInWorld = {
-          elyos: present.filter((bot) => bot.race === 'ELYOS').length,
-          asmodians: present.filter((bot) => bot.race === 'ASMODIANS').length
-        }
-      }
-    }
     const pid = launcher.gameProcessId
     const gameMemoryMb = pid !== null && state.servers.game.status !== 'stopped' ? await processMemoryMb(pid) : null
-    return { lastBackup, botsInWorld, gameMemoryMb, disk, backups: { count: backupList.length, bytes: backupBytes }, database }
+    return { lastBackup, botsInWorld: await botsInWorld(), gameMemoryMb, disk, backups: { count: backupList.length, bytes: backupBytes }, database }
   })
   ipcMain.handle('server-update:get-state', () => serverUpdater.current)
   ipcMain.handle('server-update:prepare', () => serverUpdater.prepare())
@@ -201,6 +288,13 @@ function registerIpc(window: BrowserWindow): void {
     return true
   })
   ipcMain.handle('launcher:quit-answer', async (_event, answer: QuitAnswer) => {
+    if (answer === 'background') {
+      // the servers keep running under the launcher, which stays in the notification area: its icon brings the window back
+      launcher.setQuitRequested(false)
+      updater.cancelInstall()
+      window.hide()
+      return
+    }
     if (answer === 'stop' && !(await launcher.stopAll())) {
       // A server would not stop: the window stays, and its status says why.
       launcher.setQuitRequested(false)
@@ -217,6 +311,8 @@ function registerIpc(window: BrowserWindow): void {
   })
 
   launcher.on('state', (state) => window.webContents.send('launcher:state', state))
+  launcher.on('state', (state) => presence.setState(state))
+  serverUpdater.on('state', (state) => presence.setServerUpdate(state))
   launcher.on('lines', (batch) => window.webContents.send('launcher:lines', batch))
   updater.on('state', (state) => window.webContents.send('update:state', state))
   serverUpdater.on('state', (state) => window.webContents.send('server-update:state', state))
@@ -240,9 +336,8 @@ function createWindow(): BrowserWindow {
     title: 'Echoes of Atreia',
     backgroundColor: '#070b16',
     autoHideMenuBar: true,
-    // installed, the window takes the executable's icon (electron-builder puts build/icon.ico in it); from the sources, electron.exe has
-    // Electron's own, so the launcher's is given here
-    ...(app.isPackaged ? {} : { icon: join(app.getAppPath(), 'build', 'icon.ico') }),
+    // run from its sources, electron.exe has Electron's icon: the launcher's is given (installed, the executable has it too)
+    icon: appIcon,
     // The window's own bar in the launcher's colours: the page draws it, Windows keeps only its three buttons over it.
     titleBarStyle: 'hidden',
     titleBarOverlay: { color: '#080c1a', symbolColor: '#d8b46c', height: 46 },
@@ -294,18 +389,23 @@ function createWindow(): BrowserWindow {
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
-  app.on('second-instance', () => {
-    const window = BrowserWindow.getAllWindows()[0]
-    if (window) {
-      if (window.isMinimized()) {
-        window.restore()
-      }
-      window.focus()
-    }
-  })
+  let presence: TaskbarPresence | null = null
+  // the window may be in the background, hidden: it is shown again
+  app.on('second-instance', () => presence?.showWindow())
   void app.whenReady().then(() => {
     const window = createWindow()
-    registerIpc(window)
+    presence = new TaskbarPresence(window, appIcon, {
+      play: () => void launcher.play(),
+      start: () => void launcher.startAll(),
+      stop: () => void launcher.stopAll(),
+      quit: () => {
+        presence?.showWindow()
+        window.close()
+      }
+    })
+    presence.start()
+    registerIpc(window, presence)
+    botHistory.start()
     // Everything GitHub is asked is asked once, here: the start is what shows a new version. After the settings (the developer mode) and the
     // server folder (where the repositories' notes are), the server's releases once the launcher has found its folder (below).
     void settings.load()
@@ -313,6 +413,11 @@ if (!app.requestSingleInstanceLock()) {
       .then(() => {
         updater.start(isDeveloperMode(settings.current))
         news.start()
+        // the option asked for it: the servers that are down start, those found running are kept
+        const state = launcher.getState()
+        if (settings.current.startServersOnLaunch && state.install.serverFound && state.servers.game.status !== 'ready') {
+          void launcher.startAll()
+        }
       })
   })
 }
@@ -321,6 +426,7 @@ if (!app.requestSingleInstanceLock()) {
 app.on('will-quit', () => updater.installIfAsked())
 
 app.on('window-all-closed', () => {
+  botHistory.stop()
   launcher.dispose()
   app.quit()
 })

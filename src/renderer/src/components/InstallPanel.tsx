@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { LOW_DISK_BYTES, REQUIRED_JAVA, SERVER_IDS, type HomeInfo, type LauncherState } from '../../../shared/types'
+import { useRef, useState } from 'react'
+import { LOW_DISK_BYTES, REQUIRED_JAVA, SERVER_IDS, type HomeInfo, type LauncherState, type SystemOption, type SystemOptions } from '../../../shared/types'
 import { formatSize } from '../format'
 import { useI18n } from '../i18n'
 
@@ -26,6 +26,26 @@ function FolderRow(props: {
   )
 }
 
+/** One option of the installation's window: a box, its name, and what it does. Disabled with a reason when this launcher cannot offer it. */
+function OptionRow(props: {
+  label: string
+  hint?: string
+  checked: boolean
+  disabled?: boolean
+  testId: string
+  onChange: (on: boolean) => void
+}): React.JSX.Element {
+  return (
+    <label className="install-option" data-testid={props.testId}>
+      <input type="checkbox" checked={props.checked} disabled={props.disabled} onChange={(event) => props.onChange(event.target.checked)} />
+      <span>
+        <strong>{props.label}</strong>
+        {props.hint && <span className="muted">{props.hint}</span>}
+      </span>
+    </label>
+  )
+}
+
 /**
  * Set once and rarely looked at again: one line of checks on the page, whatever its state, so the home page never moves; the folders and
  * Java are in a dialog that line opens. Below, what the install takes: the drive's free space, the backups, the database.
@@ -34,6 +54,17 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
   const { state, info } = props
   const { language, t } = useI18n()
   const dialog = useRef<HTMLDialogElement>(null)
+  // what Windows has now, read each time the window opens: the person may have changed it there
+  const [system, setSystem] = useState<SystemOptions>({ startWithWindows: null, desktopShortcut: null })
+  const openDialog = (): void => {
+    dialog.current?.showModal()
+    void window.launcher.getSystemOptions().then(setSystem)
+  }
+  const setSystemOption = (option: SystemOption, on: boolean): void => {
+    // the box moves at once; Windows' answer then says what it really holds
+    setSystem({ ...system, [option]: on })
+    void window.launcher.setSystemOption(option, on).then(setSystem)
+  }
   const { install } = state
   // The folders can only change while nothing runs: the running servers belong to the current one.
   const locked =
@@ -67,7 +98,7 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
         className="install-summary"
         data-testid="install-summary"
         aria-haspopup="dialog"
-        onClick={() => dialog.current?.showModal()}
+        onClick={openDialog}
       >
         {check(install.serverFound, t('install.server'))}
         {check(install.clientFound, t('install.client'))}
@@ -146,17 +177,38 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
             </span>
           </div>
         </div>
-        <label className="install-developer">
-          <input
-            type="checkbox"
-            checked={state.developerMode}
-            onChange={(event) => void window.launcher.setDeveloperMode(event.target.checked)}
+        <h3 className="install-options-title">{t('install.options')}</h3>
+        <div className="install-options">
+          <OptionRow
+            label={t('install.startServers')}
+            checked={state.startServersOnLaunch}
+            testId="option-start-servers"
+            onChange={(on) => void window.launcher.setStartServersOnLaunch(on)}
           />
-          <span>
-            <strong>{t('install.developer')}</strong>
-            <span className="muted">{t('install.developerHint')}</span>
-          </span>
-        </label>
+          <OptionRow
+            label={t('install.startWithWindows')}
+            hint={system.startWithWindows === null ? t('install.installedOnly') : undefined}
+            checked={system.startWithWindows === true}
+            disabled={system.startWithWindows === null}
+            testId="option-start-with-windows"
+            onChange={(on) => setSystemOption('startWithWindows', on)}
+          />
+          <OptionRow
+            label={t('install.desktopShortcut')}
+            hint={system.desktopShortcut === null ? t('install.installedOnly') : undefined}
+            checked={system.desktopShortcut === true}
+            disabled={system.desktopShortcut === null}
+            testId="option-desktop-shortcut"
+            onChange={(on) => setSystemOption('desktopShortcut', on)}
+          />
+          <OptionRow
+            label={t('install.developer')}
+            hint={t('install.developerHint')}
+            checked={state.developerMode}
+            testId="option-developer"
+            onChange={(on) => void window.launcher.setDeveloperMode(on)}
+          />
+        </div>
         <div className="dialog-actions">
           <button type="button" className="button-primary" onClick={() => dialog.current?.close()}>
             {t('action.close')}

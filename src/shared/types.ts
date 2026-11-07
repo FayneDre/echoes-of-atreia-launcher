@@ -110,6 +110,29 @@ export interface LauncherState {
   serverVersion: ServerVersion | null
   /** GitHub is never asked: the news come from the repositories' notes, no release is offered, the launcher does not update itself. */
   developerMode: boolean
+  /** The servers start by themselves when the launcher opens. */
+  startServersOnLaunch: boolean
+}
+
+/** Where the whole stack stands, in one word: the home's phrase, the taskbar's mark and the tray's tooltip all read it. */
+export type StackPhase = 'ready' | 'failed' | 'starting' | 'stopping' | 'updating' | 'partial' | 'stopped'
+
+export function stackPhase(state: LauncherState): StackPhase {
+  const { servers, activity } = state
+  const running = SERVER_IDS.some((id) => !['stopped', 'failed'].includes(servers[id].status) || servers[id].external)
+  if (servers.game.status === 'ready') {
+    return 'ready'
+  }
+  if (SERVER_IDS.some((id) => servers[id].status === 'failed')) {
+    return 'failed'
+  }
+  if (activity === 'starting' || activity === 'stopping') {
+    return activity
+  }
+  if (activity === 'server-update') {
+    return 'updating'
+  }
+  return running ? 'partial' : 'stopped'
 }
 
 /**
@@ -181,7 +204,8 @@ export interface LogBatch {
 
 export type FolderKind = 'server' | 'client'
 
-export type QuitAnswer = 'stop' | 'leave' | 'cancel'
+/** `background`: the window hides, the launcher stays in the notification area and keeps the servers. */
+export type QuitAnswer = 'stop' | 'leave' | 'cancel' | 'background'
 
 export const REQUIRED_JAVA = 25
 
@@ -324,6 +348,27 @@ export interface DatabaseInfo {
 
 /** Below this, the free space shows as a warning: a server update downloads close to 2 GB, and backups pile up. */
 export const LOW_DISK_BYTES = 5 * 1024 ** 3
+
+/** How many bots were in the world at a moment (milliseconds since 1970), by faction: one point of the home's last hour. */
+export interface BotSample {
+  at: number
+  elyos: number
+  asmodians: number
+}
+
+/** The options that touch Windows itself; null for one this launcher cannot offer (run from its sources, it is not the program to start). */
+export interface SystemOptions {
+  startWithWindows: boolean | null
+  desktopShortcut: boolean | null
+}
+
+export type SystemOption = keyof SystemOptions
+
+/** A problem report made: the zip, and the GitHub issue page that names it, filled with the versions. */
+export interface ReportResult {
+  path: string
+  issueUrl: string
+}
 
 /** The command-line argument the window's preload reads the launcher's version from: known at once, before anything is detected. */
 export const LAUNCHER_VERSION_ARG = '--echoes-launcher-version='

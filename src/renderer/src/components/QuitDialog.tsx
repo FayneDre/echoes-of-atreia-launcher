@@ -20,9 +20,13 @@ export function QuitDialog(): React.JSX.Element {
         ) : (
           <>
             <p>{t('quit.body')}</p>
+            <p className="muted">{t('quit.backgroundHint')}</p>
             <div className="dialog-actions">
               <button type="button" className="button-primary" onClick={() => answer('stop')}>
                 {t('quit.stop')}
+              </button>
+              <button type="button" data-testid="quit-background" onClick={() => answer('background')}>
+                {t('quit.background')}
               </button>
               <button type="button" onClick={() => answer('leave')}>
                 {t('quit.leave')}

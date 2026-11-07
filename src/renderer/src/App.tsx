@@ -4,6 +4,7 @@ import { BackupsPage } from './components/BackupsPage'
 import { BotsPage } from './components/BotsPage'
 import { InstallPanel } from './components/InstallPanel'
 import { QuitDialog } from './components/QuitDialog'
+import { ReportDialog } from './components/ReportDialog'
 import { ServerUpdatePanel } from './components/ServerUpdatePanel'
 import { ServersPanel } from './components/ServersPanel'
 import { SettingsPage } from './components/SettingsPage'
@@ -197,6 +198,7 @@ export function App(): React.JSX.Element {
 
       <footer className="footer">
         <span>{t('footer.disclaimer')}</span>
+        <ReportDialog />
         <span className="footer-versions" data-testid="footer-versions">
           {t('footer.versions', {
             launcher: window.launcher.version ?? '…',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { SERVER_IDS, type AccountsState, type HomeInfo, type LauncherState } from '../../../shared/types'
+import { SERVER_IDS, stackPhase, type AccountsState, type HomeInfo, type LauncherState } from '../../../shared/types'
 import { hasMessage, useI18n, type MessageKey } from '../i18n'
 import { Icon } from './Icon'
 import { ProblemText } from './ProblemText'
@@ -36,24 +36,13 @@ export function HomeHero({ state, accounts, info, onReloadInfo }: Props): React.
   const { servers, activity, install } = state
   const idle = activity === 'idle'
   const ready = SERVER_IDS.filter((id) => servers[id].status === 'ready').length
-  const failed = SERVER_IDS.some((id) => servers[id].status === 'failed')
   const running = SERVER_IDS.some((id) => !['stopped', 'failed'].includes(servers[id].status) || servers[id].external)
   const gameReady = servers.game.status === 'ready'
   const canStop = running && (idle || activity === 'starting')
 
-  const [phrase, mood]: [MessageKey, string] = gameReady
-    ? ['hero.ready', 'ready']
-    : failed
-      ? ['hero.failed', 'failed']
-      : activity === 'starting'
-        ? ['hero.starting', 'busy']
-        : activity === 'stopping'
-          ? ['hero.stopping', 'busy']
-          : activity === 'server-update'
-            ? ['hero.updating', 'busy']
-            : running
-              ? ['hero.partial', 'busy']
-              : ['hero.stopped', 'stopped']
+  const phase = stackPhase(state)
+  const phrase: MessageKey = `hero.${phase}`
+  const mood = phase === 'ready' || phase === 'failed' || phase === 'stopped' ? phase : 'busy'
 
   const character = accounts?.characters.find((candidate) => candidate.id === accounts.selectedCharacterId)
   const classKey = character ? `class.${character.playerClass}` : ''

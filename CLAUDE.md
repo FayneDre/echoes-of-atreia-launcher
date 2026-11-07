@@ -6,6 +6,7 @@ the server up and acts on the player's character. The server itself lives in its
 
 [docs/roadmap.md](docs/roadmap.md) says what is left, by phase, and why each decision was made. Start there.
 [docs/how-it-works.md](docs/how-it-works.md) says how the servers are started and stopped, and why; read it before touching `src/main/server/`.
+[docs/desktop.md](docs/desktop.md) says what the launcher does outside its window (taskbar, tray, Windows options, problem report).
 [docs/server-update.md](docs/server-update.md) says how a beta launcher installs the server's pre-releases; read it before touching `src/main/serverUpdate/`.
 The one rule above all: **never kill the game server while it can stop by itself** (it saves the players on shutdown).
 

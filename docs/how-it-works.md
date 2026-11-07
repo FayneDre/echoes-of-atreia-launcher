@@ -2,7 +2,8 @@
 
 What is true of the code today. The reasons are the point: each one is a trap the server's own scripts already hit.
 The server's own update (download, check, install, return) is in [server-update.md](server-update.md).
-The home page (banner, news, what each fact reads) is in [home-page.md](home-page.md).
+The home page (banner, news, what each fact reads) is in [home-page.md](home-page.md); the taskbar, the notification area, the options
+that touch Windows and the problem report in [desktop.md](desktop.md).
 
 ## Finding the installation
 
@@ -54,7 +55,8 @@ connects to the other two while it starts.
   connection the game server counts against its flood limit.
 - The chat and login servers keep nothing a shutdown would save: they are ended directly.
 - Order: game, login, chat; MySQL only on its own button, and never while a server runs.
-- **Closing the window while servers run** asks: stop them and quit, leave them running, or stay. Servers left running are taken over at the
+- **Closing the window while servers run** asks: stop them and quit, keep them in the background (the launcher stays in the notification
+  area, see [desktop.md](desktop.md)), leave them running, or stay. Servers left running are taken over at the
   next start of the launcher, found by port and by the main class on their command line. The command line does not say which install a
   server runs from (`-cp "libs/*"` is relative): when two processes name the class (another install, a server started by hand), none is
   taken for this one. The game server still stops through its request in its own folder; a chat or login server is not killed on a guess,

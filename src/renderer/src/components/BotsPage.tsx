@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { BotSummary, LauncherState, Problem } from '../../../shared/types'
 import { hasMessage, useI18n } from '../i18n'
+import { BotHistoryChart } from './BotHistoryChart'
 import { ProblemText } from './ProblemText'
 
 /** A page of each faction's list, and how many more each click shows. */
@@ -112,6 +113,7 @@ export function BotsPage({ state, visible }: { state: LauncherState; visible: bo
           {t('bots.refresh')}
         </button>
       </div>
+      <BotHistoryChart visible={visible} />
       {bots !== null && bots.length > 0 && (
         <div className="level-bands" aria-label={t('bots.levels')} data-testid="level-bands">
           {bands.map(({ band, count, share }) => (

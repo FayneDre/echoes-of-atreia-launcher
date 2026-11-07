@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events'
+import { join } from 'node:path'
 import {
   REQUIRED_JAVA,
   SERVER_IDS,
@@ -68,7 +69,8 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       restartNeeded: this.restartNeeded,
       problem: this.problem,
       serverVersion: this.serverVersion,
-      developerMode: isDeveloperMode(this.settings.current)
+      developerMode: isDeveloperMode(this.settings.current),
+      startServersOnLaunch: this.settings.current.startServersOnLaunch === true
     }
   }
 
@@ -76,6 +78,17 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   async setDeveloperMode(on: boolean): Promise<void> {
     await this.settings.update((settings) => ({ ...settings, developerMode: on }))
     this.publish()
+  }
+
+  /** Whether the servers start by themselves when the launcher opens, kept in the settings. */
+  async setStartServersOnLaunch(on: boolean): Promise<void> {
+    await this.settings.update((settings) => ({ ...settings, startServersOnLaunch: on }))
+    this.publish()
+  }
+
+  /** The folder a server writes its logs to, once an installation is found. */
+  logFolder(id: ServerId): string | null {
+    return this.layout ? join(this.layout.servers[id].dir, 'log') : null
   }
 
   getLogs(id: ServerId): string[] {

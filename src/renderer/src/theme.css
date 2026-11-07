@@ -848,27 +848,50 @@ button.link:hover:not(:disabled) {
   color: var(--text);
 }
 
-.install-developer {
+/* the options under the folders: the launcher's own, Windows', the developer's */
+.install-options-title {
+  margin: 16px 0 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(216 180 108 / 12%);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.install-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.install-option {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid rgb(216 180 108 / 12%);
   cursor: pointer;
 }
 
-.install-developer input {
+.install-option:has(input:disabled) {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.install-option input {
   margin-top: 3px;
 }
 
-.install-developer > span {
+.install-option > span {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.install-developer .muted {
+.install-option strong {
+  font-weight: 500;
+}
+
+.install-option .muted {
   font-size: 12px;
 }
 
@@ -1258,4 +1281,155 @@ button.link:hover:not(:disabled) {
 .footer-versions {
   color: var(--gold);
   opacity: 0.8;
+}
+
+/* beside the versions, on the right: what a tester reaches for, on every page */
+button.link.footer-report {
+  margin-left: auto;
+  font-size: inherit;
+}
+
+.report-dialog {
+  width: min(560px, calc(100% - 48px));
+  padding: 20px 24px;
+  color: var(--text);
+  text-align: left;
+}
+
+.report-done {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid rgb(95 220 176 / 30%);
+  border-radius: 6px;
+  background: rgb(95 220 176 / 6%);
+}
+
+.report-done p {
+  margin: 0 0 6px;
+  overflow-wrap: anywhere;
+}
+
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.report-dialog .dialog-actions {
+  justify-content: flex-end;
+}
+
+/* ---------- Terminals: the lines that matter ---------- */
+
+.terminal .log-error {
+  color: var(--bad);
+}
+
+.terminal .log-warn {
+  color: var(--busy);
+}
+
+/* ---------- Bots: the last hour ---------- */
+
+.bot-history {
+  margin: 0 0 18px;
+}
+
+.bot-history-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 6px;
+}
+
+.bot-history-head h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.chart-legend li,
+.chart-tooltip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.bot-history-empty {
+  margin: 0;
+  padding: 18px 0;
+  font-size: 13px;
+}
+
+.bot-history-plot {
+  position: relative;
+}
+
+.bot-history-plot svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart-grid {
+  stroke: rgb(152 161 182 / 16%);
+  stroke-width: 1;
+}
+
+.chart-axis {
+  fill: var(--text-muted);
+  font-size: 11px;
+}
+
+.chart-label {
+  fill: var(--text);
+  font-size: 12px;
+}
+
+.chart-crosshair {
+  stroke: rgb(236 230 214 / 35%);
+  stroke-width: 1;
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  border: 1px solid var(--gold-line);
+  border-radius: 6px;
+  background: var(--bg-raised);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.chart-tooltip[data-flip='right'] {
+  transform: translateX(12px);
+}
+
+.chart-tooltip[data-flip='left'] {
+  transform: translateX(calc(-100% - 12px));
 }

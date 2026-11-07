@@ -48,6 +48,8 @@ export function LanguageProvider({ children }: { children: ReactNode }): React.J
 
   useEffect(() => {
     document.documentElement.lang = language
+    // the tray's menu and a report's issue text follow it
+    void window.launcher?.setLanguage(language)
   }, [language])
 
   const setLanguage = (next: Language): void => {
