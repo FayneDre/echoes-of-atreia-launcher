@@ -114,6 +114,20 @@ export function writeFakeDatabase(install: FakeInstall, accounts: FakeAccount[] 
   )
 }
 
+/**
+ * A language pack of the client, as `L10N/<folder>` holds one: its `<code>.pak`, its `Data/Data.pak`, and other files named relative to it
+ * (the English pack's cutscenes, which another pack may lack). Written empty: the launcher checks names, not contents.
+ */
+export function writeLanguagePack(clientRoot: string, folder: string, files: string[] = [], complete = true): void {
+  const pack = join(clientRoot, 'L10N', folder)
+  const paths = [...files, ...(complete ? [`${folder.toLowerCase()}.pak`, 'Data/Data.pak'] : [])]
+  for (const path of paths) {
+    mkdirSync(join(pack, path, '..'), { recursive: true })
+    writeFileSync(join(pack, path), '')
+  }
+  mkdirSync(pack, { recursive: true })
+}
+
 export interface FakeInstall {
   root: string
   serverRoot: string
@@ -215,7 +229,12 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
     join(serverRoot, 'game-server', 'data', 'static_data', 'world_maps.xml'),
     '<world_maps>\n\t<map id="110010000" cName="LC1" name="Sanctum"/>\n\t<map id="220010000" cName="DF1" name="Ishalgen"/>\n</world_maps>\n'
   )
-  write(join(clientRoot, 'bin64', 'aion.bin'), '')
+  // a client as the NA one ships: its executable and engine, its shared data, the English pack alone
+  for (const file of ['aion.bin', 'crysystem.dll', 'Cry3DEngine.dll', 'XRenderD3D9.dll']) {
+    write(join(clientRoot, 'bin64', file), '')
+  }
+  write(join(clientRoot, 'Data', 'data.pak'), '')
+  writeLanguagePack(clientRoot, 'enu', ['data/cutscene/movie/aion_4.8_intro.bik', 'sounds/cutscene/df5/df5.pak'])
 
   let mysql: Server | null = null
   if (options.mysqlUp ?? true) {

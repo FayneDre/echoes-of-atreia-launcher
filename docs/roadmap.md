@@ -48,9 +48,9 @@ Planned on 5 November, in this order. None of them touches the client's executab
    database, `mygs.properties` or the player's saves. SQL changes go through the server's own once-only mechanism (`schema_applied_sql`).
 2. **A first download that resumes and verifies.** The full install is tens of gigabytes: downloaded in parts that survive a closed launcher or a
    lost connection, checked against the manifest's SHA-256 before anything is extracted, with a second source when the first fails.
-3. **The client in French.** The 4.8 NA client accepts only the ENU, DEU and FRA locales; the launcher prepares `L10N/fra` from French text data
-   and starts the client with `-lang:fra`, the English archives left untouched. The French data must come from an original French client: where
-   it comes from is settled before anything is distributed.
+3. **The client in French.** Built on 7 November for a pack already in `L10N`: the launcher checks the client, offers the complete packs and
+   starts the client with `-lang:<code>` ([client.md](client.md)). Still to do: shipping a French pack, whose source must be settled before
+   anything is distributed.
 4. **Several clients at once**, each signed in to its own account: an open game no longer blocks Play. For testing groups and trades alone.
 5. **The Vulkan renderer**, optional: DXVK's Direct3D 9 DLL put beside the client or removed again, the choice remembered. Often smoother on
    recent graphics cards; switched only while every client is closed.

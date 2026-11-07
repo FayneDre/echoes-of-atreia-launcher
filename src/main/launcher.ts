@@ -17,6 +17,7 @@ import {
   type ServerVersion
 } from '../shared/types'
 import { launchClient } from './client'
+import { checkClient, clientLanguageFor, type ClientCheck } from './clientCheck'
 import { findClientNear, isClientFolder, readServerLayout, type ServerLayout } from './server/installation'
 import { adminRequest, parseDestinations } from './server/adminChannel'
 import { parseVersionAnswer, readInstallManifest } from './server/serverVersion'
@@ -36,7 +37,18 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   private layout: ServerLayout | null = null
   private servers: Partial<Record<ServerId, ServerProcess>> = {}
   private readonly mysql = new MysqlControl(() => this.publish())
-  private install: InstallState = { serverRoot: null, serverFound: false, clientRoot: null, clientFound: false, javaVersion: null }
+  private install: InstallState = {
+    serverRoot: null,
+    serverFound: false,
+    clientRoot: null,
+    clientFound: false,
+    javaVersion: null,
+    clientMissing: [],
+    clientPacks: [],
+    clientLanguage: null
+  }
+  /** The interface's language, which the client's language follows until the person chooses one. */
+  private interfaceLanguage: 'fr' | 'en' = 'fr'
   private activity: Activity = 'detecting'
   private stopRequested = false
   private quitRequested = false
@@ -82,6 +94,47 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   async setDeveloperMode(on: boolean): Promise<void> {
     await this.settings.update((settings) => ({ ...settings, developerMode: on }))
     this.publish()
+  }
+
+  /** What the install says of the client: what it lacks, its packs, the language it starts in. */
+  private clientFacts(check: ClientCheck | null): Pick<InstallState, 'clientMissing' | 'clientPacks' | 'clientLanguage'> {
+    if (!check) {
+      return { clientMissing: [], clientPacks: [], clientLanguage: null }
+    }
+    return {
+      clientMissing: check.missing,
+      clientPacks: check.packs,
+      clientLanguage: clientLanguageFor(check.packs, this.settings.current.clientLanguage, this.interfaceLanguage)
+    }
+  }
+
+  /** Reads the client's folder again: files may have been added or removed since the launcher started. */
+  async checkClient(): Promise<void> {
+    const { clientRoot, clientFound } = this.install
+    if (clientRoot && clientFound) {
+      this.install = { ...this.install, ...this.clientFacts(await checkClient(clientRoot)) }
+      this.publish()
+    }
+  }
+
+  /** The language the client starts in, kept in the settings; only one whose pack is complete. */
+  async setClientLanguage(code: string): Promise<void> {
+    if (!this.install.clientPacks.some((pack) => pack.code === code && pack.complete)) {
+      return
+    }
+    await this.settings.update((settings) => ({ ...settings, clientLanguage: code }))
+    this.install = { ...this.install, clientLanguage: clientLanguageFor(this.install.clientPacks, code, this.interfaceLanguage) }
+    this.publish()
+  }
+
+  /** The interface's language changed: the client follows it, unless the person chose the client's language. */
+  setInterfaceLanguage(language: 'fr' | 'en'): void {
+    this.interfaceLanguage = language
+    const clientLanguage = clientLanguageFor(this.install.clientPacks, this.settings.current.clientLanguage, language)
+    if (clientLanguage !== this.install.clientLanguage) {
+      this.install = { ...this.install, clientLanguage }
+      this.publish()
+    }
   }
 
   /** Whether the servers start by themselves when the launcher opens, kept in the settings. */
@@ -164,12 +217,14 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     const serverRoot = saved.serverRoot || process.env['AION_SERVER_HOME'] || null
     this.layout = serverRoot ? await readServerLayout(serverRoot) : null
     const clientRoot = saved.clientRoot || (serverRoot ? await findClientNear(serverRoot) : null)
+    const clientFound = clientRoot ? await isClientFolder(clientRoot) : false
     this.install = {
       serverRoot,
       serverFound: this.layout !== null,
       clientRoot,
-      clientFound: clientRoot ? await isClientFolder(clientRoot) : false,
-      javaVersion: await javaMajorVersion()
+      clientFound,
+      javaVersion: await javaMajorVersion(),
+      ...this.clientFacts(clientFound && clientRoot ? await checkClient(clientRoot) : null)
     }
     this.gameStatus = 'stopped'
     this.serverVersion = serverRoot ? await readInstallManifest(serverRoot) : null
@@ -395,7 +450,20 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       this.publish()
       return false
     }
-    const problem = await launchClient(this.install.clientRoot, this.layout.loginClientPort)
+    // read again: a pack or a file may have gone since the start
+    await this.checkClient()
+    const { clientMissing, clientLanguage } = this.install
+    if (clientMissing.length > 0) {
+      this.problem = { code: 'client-incomplete', detail: clientMissing.join(', ') }
+      this.publish()
+      return false
+    }
+    if (!clientLanguage) {
+      this.problem = { code: 'client-language-missing' }
+      this.publish()
+      return false
+    }
+    const problem = await launchClient(this.install.clientRoot, this.layout.loginClientPort, clientLanguage)
     this.problem = problem ?? undefined
     this.publish()
     return problem === null

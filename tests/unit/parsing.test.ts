@@ -90,6 +90,6 @@ describe('java', () => {
 
 describe('client', () => {
   it('reaches the local login server on its client port', () => {
-    expect(clientArguments(2106)).toEqual(['-ip:127.0.0.1', '-port:2106', '-loginex', '-lang:EN'])
+    expect(clientArguments(2106, 'FRA')).toEqual(['-ip:127.0.0.1', '-port:2106', '-loginex', '-lang:FRA'])
   })
 })

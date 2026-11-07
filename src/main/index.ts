@@ -110,6 +110,7 @@ function registerIpc(window: BrowserWindow, presence: TaskbarPresence): void {
     if (value === 'fr' || value === 'en') {
       language = value
       presence.setLanguage(value)
+      launcher.setInterfaceLanguage(value)
     }
   })
   ipcMain.handle('launcher:start', () => launcher.startAll())
@@ -233,6 +234,8 @@ function registerIpc(window: BrowserWindow, presence: TaskbarPresence): void {
       await launcher.setAutoCleanup(on)
     }
   })
+  ipcMain.handle('client:check', () => launcher.checkClient())
+  ipcMain.handle('client:set-language', (_event, code: unknown) => (typeof code === 'string' ? launcher.setClientLanguage(code) : undefined))
   ipcMain.handle('system:get-options', () => readSystemOptions())
   ipcMain.handle('system:set-option', async (_event, option: unknown, on: unknown) => {
     if ((option === 'startWithWindows' || option === 'desktopShortcut') && typeof on === 'boolean') {

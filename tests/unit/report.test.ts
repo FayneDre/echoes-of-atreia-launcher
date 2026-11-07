@@ -8,7 +8,7 @@ import type { ServerLayout } from '../../src/main/server/installation'
 import type { LauncherState } from '../../src/shared/types'
 
 const state: LauncherState = {
-  install: { serverRoot: 'D:/server', serverFound: true, clientRoot: 'D:/client', clientFound: true, javaVersion: 25 },
+  install: { serverRoot: 'D:/server', serverFound: true, clientRoot: 'D:/client', clientFound: true, javaVersion: 25, clientMissing: [], clientPacks: [], clientLanguage: null },
   mysql: { status: 'ready', serviceName: 'MySQL84', optionsFile: null, port: 3306 },
   servers: {
     chat: { id: 'chat', status: 'ready', external: false, port: 9021 },

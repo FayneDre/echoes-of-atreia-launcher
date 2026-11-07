@@ -23,6 +23,8 @@ export interface Settings {
   startServersOnLaunch?: boolean
   /** Old archived logs and reports go to the recycle bin at each start; unset, on except in the developer mode. */
   autoCleanup?: boolean
+  /** The client's language as the person chose it (a code of `L10N`); unset, the interface's own when its pack is there. */
+  clientLanguage?: string
 }
 
 /**

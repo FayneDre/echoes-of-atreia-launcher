@@ -372,6 +372,12 @@ export const en = {
   'install.startWithWindows': 'Start the launcher with Windows',
   'install.desktopShortcut': 'Shortcut on the desktop',
   'install.installedOnly': 'For the installed launcher only.',
+  'install.clientLanguage': 'Game language',
+  'install.noLanguagePack': 'No complete language pack in L10N',
+  'install.clientMissing': 'Missing: {files}',
+  'install.packPartial': '{language}: {count} files of the English pack are missing (some cutscenes may be silent).',
+  'install.packBroken': '{language}: incomplete pack ({code}.pak or Data/Data.pak missing), not offered.',
+  'install.checkClient': 'Check',
   'install.cleanup': 'Clean up old logs and reports at each start',
   'install.cleanupHint':
     'To the recycle bin: the servers’ archived logs past 30 days or 1 GB, the reports past the 10 newest. Backups are never touched. Off by default in the developer mode.',
@@ -407,6 +413,8 @@ export const en = {
   'problem.stop-unknown-process':
     'Another server of this kind runs on this computer, and the launcher cannot tell which one is this installation’s: stop it yourself, in its window.',
   'problem.client-failed': 'The game client could not be started.',
+  'problem.client-incomplete': 'The game client is missing files it needs to start. Check the client folder in Installation.',
+  'problem.client-language-missing': 'The game client has no complete language pack (L10N). Check the client folder in Installation.',
   'problem.account-unknown': 'There is no account by that name on this server.',
   'problem.password-wrong': 'Wrong password.',
   'problem.password-needed': 'The saved password no longer opens this account: type it again.',

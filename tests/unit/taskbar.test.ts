@@ -11,7 +11,7 @@ function server(id: ServerState['id'], status: ServerStatus): ServerState {
 
 function stateWith(statuses: [ServerStatus, ServerStatus, ServerStatus], activity: LauncherState['activity'] = 'idle'): LauncherState {
   return {
-    install: { serverRoot: 'D:/server', serverFound: true, clientRoot: null, clientFound: false, javaVersion: 25 },
+    install: { serverRoot: 'D:/server', serverFound: true, clientRoot: null, clientFound: false, javaVersion: 25, clientMissing: [], clientPacks: [], clientLanguage: null },
     mysql: { status: 'ready', serviceName: null, optionsFile: null, port: 3306 },
     servers: { chat: server('chat', statuses[0]), login: server('login', statuses[1]), game: server('game', statuses[2]) },
     activity,

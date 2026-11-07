@@ -198,7 +198,7 @@ test('launches the client on the login server port', async () => {
 
   const argsFile = join(install.clientRoot, 'client-args.json')
   await expect.poll(() => existsSync(argsFile), { timeout: 10_000 }).toBe(true)
-  expect(JSON.parse(readFileSync(argsFile, 'utf8'))).toEqual(['-ip:127.0.0.1', `-port:${install.ports.loginClient}`, '-loginex', '-lang:EN'])
+  expect(JSON.parse(readFileSync(argsFile, 'utf8'))).toEqual(['-ip:127.0.0.1', `-port:${install.ports.loginClient}`, '-loginex', '-lang:ENU'])
 
   await stopAll(page)
   await app.close()

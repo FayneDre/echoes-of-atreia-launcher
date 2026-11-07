@@ -1088,3 +1088,28 @@ button.secondary {
   color: var(--bad);
   white-space: normal;
 }
+
+/* the game language: the choice, then a line per note, wrapped rather than cut */
+.install-client-check {
+  align-items: flex-start;
+}
+
+.install-client-check .install-value {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  white-space: normal;
+}
+
+.install-client-note {
+  font-size: 12px;
+}
+
+.install-client-note.missing {
+  color: var(--bad);
+}
+
+.install-client-note.muted {
+  color: var(--text-muted);
+}

@@ -3,13 +3,14 @@
 What is true of the code today. The reasons are the point: each one is a trap the server's own scripts already hit.
 The server's own update (download, check, install, return) is in [server-update.md](server-update.md).
 The home page (banner, news, what each fact reads) is in [home-page.md](home-page.md); the taskbar, the notification area, the options
-that touch Windows and the problem report in [desktop.md](desktop.md).
+that touch Windows and the problem report in [desktop.md](desktop.md); the client's check and the game language in [client.md](client.md).
 
 ## Finding the installation
 
 - **Server folder**: the one chosen in the launcher, else `AION_SERVER_HOME`. It is an installation when `chat-server`, `login-server` and
   `game-server` each hold a `start.bat` with a `JAVA` line (`src/main/server/installation.ts`).
-- **Client folder**: the one chosen, else a sibling of the server folder holding `bin64/aion.bin`.
+- **Client folder**: the one chosen, else a sibling of the server folder holding `bin64/aion.bin`; its files and language packs are checked
+  ([client.md](client.md)).
 - **Ports** come from each server's configuration, read the way the server merges it: every `config/**/*.properties`, then the
   `config/my*.properties` overrides (`mygs.properties`), which win. Nothing is hard-coded but the servers' own defaults.
 - The choices are saved in `settings.json` in the launcher's profile folder.

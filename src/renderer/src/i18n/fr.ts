@@ -374,6 +374,12 @@ export const fr: Record<MessageKey, string> = {
   'install.startWithWindows': 'Lancer le launcher avec Windows',
   'install.desktopShortcut': 'Raccourci sur le bureau',
   'install.installedOnly': 'Seulement pour le launcher installé.',
+  'install.clientLanguage': 'Langue du jeu',
+  'install.noLanguagePack': 'Aucun pack de langue complet dans L10N',
+  'install.clientMissing': 'Manquant : {files}',
+  'install.packPartial': '{language} : {count} fichiers du pack anglais manquent (certaines cinématiques peuvent être muettes).',
+  'install.packBroken': '{language} : pack incomplet ({code}.pak ou Data/Data.pak manquant), non proposé.',
+  'install.checkClient': 'Vérifier',
   'install.cleanup': 'Nettoyer les anciens journaux et rapports à chaque démarrage',
   'install.cleanupHint':
     'Vers la corbeille : les journaux archivés des serveurs au-delà de 30 jours ou de 1 Go, les rapports au-delà des 10 plus récents. Les sauvegardes ne sont jamais touchées. Désactivé par défaut en mode développeur.',
@@ -410,6 +416,8 @@ export const fr: Record<MessageKey, string> = {
   'problem.stop-unknown-process':
     'Un autre serveur du même type tourne sur cet ordinateur, et le launcher ne peut pas savoir lequel est celui de cette installation : arrête-le toi-même, dans sa fenêtre.',
   'problem.client-failed': "Le client du jeu n'a pas pu être lancé.",
+  'problem.client-incomplete': 'Il manque au client du jeu des fichiers nécessaires pour démarrer. Vérifie le dossier du client dans Installation.',
+  'problem.client-language-missing': 'Le client du jeu n’a aucun pack de langue complet (L10N). Vérifie le dossier du client dans Installation.',
   'problem.account-unknown': "Aucun compte de ce nom sur ce serveur.",
   'problem.password-wrong': 'Mot de passe incorrect.',
   'problem.password-needed': "Le mot de passe enregistré n'ouvre plus ce compte : saisis-le à nouveau.",

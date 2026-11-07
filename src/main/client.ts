@@ -1,19 +1,22 @@
 import { spawn } from 'node:child_process'
-import type { Problem } from '../shared/types'
+import type { ClientLanguageCode, Problem } from '../shared/types'
 import { clientExecutable } from './server/installation'
 
-/** The arguments the 4.8 client needs to reach a local login server, as the client's own start.bat passes them. */
-export function clientArguments(loginPort: number): string[] {
-  return ['-ip:127.0.0.1', `-port:${loginPort}`, '-loginex', '-lang:EN']
+/**
+ * The arguments the 4.8 client needs to reach a local login server, and the language it starts in. The start.bat a repack ships passes
+ * `-lang:EN`, a code the client does not know (its list is `ENU`, `FRA`, `DEU`...): it falls back to English whatever pack is there.
+ */
+export function clientArguments(loginPort: number, language: ClientLanguageCode): string[] {
+  return ['-ip:127.0.0.1', `-port:${loginPort}`, '-loginex', `-lang:${language}`]
 }
 
 /**
  * Starts the game client, detached: it outlives the launcher. The end-to-end tests set ECHOES_FAKE_CLIENT to a script that records the
  * arguments it was given.
  */
-export function launchClient(clientRoot: string, loginPort: number): Promise<Problem | null> {
+export function launchClient(clientRoot: string, loginPort: number, language: ClientLanguageCode): Promise<Problem | null> {
   const fake = process.env['ECHOES_FAKE_CLIENT']
-  const args = clientArguments(loginPort)
+  const args = clientArguments(loginPort, language)
   const child = fake
     ? spawn(process.execPath, [fake, ...args], {
         cwd: clientRoot,

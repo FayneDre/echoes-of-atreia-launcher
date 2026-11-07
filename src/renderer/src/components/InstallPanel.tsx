@@ -1,5 +1,14 @@
 import { useRef, useState } from 'react'
-import { LOW_DISK_BYTES, REQUIRED_JAVA, SERVER_IDS, type HomeInfo, type LauncherState, type SystemOption, type SystemOptions } from '../../../shared/types'
+import {
+  CLIENT_LANGUAGE_NAMES,
+  LOW_DISK_BYTES,
+  REQUIRED_JAVA,
+  SERVER_IDS,
+  type HomeInfo,
+  type LauncherState,
+  type SystemOption,
+  type SystemOptions
+} from '../../../shared/types'
 import { formatSize } from '../format'
 import { useI18n } from '../i18n'
 
@@ -83,7 +92,9 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
   }
 
   const javaOk = java !== null && java >= REQUIRED_JAVA
-  const allFound = install.serverFound && install.clientFound && javaOk
+  // a client folder is ready when nothing it needs is missing and one of its languages can start
+  const clientOk = install.clientFound && install.clientMissing.length === 0 && install.clientLanguage !== null
+  const allFound = install.serverFound && clientOk && javaOk
   const check = (ok: boolean, label: string): React.JSX.Element => (
     <span className={ok ? 'check ok' : 'check missing'}>
       <span aria-hidden="true">{ok ? '✓' : '✗'}</span> {label}
@@ -101,7 +112,7 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
         onClick={openDialog}
       >
         {check(install.serverFound, t('install.server'))}
-        {check(install.clientFound, t('install.client'))}
+        {check(clientOk, t('install.client'))}
         {check(javaOk, java !== null ? t('install.javaVersion', { version: java }) : t('install.java'))}
         <span className={allFound ? 'install-edit' : 'install-edit install-fix'}>{t(allFound ? 'install.edit' : 'install.fix')}</span>
       </button>
@@ -166,6 +177,47 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
             testId="install-client"
             onChoose={() => void window.launcher.chooseFolder('client')}
           />
+          {install.clientFound && (
+            <div className="install-row install-client-check" data-testid="install-client-language">
+              <span className="install-label">{t('install.clientLanguage')}</span>
+              <span className="install-value">
+                {install.clientPacks.some((pack) => pack.complete) ? (
+                  <select
+                    value={install.clientLanguage ?? ''}
+                    aria-label={t('install.clientLanguage')}
+                    onChange={(event) => void window.launcher.setClientLanguage(event.currentTarget.value)}
+                  >
+                    {install.clientPacks
+                      .filter((pack) => pack.complete)
+                      .map((pack) => (
+                        <option key={pack.code} value={pack.code}>
+                          {CLIENT_LANGUAGE_NAMES[pack.code]}
+                        </option>
+                      ))}
+                  </select>
+                ) : (
+                  <span className="missing">{t('install.noLanguagePack')}</span>
+                )}
+                {install.clientMissing.length > 0 && (
+                  <span className="missing install-client-note" data-testid="install-client-missing">
+                    {t('install.clientMissing', { files: install.clientMissing.join(', ') })}
+                  </span>
+                )}
+                {install.clientPacks
+                  .filter((pack) => !pack.complete || pack.missingFiles > 0)
+                  .map((pack) => (
+                    <span key={pack.code} className={pack.complete ? 'muted install-client-note' : 'missing install-client-note'}>
+                      {pack.complete
+                        ? t('install.packPartial', { language: CLIENT_LANGUAGE_NAMES[pack.code], count: pack.missingFiles })
+                        : t('install.packBroken', { language: CLIENT_LANGUAGE_NAMES[pack.code], code: pack.code.toLowerCase() })}
+                    </span>
+                  ))}
+              </span>
+              <button type="button" className="small" data-testid="install-check-client" onClick={() => void window.launcher.checkClient()}>
+                {t('install.checkClient')}
+              </button>
+            </div>
+          )}
           <div className="install-row" data-testid="install-java">
             <span className="install-label">{t('install.java')}</span>
             <span className={javaOk ? 'install-value' : 'install-value missing'}>

@@ -30,6 +30,8 @@ export type ProblemCode =
   | 'stop-timeout'
   | 'stop-unknown-process'
   | 'client-failed'
+  | 'client-incomplete'
+  | 'client-language-missing'
   | 'account-unknown'
   | 'password-wrong'
   | 'password-needed'
@@ -87,6 +89,45 @@ export interface InstallState {
   clientFound: boolean
   /** Major version of the Java the servers would run on; null when there is none. */
   javaVersion: number | null
+  /** What the client cannot start without and is not in its folder (paths relative to it); empty when the folder is complete. */
+  clientMissing: string[]
+  /** The client's language packs, in `L10N`. */
+  clientPacks: ClientLanguagePack[]
+  /** The language the client starts in (`-lang:<code>`), null when no pack is complete. */
+  clientLanguage: ClientLanguageCode | null
+}
+
+/**
+ * The languages the 4.8 client knows, as it lists them in `aion.bin` (`-lang:<code>`, folder `L10N/<code>`). A pack for any of them can be
+ * put in `L10N`; the NA client ships `ENU` alone.
+ */
+export const CLIENT_LANGUAGE_CODES = ['FRA', 'ENU', 'ENG', 'DEU', 'ESN', 'ITA', 'PLK', 'TRK', 'RUS', 'CHS', 'CHT', 'JPN', 'KOR'] as const
+export type ClientLanguageCode = (typeof CLIENT_LANGUAGE_CODES)[number]
+
+/** Each language as its speakers name it: the choice reads the same whatever the interface's language. */
+export const CLIENT_LANGUAGE_NAMES: Record<ClientLanguageCode, string> = {
+  FRA: 'Français',
+  ENU: 'English (US)',
+  ENG: 'English (UK)',
+  DEU: 'Deutsch',
+  ESN: 'Español',
+  ITA: 'Italiano',
+  PLK: 'Polski',
+  TRK: 'Türkçe',
+  RUS: 'Русский',
+  CHS: '简体中文',
+  CHT: '繁體中文',
+  JPN: '日本語',
+  KOR: '한국어'
+}
+
+/** One language pack of the client. */
+export interface ClientLanguagePack {
+  code: ClientLanguageCode
+  /** It holds `<code>.pak` and `Data/Data.pak`: the client can start in it. */
+  complete: boolean
+  /** Files of the English pack this one lacks (cutscenes, sounds): it starts, but those parts stay silent or empty. */
+  missingFiles: number
 }
 
 /**
