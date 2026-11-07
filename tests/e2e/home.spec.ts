@@ -137,16 +137,15 @@ test('shows where the stack stands, the news of both projects, the install folde
   await app.close()
 })
 
-test('keeps the news GitHub gave last, asks again only whether it changed, and shows it when GitHub refuses', async () => {
+test('asks at each start whether the news changed, and shows the news GitHub gave last when it refuses', async () => {
   const first = await launchWith(install, { ECHOES_NEWS_FEED: feedUrl })
   await first.page.getByRole('button', { name: 'EN', exact: true }).click()
   await expect(first.page.getByTestId('news-launcher-v0.4.0-beta.1')).toBeVisible()
   await first.app.close()
 
-  // the hour's questions spent: what was read last is shown rather than an error (asked again at once, not after the minutes an answer
-  // is used without asking)
+  // the hour's questions spent: what was read last is shown rather than an error
   refusing = true
-  const second = await launchWith(install, { ECHOES_NEWS_FEED: feedUrl, ECHOES_GITHUB_FRESH_MS: '0' })
+  const second = await launchWith(install, { ECHOES_NEWS_FEED: feedUrl })
   const news = second.page.getByTestId('news')
   await expect(news.getByTestId('news-launcher-v0.4.0-beta.1').locator('strong')).toHaveText('Bold launcher news')
   await expect(news).not.toContainText('could not be read')
@@ -154,11 +153,11 @@ test('keeps the news GitHub gave last, asks again only whether it changed, and s
   expect(conditional).toEqual(expect.arrayContaining(['/launcher.json', '/server.json']))
   await second.app.close()
 
-  // relaunched within minutes: nothing asked at all
+  // relaunched at once: asked again all the same, what changed shows at start
   refusing = false
   const asked = listingsAsked
   const third = await launchWith(install, { ECHOES_NEWS_FEED: feedUrl })
   await expect(third.page.getByTestId('news-launcher-v0.4.0-beta.1')).toBeVisible()
-  expect(listingsAsked).toBe(asked)
+  await expect.poll(() => listingsAsked).toBe(asked + 2)
   await third.app.close()
 })

@@ -33,10 +33,9 @@ opens the same dialog on the release before, with every release of the tab liste
 
 **GitHub's 60 questions an hour.** Without an account, GitHub's API answers 60 questions an hour to an address, then refuses until the
 hour is over; the launcher asks 3 at each start (the two news listings and the server's releases) and every four hours. `github/cachedJson.ts`
-keeps each answer in the profile folder (`github-cache/`): younger than ten minutes it is used without asking, so relaunching costs
-nothing; older, the question carries its ETag, which spares the download when nothing changed (a 304 still counts without an account:
-checked on GitHub on 2026-11-07); refused, the kept answer is shown instead of an error. The server version panel reads its releases the
-same way. Tests set the ten minutes with `ECHOES_GITHUB_FRESH_MS`.
+keeps each answer in the profile folder (`github-cache/`). Every start asks, so what changed shows at once; the question carries the
+kept answer's ETag, which spares the download when nothing changed (a 304 still counts without an account: checked on GitHub on
+2026-11-07); refused, the kept answer is shown instead of an error. The server version panel reads its releases the same way.
 
 A tab shows a "new" badge until it has been opened with that release at its top; what was seen is kept in the renderer's local storage
 (`news-seen`), a convenience only: losing it only shows the badge again.

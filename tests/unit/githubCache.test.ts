@@ -19,8 +19,7 @@ beforeEach(async () => {
   body = [{ tag_name: 'v1' }]
   asked.length = 0
   dir = await mkdtemp(join(tmpdir(), 'echoes-github-'))
-  // every question goes out unless a test says otherwise
-  setGithubCacheDir(dir, 0)
+  setGithubCacheDir(dir)
   server = createServer((request, response) => {
     asked.push(request.headers)
     if (mode === 'refuse') {
@@ -74,14 +73,6 @@ describe('fetchGithubJson', () => {
     await new Promise((resolve) => server.close(resolve))
     expect(await fetchGithubJson(url)).toEqual({ body: [{ tag_name: 'v1' }], freshness: 'stale' })
     server.listen(0, '127.0.0.1')
-  })
-
-  it('uses an answer younger than a few minutes without asking', async () => {
-    setGithubCacheDir(dir, 60_000)
-    await fetchGithubJson(url)
-    body = [{ tag_name: 'v2' }]
-    expect(await fetchGithubJson(url)).toEqual({ body: [{ tag_name: 'v1' }], freshness: 'unchanged' })
-    expect(asked).toHaveLength(1)
   })
 
   it('keeps nothing without a folder', async () => {
