@@ -7,6 +7,45 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.4 — 07/11/2026
+
+**Arrive toute seule si tu as une v0.3.0-beta installée avec l'installateur.** Sinon, installe-la à la main avec
+`Echoes-of-Atreia-Setup-0.3.0-beta.4.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.**
+
+**Ce qui change**
+- **La langue du jeu** : le client était lancé avec un code de langue qu'il ne connaît pas, d'où le coréen sur un client qui n'a que le
+  français. Le launcher vérifie maintenant le dossier du client avant de lancer le jeu (les fichiers du moteur, les packs de langue de `L10N`)
+  et propose dans Installation → « Langue du jeu » les langues dont le pack est complet. Par défaut, celle de l'interface du launcher. Un
+  fichier ou un pack qui manque est nommé, et « Jouer » refuse au lieu de lancer un jeu qui ne démarrera pas.
+- **Une vraie icône** pour le launcher, sa barre de titre, l'installateur et le raccourci du bureau. Si Windows garde l'ancienne sur le
+  raccourci, elle se met à jour au prochain redémarrage.
+- **Garder les serveurs en arrière-plan** : en fermant la fenêtre pendant que les serveurs tournent, une nouvelle réponse les laisse tourner
+  sous le launcher, qui reste près de l'horloge. Son icône rouvre la fenêtre ; son menu lance le jeu, démarre ou arrête les serveurs, ou quitte.
+- **La barre des tâches** montre l'état des serveurs par une pastille, et la progression d'une sauvegarde ou d'une mise à jour.
+- **Options** dans Installation : démarrer les serveurs à l'ouverture du launcher, lancer le launcher avec Windows, un raccourci sur le bureau,
+  et le nettoyage des vieux fichiers à chaque démarrage (vers la corbeille : les journaux archivés des serveurs au-delà de 30 jours ou de
+  1 Go, les rapports au-delà des 10 plus récents ; les sauvegardes ne sont jamais touchées).
+- **Signaler un problème** (en bas de la fenêtre) : prépare un zip avec les journaux des serveurs et du launcher, les notes des bots et un
+  résumé, sans le nom de ton compte Windows, et ouvre la page pour le signaler sur GitHub.
+- **Nouvelle page d'accueil** : l'état des serveurs en bannière, le personnage, les bots dans le monde, la mémoire du serveur de jeu et la
+  dernière sauvegarde ; les nouveautés du launcher et du serveur ; l'espace libre, les sauvegardes et la taille de la base. La mise en page
+  est la même en français et en anglais.
+- **Page Bots** : la courbe de la dernière heure, les bots dans le monde par faction.
+- **Terminaux** : dans un tiroir en bas, les erreurs en rouge, les avertissements en jaune, un bouton pour ouvrir le dossier des journaux.
+- **Moins de mémoire** : le launcher n'utilise plus la carte graphique (110 à 190 Mo de moins, autant de laissé au jeu), et sa fenêtre est
+  fermée en arrière-plan (70 Mo de moins).
+
+**Ce qui n'est pas réglé** (connu, inutile de le signaler)
+- **Le pack français** en circulation vient d'une autre version du jeu : il lui manque trois fichiers du pack anglais (l'intro de la 4.8 et
+  deux archives de son de cinématiques), et des textes de la 4.8 pourraient y manquer. Le launcher le dit dans Installation.
+- **L'installation du serveur** depuis le launcher n'a pas encore été vérifiée sur une vraie installation de testeur.
+
+**Configuration requise** : Windows, un JDK 25 ou plus récent, MySQL, le client Aion 4.8.
+
+---
+
 ## v0.3.0-beta.3 — 06/11/2026
 
 **Arrive toute seule si tu as la v0.3.0-beta.2 installée** (avec l'installateur) : c'est la première mise à jour que le launcher fait lui-même.
