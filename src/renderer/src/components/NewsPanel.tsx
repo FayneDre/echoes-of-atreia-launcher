@@ -142,11 +142,10 @@ export function NewsPanel({ news }: { news: NewsState | null }): React.JSX.Eleme
             {latest.prerelease && <span className="tag tag-manual">{t('news.prerelease')}</span>}
             <span className="news-date">{dateOf(latest, language)}</span>
           </div>
-          {summary && (
-            <div className="news-summary">
-              <Markdown text={summary} />
-            </div>
-          )}
+          {/* the room of four lines even when the summary is shorter or missing: switching tabs moves nothing */}
+          <div className="news-summary" data-testid="news-summary">
+            {summary && <Markdown text={summary} />}
+          </div>
           <div className="news-actions">
             <button type="button" className="link" onClick={() => setReading(0)}>
               {t('news.read')}

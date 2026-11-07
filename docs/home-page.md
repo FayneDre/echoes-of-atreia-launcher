@@ -27,7 +27,7 @@ and every four hours; a source that cannot be read is left out, and the panel sa
 and `/server.json`).
 
 A tab shows its newest release alone, with its summary (the first paragraph of its notes, above their headings and lists, cut to
-four lines), so the panel keeps its height however many releases come out and the home page's columns end together. "Read the notes"
+four lines, and the room of four kept when it is shorter or missing), so the panel keeps its height from one tab to the other and however many releases come out and the home page's columns end together. "Read the notes"
 opens the whole notes in a dialog (a native `<dialog>`: Escape, its button or a click beside it closes it); "Previous versions (n)"
 opens the same dialog on the release before, with every release of the tab listed on its left.
 

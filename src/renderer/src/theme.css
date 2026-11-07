@@ -854,17 +854,25 @@ button.link:hover:not(:disabled) {
   font-size: 12px;
 }
 
-/* a few lines of the first paragraph; the whole notes are in the dialog */
+/* four lines of the first paragraph, and always the room of four: the panel keeps its height from one tab or one release to another */
 .news-summary {
-  display: -webkit-box;
+  height: calc(4 * 1.55em);
   margin-top: 6px;
   overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  line-height: 1.55;
+}
+
+
+.news-summary code {
+  line-height: 1;
 }
 
 .news-summary p {
+  display: -webkit-box;
   margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
 }
 
 .news-dialog {

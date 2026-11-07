@@ -22,7 +22,8 @@ test.beforeEach(async () => {
   const notes: Record<string, string> = {
     'v0.4.0-beta.1/en': '**Bold launcher news**\n\n- one change',
     'v0.4.0-beta.1/fr': '**Nouveautés du launcher**\n\n- un changement',
-    'v0.2.0-beta.1/en': 'Server news in English'
+    // a summary longer than the launcher's: the panel must not change height from one tab to the other
+    'v0.2.0-beta.1/en': 'Server news in English.' + ' A long sentence about the server.'.repeat(30)
   }
   feed = createServer((request, response) => {
     const base = `http://127.0.0.1:${(feed.address() as AddressInfo).port}`
@@ -85,7 +86,11 @@ test('shows where the stack stands, the news of both projects, the install folde
   await expect(dialog).toHaveCount(0)
   // the server's tab has not been opened yet
   await expect(news.getByRole('tab', { name: /Server/ })).toContainText('new')
+  const height = async (): Promise<number> => (await news.boundingBox())!.height
+  const launcherHeight = await height()
   await news.getByRole('tab', { name: /Server/ }).click()
+  await expect(news.getByTestId('news-summary')).toContainText('Server news')
+  expect(await height()).toBe(launcherHeight)
   await expect(news.getByTestId('news-server-v0.2.0-beta.1')).toContainText('Server news in English')
   await expect(news.getByRole('tab', { name: /Server/ })).not.toContainText('new')
 
