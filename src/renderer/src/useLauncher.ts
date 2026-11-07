@@ -137,3 +137,29 @@ export function useServerLogs(server: ServerId): string[] {
   }, [server])
   return lines
 }
+
+/**
+ * Whether the window is in full screen, where Windows hides its three buttons: Escape takes it out, unless a dialog is open (Escape
+ * closes the dialog first).
+ */
+export function useFullScreen(): boolean {
+  const [fullScreen, setFullScreen] = useState(false)
+  useEffect(() => {
+    const unsubscribe = window.launcher.onFullScreen(setFullScreen)
+    void window.launcher.isFullScreen().then(setFullScreen)
+    return unsubscribe
+  }, [])
+  useEffect(() => {
+    if (!fullScreen) {
+      return
+    }
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape' && !event.defaultPrevented && !document.querySelector('dialog[open]')) {
+        void window.launcher.setFullScreen(false)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [fullScreen])
+  return fullScreen
+}

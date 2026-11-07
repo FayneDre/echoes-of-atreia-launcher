@@ -528,6 +528,18 @@ button:hover:not(:disabled) {
   -webkit-app-region: drag;
 }
 
+/* in full screen Windows' three buttons are gone: the bar's right end holds the way out instead */
+.titlebar-full-screen {
+  padding-right: 18px;
+}
+
+.leave-full-screen {
+  margin-left: auto;
+  padding: 5px 12px;
+  font-size: 13px;
+  -webkit-app-region: no-drag;
+}
+
 .titlebar .title {
   flex: none;
   font-size: 22px;
@@ -931,6 +943,13 @@ button.link:hover:not(:disabled) {
 
 .news-tabs {
   margin-bottom: 12px;
+}
+
+/* a group's rates go back to a regular or a premium account's official values: two buttons side by side */
+.group-resets {
+  display: flex;
+  flex: none;
+  gap: 6px;
 }
 
 .news-tabs .badge {

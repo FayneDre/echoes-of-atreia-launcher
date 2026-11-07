@@ -12,7 +12,7 @@ import { TerminalPanel } from './components/TerminalPanel'
 import { UpdateBanner } from './components/UpdateBanner'
 import { LANGUAGES, useI18n, type MessageKey } from './i18n'
 import { MIN_SERVER_API_LEVEL, MIN_SERVER_VERSION, SERVER_IDS, isServerTooOld, type ServerId, type ServerVersion } from '../../shared/types'
-import { useAccounts, useHomeInfo, useLauncherState, useNews, useServerUpdate, useUpdate } from './useLauncher'
+import { useAccounts, useFullScreen, useHomeInfo, useLauncherState, useNews, useServerUpdate, useUpdate } from './useLauncher'
 import { HomeHero } from './components/HomeHero'
 import { NewsPanel } from './components/NewsPanel'
 import emblem from './assets/emblem.png'
@@ -63,6 +63,7 @@ export function App(): React.JSX.Element {
   const [terminalsOpen, setTerminalsOpenState] = useState(readTerminalsOpen)
   const [terminal, setTerminal] = useState<ServerId>('game')
   const news = useNews()
+  const fullScreen = useFullScreen()
   // a new value reads the home information again at once (after a backup made from the hero)
   const [infoTick, setInfoTick] = useState(0)
   const homeInfo = useHomeInfo(state, page === 'home', infoTick)
@@ -90,12 +91,24 @@ export function App(): React.JSX.Element {
   return (
     <div className="app">
       {/* the window's bar, holding the title: dragged to move the window; Windows draws its three buttons over its right end */}
-      <div className="titlebar">
+      <div className={fullScreen ? 'titlebar titlebar-full-screen' : 'titlebar'}>
         <img className="titlebar-emblem" src={emblem} alt="" aria-hidden="true" />
         <div className="titlebar-text">
           <h1 className="title">Echoes of Atreia</h1>
           <p className="tagline">{t('home.tagline')}</p>
         </div>
+        {/* in full screen Windows draws no buttons: the way out is the page's own */}
+        {fullScreen && (
+          <button
+            type="button"
+            className="leave-full-screen"
+            data-testid="leave-full-screen"
+            title={t('window.leaveFullScreenHint')}
+            onClick={() => void window.launcher.setFullScreen(false)}
+          >
+            {t('window.leaveFullScreen')}
+          </button>
+        )}
       </div>
       {/* one row, one height: the character played, the pages, the languages */}
       <header className="header">

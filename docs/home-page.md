@@ -69,3 +69,11 @@ Below it, one row of one height: the character played, the pages, the languages.
 (saved, backup made) is a toast in a corner for four seconds; the same message again replaces the one shown.
 
 Every page is as wide as the home page (at most 1280 px, the same margins), the scrollbar's place kept on the right only.
+
+Larger than 1180×780 (maximized, full screen), the whole page grows with the window instead of leaving empty margins around blocks
+drawn for the first size (`src/main/windowScale.ts`): the zoom follows the side that grows the least, in steps of 5 %, up to 160 %, and
+the title bar grows with it so Windows' buttons keep the bar's height.
+
+F11 puts the window in full screen and takes it out (`src/main/fullScreen.ts`, caught in the main process: a page has no F11 of its
+own). Windows hides its three buttons there, so the bar's right end shows "Leave full screen" instead, and Escape leaves it too unless a
+dialog is open, which Escape closes first.

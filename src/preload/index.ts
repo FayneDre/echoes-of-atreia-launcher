@@ -87,6 +87,9 @@ const launcherApi = {
   cancelServerUpdate: (): Promise<void> => ipcRenderer.invoke('server-update:cancel'),
   undoServerUpdate: (): Promise<Problem | null> => ipcRenderer.invoke('server-update:undo'),
   onServerUpdate: (listener: (state: ServerUpdateState) => void): (() => void) => subscribe('server-update:state', listener),
+  isFullScreen: (): Promise<boolean> => ipcRenderer.invoke('window:get-full-screen'),
+  setFullScreen: (on: boolean): Promise<void> => ipcRenderer.invoke('window:set-full-screen', on),
+  onFullScreen: (listener: (fullScreen: boolean) => void): (() => void) => subscribe('window:full-screen', listener),
   /** The launcher's own version, handed over on the window's command line. */
   version: process.argv.find((arg) => arg.startsWith(LAUNCHER_VERSION_ARG))?.slice(LAUNCHER_VERSION_ARG.length) ?? null
 }

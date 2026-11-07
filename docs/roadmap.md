@@ -18,9 +18,11 @@ commits on `develop` since beta.3 are not published.
 | 4 | Account and backups | validated (sign-in, characters, backup, restore) | check the teleport in game |
 | 5 | Bots page | list validated; settings and curve built, unverified | check the bot settings in game |
 | 6 | Desktop and window | built 6 and 7 November, unpublished | publish as v0.3.0-beta.4 |
-| 7 | Client options | not started | several clients at once |
-| 8 | Tools for the server | not started | a server dashboard |
-| 9 | Linux | not started | after the rest |
+| 7 | Look and sound | not started | an Elyos and an Asmodian theme |
+| 8 | Client options | not started | several clients at once |
+| 9 | Tools for the server | not started | a server dashboard |
+| 10 | Playing together | not started, later | hosting for a friend |
+| 11 | Linux | not started | after the rest |
 
 ## 1. Play: servers and client
 
@@ -34,6 +36,7 @@ scripts' `-lang:EN` ([client.md](client.md)).
 1. **Check in game that `-lang:FRA` starts the client in French**, with every text there: the pack in use comes from another build than 4.8.
 2. **Shipping a French pack** with the install: where it may come from is settled before anything is distributed.
 3. **Pre-filling the account** in the client, if its command line takes one (an open question in [decisions.md](decisions.md)).
+4. **A protected stop**: closing the launcher or Windows while the servers run offers the clean stop, never leaves them orphaned.
 
 ## 2. Distribution and updates
 
@@ -48,6 +51,8 @@ updates and an undo (milestone 6, [server-update.md](server-update.md)).
 3. **Updates by difference**: only what changed downloaded, each replaced file backed up, the database and the person's files never touched.
 4. **A first download that resumes and verifies**: tens of gigabytes in parts that survive a closed launcher, checked against the manifest.
 5. **Check and repair the install** from the manifest: every file against its hash, what is missing or changed downloaded again.
+6. **Back to the previous version**: the previous bundle kept, so a beta patch that breaks something is undone in one click.
+7. **A first-launch assistant**: Java, MySQL, memory and disk space checked, what can be fixed fixed in one click.
 
 ## 3. Server settings
 
@@ -69,7 +74,10 @@ taking effect, and world bots keeping their XP pace whatever the players' rate.
 **Left**:
 1. **Check the teleport in game.**
 2. **Bring one of my characters into my group**: a button beside each character once the server has the command (`//bot alt`); planned in the game first.
-3. **A backup per character**: later, if at all (one character is spread over dozens of tables).
+3. **Automatic database backups**: at each clean stop or each day, kept in rotation, restored in one click.
+4. **A character sheet**: level, class, time played, last login, and experience per day, from the database.
+5. **Game accounts managed here**: created, password and membership, without touching the database.
+6. **A backup per character**: later, if at all (one character is spread over dozens of tables).
 
 ## 5. Bots page
 
@@ -81,6 +89,8 @@ options, and the last hour of bots in the world as a curve (built, unverified in
 2. **The density setting**: the mode as a list and the percent as a slider, bounded by what the server's memory work measures first (the server's
    living world plan, A3).
 3. **A live world map, plain**: per map the bots awake and asleep, the players, the density; from an admin channel command (`world`) still to write.
+4. **Population by region**, with the memory it is expected to take shown beside it: chosen by the person on 7 November as the setting to have.
+5. **A companion bot called from here**: class and level chosen, it appears beside the character.
 
 ## 6. Desktop and window
 
@@ -93,13 +103,24 @@ desktop shortcut; the old logs and reports cleaned up to the recycle bin; the pr
 1. **Publish them as v0.3.0-beta.4**, with notes in French and English.
 2. **Tests that fail under load**: the news and client tests now have 90 s; a test that opens the launcher twice or starts the servers
    may still need the same when the whole suite runs with little memory free (the MySQL test failed so once on 7 November).
+3. **A richer problem report**: the logs, the version, the character's position and a screenshot joined by themselves.
+4. **The patch notes inside the launcher**, with a "new" badge after an update, and the beta or stable channel chosen in the options.
+5. **A screenshot gallery** of the client's folder, each one shareable or joined to a report.
 
-## 7. Client options
+## 7. Look and sound
+
+**Not started**, chosen on 7 November. **Left**:
+1. **An Elyos and an Asmodian theme**, beside today's, chosen in the options (the colours are already tokens in `theme.css`).
+2. **Background music**, quiet by default and cut in one click, paused while the client plays; where the tracks may come from is settled before
+   anything is distributed, as for the French pack.
+3. **Keyboard shortcuts** listed in the launcher, and **accessibility**: text size and contrast.
+
+## 8. Client options
 
 **Not started.** **Left**: 1. **several clients at once**, each on its own account, for testing groups and trades alone; 2. **the Vulkan renderer**,
 optional (DXVK's Direct3D 9 DLL put beside the client or removed), switched only while every client is closed.
 
-## 8. Tools for the server
+## 9. Tools for the server
 
 **Not started.** **Left**:
 1. **A server dashboard**: each server's state and a summary of the game server's log (errors, a log gone silent, bots in the world), the logic of the
@@ -107,7 +128,12 @@ optional (DXVK's Direct3D 9 DLL put beside the client or removed), switched only
 2. **GM tools**: planned in the game rather than here (the server's living world plan, lot H3); the launcher installs the interface addon and keeps it
    in step with the server, and takes the forms itself only if the client cannot open the server's pages.
 
-## 9. Linux
+## 10. Playing together
+
+**Not started, later** (7 November). **Left**: 1. **hosting for a friend**: the address to give, the port checked from outside, the friend's client
+configuration written; 2. **the players online**, live, with an announcement sent in game.
+
+## 11. Linux
 
 **Not started.** The servers run there; the client needs Wine. What the server's PowerShell tools do is rewritten in TypeScript here as the launcher needs it
 ([decisions.md](decisions.md)), which is also what Linux needs.

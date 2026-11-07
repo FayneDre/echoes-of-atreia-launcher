@@ -29,6 +29,8 @@ import { cleanUp } from './system/cleanup'
 import { readSystemOptions, setSystemOption } from './system/systemOptions'
 import { TaskbarPresence, type TrayLanguage } from './taskbar'
 import { LauncherUpdater } from './update/updater'
+import { followFullScreen } from './fullScreen'
+import { DESIGN_HEIGHT, DESIGN_WIDTH, followWindowSize, TITLE_BAR_HEIGHT } from './windowScale'
 
 // Lets the end-to-end tests run against a throwaway profile instead of the player's own.
 const userDataDir = process.env['ECHOES_USER_DATA_DIR']
@@ -203,6 +205,10 @@ function registerIpc(presence: TaskbarPresence): void {
     } catch {
       return null
     }
+  })
+  ipcMain.handle('window:get-full-screen', (event) => BrowserWindow.fromWebContents(event.sender)?.isFullScreen() ?? false)
+  ipcMain.handle('window:set-full-screen', (event, on: boolean) => {
+    BrowserWindow.fromWebContents(event.sender)?.setFullScreen(on === true)
   })
   ipcMain.handle('report:show', () => {
     if (lastReport) {
@@ -385,10 +391,14 @@ function registerIpc(presence: TaskbarPresence): void {
   })
 }
 
+/** The window's bar in the launcher's colours (theme.css, .titlebar). */
+const TITLE_BAR_COLOUR = '#080c1a'
+const TITLE_BAR_SYMBOL = '#d8b46c'
+
 function createWindow(): BrowserWindow {
   const window = new BrowserWindow({
-    width: 1180,
-    height: 780,
+    width: DESIGN_WIDTH,
+    height: DESIGN_HEIGHT,
     minWidth: 960,
     minHeight: 640,
     title: 'Echoes of Atreia',
@@ -398,7 +408,7 @@ function createWindow(): BrowserWindow {
     icon: appIcon,
     // The window's own bar in the launcher's colours: the page draws it, Windows keeps only its three buttons over it.
     titleBarStyle: 'hidden',
-    titleBarOverlay: { color: '#080c1a', symbolColor: '#d8b46c', height: 46 },
+    titleBarOverlay: { color: TITLE_BAR_COLOUR, symbolColor: TITLE_BAR_SYMBOL, height: TITLE_BAR_HEIGHT },
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -410,6 +420,12 @@ function createWindow(): BrowserWindow {
     }
   })
 
+  followWindowSize(window, TITLE_BAR_COLOUR, TITLE_BAR_SYMBOL)
+  followFullScreen(window, (fullScreen) => {
+    if (!window.isDestroyed()) {
+      window.webContents.send('window:full-screen', fullScreen)
+    }
+  })
   window.once('ready-to-show', () => window.show())
 
   // Closing while servers run asks first: stop them (the game server saves the players), leave them running, or stay.
