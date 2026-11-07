@@ -1,5 +1,5 @@
 import { statfs } from 'node:fs/promises'
-import { join, parse } from 'node:path'
+import { dirname, join, parse } from 'node:path'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { LAUNCHER_VERSION_ARG, SERVER_IDS, isBetaVersion, type FolderKind, type HomeInfo, type QuitAnswer, type ServerId } from '../shared/types'
 import { AccountService } from './accounts/accountService'
@@ -12,7 +12,7 @@ import { NewsFeed } from './news'
 import { processMemoryMb } from './system/memory'
 import { validValues } from './server/serverSettings'
 import { ServerUpdater } from './serverUpdate/serverUpdater'
-import { SettingsStore } from './settings'
+import { isDeveloperMode, SettingsStore } from './settings'
 import { LauncherUpdater } from './update/updater'
 
 // Lets the end-to-end tests run against a throwaway profile instead of the player's own.
@@ -29,8 +29,25 @@ const accounts = new AccountService(settings, () => launcher.currentLayout)
 const backups = new BackupService(() => launcher.currentLayout)
 const updater = new LauncherUpdater()
 // A beta launcher installs the server's pre-releases too, a stable one its releases only: decided by its own version, with no setting.
-const serverUpdater = new ServerUpdater(launcher, isBetaVersion(app.getVersion()))
-const news = new NewsFeed(isBetaVersion(app.getVersion()))
+const serverUpdater = new ServerUpdater(launcher, isBetaVersion(app.getVersion()), () => isDeveloperMode(settings.current))
+/**
+ * The two repositories on this computer whose notes stand in for GitHub in the developer mode: beside the server's folder (the launcher's
+ * `echoes-of-atreia-launcher`, the server's `source/aion-server-4.8`), the launcher's own when it runs from its sources, or as
+ * `ECHOES_LAUNCHER_REPO` and `ECHOES_SERVER_REPO` say. Null outside the developer mode.
+ */
+function localRepositories(): Record<'launcher' | 'server', string | null> | null {
+  if (!isDeveloperMode(settings.current)) {
+    return null
+  }
+  const root = launcher.currentLayout?.root
+  const parent = root ? dirname(root) : null
+  return {
+    launcher: process.env['ECHOES_LAUNCHER_REPO'] ?? (app.isPackaged ? (parent ? join(parent, 'echoes-of-atreia-launcher') : null) : app.getAppPath()),
+    server: process.env['ECHOES_SERVER_REPO'] ?? (parent ? join(parent, 'source', 'aion-server-4.8') : null)
+  }
+}
+
+const news = new NewsFeed(isBetaVersion(app.getVersion()), localRepositories)
 
 const isText = (value: unknown, maxLength: number): value is string =>
   typeof value === 'string' && value.length > 0 && value.length <= maxLength
@@ -119,6 +136,16 @@ function registerIpc(window: BrowserWindow): void {
   ipcMain.handle('launcher:use-mysql-service', () => launcher.chooseMysqlOptions(null))
   ipcMain.handle('news:get-state', () => news.current)
   ipcMain.handle('news:refresh', () => news.refresh())
+  ipcMain.handle('settings:set-developer-mode', async (_event, on: unknown) => {
+    if (typeof on !== 'boolean') {
+      return
+    }
+    await launcher.setDeveloperMode(on)
+    // what the mode changes, read again at once
+    void news.refresh()
+    void serverUpdater.check()
+    updater.start(on)
+  })
   ipcMain.handle('home:get-info', async (): Promise<HomeInfo> => {
     const backupList = await backups.list()
     const lastBackup = backupList.map((backup) => backup.createdAt).sort().at(-1) ?? null
@@ -276,11 +303,14 @@ if (!app.requestSingleInstanceLock()) {
   void app.whenReady().then(() => {
     const window = createWindow()
     registerIpc(window)
+    // Everything GitHub is asked is asked once, here: the start is what shows a new version. After the settings (the developer mode) and the
+    // server folder (where the repositories' notes are), the server's releases once the launcher has found its folder (below).
     void settings.load()
       .then(() => launcher.initialize())
-      .then(() => serverUpdater.start())
-    updater.start()
-    news.start()
+      .then(() => {
+        updater.start(isDeveloperMode(settings.current))
+        news.start()
+      })
   })
 }
 

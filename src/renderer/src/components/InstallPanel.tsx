@@ -146,6 +146,17 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
             </span>
           </div>
         </div>
+        <label className="install-developer">
+          <input
+            type="checkbox"
+            checked={state.developerMode}
+            onChange={(event) => void window.launcher.setDeveloperMode(event.target.checked)}
+          />
+          <span>
+            <strong>{t('install.developer')}</strong>
+            <span className="muted">{t('install.developerHint')}</span>
+          </span>
+        </label>
         <div className="dialog-actions">
           <button type="button" className="button-primary" onClick={() => dialog.current?.close()}>
             {t('action.close')}

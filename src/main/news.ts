@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { compareVersions, type NewsItem, type NewsState, type NewsSource } from '../shared/types'
 import { fetchGithubJson } from './github/cachedJson'
+import { readLocalNews } from './localNotes'
 
 const REPOSITORIES: Record<NewsSource, string> = {
   launcher: 'FayneDre/echoes-of-atreia-launcher',
@@ -9,7 +10,6 @@ const REPOSITORIES: Record<NewsSource, string> = {
 const LANGUAGES = ['en', 'fr'] as const
 /** How many releases of each repository the home page shows. */
 const KEPT = 4
-const CHECK_EVERY_MS = 4 * 60 * 60 * 1000
 
 interface ReleaseListing {
   tag_name: string
@@ -23,8 +23,10 @@ interface ReleaseListing {
 
 /**
  * What changed in the launcher and the server: the last releases of each repository with their notes in both languages (the `notes.<lang>.md`
- * a release carries, else its body), for the home page. A beta launcher follows the pre-releases too, as its updates do. For the end-to-end
- * tests, `ECHOES_NEWS_FEED` is a folder served over HTTP holding `<source>.json` in GitHub's shape.
+ * a release carries, else its body), for the home page. A beta launcher follows the pre-releases too, as its updates do. Read once, at the
+ * launcher's start: the start is what shows what changed. In the developer mode, GitHub is not asked: the notes files of the two
+ * repositories on this computer stand in (`localRepositories`). For the end-to-end tests, `ECHOES_NEWS_FEED` is a folder served over HTTP
+ * holding `<source>.json` in GitHub's shape.
  */
 export class NewsFeed extends EventEmitter<{ state: [NewsState] }> {
   private state: NewsState = { items: [] }
@@ -33,6 +35,8 @@ export class NewsFeed extends EventEmitter<{ state: [NewsState] }> {
 
   constructor(
     private readonly beta: boolean,
+    /** The repositories whose notes stand in for GitHub in the developer mode, or null outside it. */
+    private readonly localRepositories: () => Record<NewsSource, string | null> | null,
     private readonly base = process.env['ECHOES_NEWS_FEED'] ?? null
   ) {
     super()
@@ -44,15 +48,15 @@ export class NewsFeed extends EventEmitter<{ state: [NewsState] }> {
 
   start(): void {
     void this.refresh()
-    setInterval(() => void this.refresh(), CHECK_EVERY_MS).unref()
   }
 
   async refresh(): Promise<void> {
     const items: NewsItem[] = []
     let failed = false
+    const local = this.localRepositories()
     for (const source of Object.keys(REPOSITORIES) as NewsSource[]) {
       try {
-        items.push(...(await this.read(source)))
+        items.push(...(local ? await readLocalNews(source, local[source], REPOSITORIES[source], KEPT) : await this.read(source)))
       } catch {
         failed = true
       }

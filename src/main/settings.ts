@@ -17,6 +17,16 @@ export interface Settings {
   selectedCharacters?: Record<string, number>
   /** MySQL runs as a program with this option file (my.ini) rather than through its Windows service. */
   mysqlOptionsFile?: string
+  /** The person develops the launcher and the server: GitHub is never asked, the news come from the notes of the repositories. */
+  developerMode?: boolean
+}
+
+/**
+ * Whether the launcher runs for a developer: as the person set it, else on for a launcher run from its sources and off for an installed one.
+ * The end-to-end tests run it from its sources as a player would see it (`ECHOES_DEVELOPER_DEFAULT=off`).
+ */
+export function isDeveloperMode(settings: Settings): boolean {
+  return settings.developerMode ?? (process.env['ECHOES_DEVELOPER_DEFAULT'] === 'off' ? false : !app.isPackaged)
 }
 
 function settingsFile(): string {

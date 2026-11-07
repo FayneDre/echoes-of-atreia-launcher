@@ -8,7 +8,6 @@ import { ServerFeed, type ServerRelease } from './feed'
 import { CorruptError, ServerInstaller, type UpdatePlan } from './installer'
 import { readInstallOrigin, type ReleaseManifest } from './manifest'
 
-const CHECK_EVERY_MS = 4 * 60 * 60 * 1000
 const SQL_TIMEOUT_MS = 30 * 60 * 1000
 
 /** Runs the server's SQL script (`apply-sql.ps1`) with these arguments: its exit code and everything it said. */
@@ -46,6 +45,8 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
   constructor(
     private readonly launcher: Launcher,
     private readonly beta: boolean,
+    /** In the developer mode, no release is looked for: GitHub is not asked. */
+    private readonly developer: () => boolean = () => false,
     private readonly feed = new ServerFeed()
   ) {
     super()
@@ -53,11 +54,6 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
 
   get current(): ServerUpdateState {
     return this.state
-  }
-
-  /** Looks again every few hours; the first look is made when the launcher has found the server folder (`check`, from the caller). */
-  start(): void {
-    setInterval(() => void this.check(), CHECK_EVERY_MS).unref()
   }
 
   private get root(): string | null {
@@ -69,7 +65,10 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
     return root ? new ServerInstaller(root, this.feed) : null
   }
 
-  /** Looks again at the install and the releases. Not while an update is being prepared, waits for the person or runs. */
+  /**
+   * Looks at the install and the releases: when the launcher has found the server folder at its start, or another one is chosen; never on a
+   * timer, the start is what shows a new release. Not while an update is being prepared, waits for the person or runs.
+   */
   async check(): Promise<void> {
     const busy = this.state.status === 'preparing' || this.state.status === 'confirm' || this.state.status === 'installing'
     const installer = this.installer()
@@ -91,6 +90,11 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
       }
       this.previous = origin.source === 'release' ? origin.manifest : null
       const installed = this.previous?.version ?? null
+      if (this.developer()) {
+        this.release = null
+        this.set({ status: 'developer', installed, canReturnTo })
+        return
+      }
       let newest: ServerRelease | null
       try {
         newest = await this.feed.newest(this.beta)

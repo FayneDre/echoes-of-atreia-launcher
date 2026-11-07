@@ -4,7 +4,6 @@ import { autoUpdater, type UpdateInfo } from 'electron-updater'
 import { isBetaVersion, type UpdateState } from '../../shared/types'
 
 const REPOSITORY = 'https://github.com/FayneDre/echoes-of-atreia-launcher'
-const CHECK_EVERY_MS = 4 * 60 * 60 * 1000
 const LANGUAGES = ['en', 'fr'] as const
 
 /**
@@ -27,10 +26,14 @@ export class LauncherUpdater extends EventEmitter<{ state: [UpdateState] }> {
     return this.state
   }
 
-  start(): void {
-    if (!app.isPackaged && !this.feed) {
+  private started = false
+
+  /** Checks once, at the launcher's start: the start is what finds an update. Not in the developer mode, which never asks GitHub. */
+  start(developer: boolean): void {
+    if (this.started || developer || (!app.isPackaged && !this.feed)) {
       return
     }
+    this.started = true
     autoUpdater.allowPrerelease = isBetaVersion(app.getVersion())
     autoUpdater.autoDownload = !this.portable
     autoUpdater.autoInstallOnAppQuit = !this.portable
@@ -66,7 +69,6 @@ export class LauncherUpdater extends EventEmitter<{ state: [UpdateState] }> {
     })
     this.set({ status: 'idle' })
     void this.check()
-    setInterval(() => void this.check(), CHECK_EVERY_MS).unref()
   }
 
   /**

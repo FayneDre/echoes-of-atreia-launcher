@@ -23,7 +23,7 @@ game server's status or of the activity (`home:get-info`, `useHomeInfo`).
 
 `src/main/news.ts`. The GitHub releases of the launcher and of the server, four of each, newest first, in two tabs. A release's text is its
 `notes.<language>.md` asset in the person's language (English as the fallback), else the body above its `<details>` block. Read at start
-and every four hours; a source that cannot be read is left out, and the panel says so when neither could be. The tests point it at a local feed (`ECHOES_NEWS_FEED`, `/launcher.json`
+once, at the launcher's start (the start is what shows what changed, never a timer); a source that cannot be read is left out, and the panel says so when neither could be. The tests point it at a local feed (`ECHOES_NEWS_FEED`, `/launcher.json`
 and `/server.json`).
 
 A tab shows its newest release alone, with its summary (the first paragraph of its notes, above their headings and lists, cut to
@@ -32,10 +32,18 @@ opens the whole notes in a dialog (a native `<dialog>`: Escape, its button or a 
 opens the same dialog on the release before, with every release of the tab listed on its left.
 
 **GitHub's 60 questions an hour.** Without an account, GitHub's API answers 60 questions an hour to an address, then refuses until the
-hour is over; the launcher asks 3 at each start (the two news listings and the server's releases) and every four hours. `github/cachedJson.ts`
+hour is over; the launcher asks 3 at each start (the two news listings and the server's releases), and only then. `github/cachedJson.ts`
 keeps each answer in the profile folder (`github-cache/`). Every start asks, so what changed shows at once; the question carries the
 kept answer's ETag, which spares the download when nothing changed (a 304 still counts without an account: checked on GitHub on
 2026-11-07); refused, the kept answer is shown instead of an error. The server version panel reads its releases the same way.
+
+**The developer mode** (`isDeveloperMode`, a switch in the Installation dialog, kept in the settings; on by default for a launcher run
+from its sources, off for an installed one) never asks GitHub: the news come from the notes files of the two repositories on this
+computer (`localNotes.ts`: `docs/release-notes/current*.md` of the launcher, `docs/patch-notes/current*.md` of the server, entries paired
+by their `## <version>` heading), found beside the server's folder (`echoes-of-atreia-launcher`, `source/aion-server-4.8`), or the
+launcher's own folder when it runs from its sources, or `ECHOES_LAUNCHER_REPO` / `ECHOES_SERVER_REPO`. The server version panel says
+the releases are not looked at, and the launcher does not update itself. The end-to-end tests run the launcher from its sources as a
+player sees it (`ECHOES_DEVELOPER_DEFAULT=off`).
 
 A tab shows a "new" badge until it has been opened with that release at its top; what was seen is kept in the renderer's local storage
 (`news-seen`), a convenience only: losing it only shows the badge again.

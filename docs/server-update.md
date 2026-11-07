@@ -22,7 +22,7 @@ How a beta launcher installs the server's pre-releases, and a stable one its rel
 - `"source": "release"`: installed from a bundle; the manifest is that bundle's, which tells which default files are still untouched.
 - none: a server built from git. The first update installs over it.
 
-The releases are listed from GitHub's API at start, when the server folder changes and every four hours; a beta launcher looks at the
+The releases are listed from GitHub's API at start and when the server folder changes (never on a timer, nor in the developer mode); a beta launcher looks at the
 pre-releases too. A release without a `manifest.json` (the server's v0.1.0-beta.1, notes only) is skipped.
 
 ## The update, in two halves

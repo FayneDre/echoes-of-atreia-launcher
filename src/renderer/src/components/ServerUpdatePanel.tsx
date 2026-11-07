@@ -26,6 +26,8 @@ export function ServerUpdatePanel({ update, state }: Props): React.JSX.Element |
       <h2 id="server-update-title">{t('section.serverUpdate')}</h2>
       {update.status === 'dev' ? (
         <p data-testid="server-update-dev">{t('serverUpdate.dev', { revision: update.revision ?? '?' })}</p>
+      ) : update.status === 'developer' ? (
+        <p data-testid="server-update-developer">{t('serverUpdate.developer')}</p>
       ) : (
         <p data-testid="server-update-installed">{t('serverUpdate.installed', { version: installed })}</p>
       )}

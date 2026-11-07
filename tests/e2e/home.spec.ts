@@ -1,4 +1,6 @@
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { createServer, type Server } from 'node:http'
+import { join } from 'node:path'
 import type { AddressInfo } from 'node:net'
 import { expect, test } from '@playwright/test'
 import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
@@ -161,3 +163,58 @@ test('asks at each start whether the news changed, and shows the news GitHub gav
   await expect.poll(() => listingsAsked).toBe(asked + 2)
   await third.app.close()
 })
+
+test('in the developer mode, reads the news from the repositories and asks GitHub nothing; off, asks GitHub', async () => {
+  // the two repositories on this computer, with their notes
+  const notes = (repository: string, folder: string, tag: string, french: string, english: string): string => {
+    const dir = join(install.root, repository, ...folder.split('/'))
+    mkdirSync(dir, { recursive: true })
+    writeFileSync(join(dir, 'current.md'), `# Notes
+
+---
+
+## ${tag} — 07/11/2026
+
+${french}
+`)
+    writeFileSync(join(dir, 'current.en.md'), `# Notes
+
+---
+
+## ${tag} — 2026-11-07
+
+${english}
+`)
+    return join(install.root, repository)
+  }
+  const launcherRepository = notes('launcher-repo', 'docs/release-notes', 'v0.5.0-beta.1', 'Pas encore publiée', 'Not released yet')
+  const serverRepository = notes('server-repo', 'docs/patch-notes', 'v0.3.0-beta.1', 'Serveur local', 'Local server')
+
+  const { app, page } = await launchWith(install, {
+    ECHOES_NEWS_FEED: feedUrl,
+    // run from its sources, the launcher is in the developer mode unless told otherwise
+    ECHOES_DEVELOPER_DEFAULT: '',
+    ECHOES_LAUNCHER_REPO: launcherRepository,
+    ECHOES_SERVER_REPO: serverRepository
+  })
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
+  const news = page.getByTestId('news')
+  await expect(news.getByTestId('news-launcher-v0.5.0-beta.1')).toContainText('Not released yet')
+  await news.getByRole('tab', { name: /Server/ }).click()
+  await expect(news.getByTestId('news-server-v0.3.0-beta.1')).toContainText('Local server')
+  await expect(page.getByTestId('server-update')).toHaveAttribute('data-status', 'developer')
+  expect(listingsAsked).toBe(0)
+
+  // the switch, in the install's dialog: off, GitHub is asked at once
+  await page.getByTestId('install-summary').click()
+  const developer = page.getByLabel(/Developer mode/)
+  await expect(developer).toBeChecked()
+  await developer.uncheck()
+  await page.getByTestId('install-dialog').getByRole('button', { name: 'Close' }).click()
+  await news.getByRole('tab', { name: /Launcher/ }).click()
+  await expect(news.getByTestId('news-launcher-v0.4.0-beta.1')).toBeVisible()
+  await expect(page.getByTestId('server-update')).not.toHaveAttribute('data-status', 'developer')
+  expect(listingsAsked).toBeGreaterThan(0)
+  await app.close()
+})
+

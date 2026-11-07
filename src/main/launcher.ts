@@ -22,7 +22,7 @@ import { addressOf } from './accounts/accountStore'
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
 import { needsStart, readServerSettings, writeServerSettings } from './server/serverSettings'
-import type { SettingsStore } from './settings'
+import { isDeveloperMode, type SettingsStore } from './settings'
 import { javaCommand, javaMajorVersion } from './system/java'
 
 /**
@@ -67,8 +67,15 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       quitRequested: this.quitRequested,
       restartNeeded: this.restartNeeded,
       problem: this.problem,
-      serverVersion: this.serverVersion
+      serverVersion: this.serverVersion,
+      developerMode: isDeveloperMode(this.settings.current)
     }
+  }
+
+  /** Turns the developer mode on or off, kept in the settings. */
+  async setDeveloperMode(on: boolean): Promise<void> {
+    await this.settings.update((settings) => ({ ...settings, developerMode: on }))
+    this.publish()
   }
 
   getLogs(id: ServerId): string[] {

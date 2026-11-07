@@ -62,7 +62,7 @@ connects to the other two while it starts.
 - **The launcher updates itself** (`src/main/update/updater.ts`, `electron-updater`) from its GitHub releases: `build.publish` in
   `package.json` puts an `app-update.yml` in the build, and each release carries `latest.yml` and the installer's `.blockmap`
   (`tools/release.ps1` refuses a build without them). A version with a pre-release part (`-beta.N`) follows the pre-releases, a stable one
-  only `Latest`: no setting. Checked at start and every four hours; a newer version downloads in the background, is shown with the release's
+  only `Latest`: no setting. Checked once, at start (the start is what finds an update; never in the developer mode, see [home-page.md](home-page.md)); a newer version downloads in the background, is shown with the release's
   `notes.<language>.md`, and installs when the launcher closes. "Restart and install" closes the window the usual way, so the question about
   running servers comes first, and the installer starts only once the launcher has quit (`quitAndInstall` would start it before). Never
   offered while servers start or stop. The portable build cannot replace itself: it links to the release. A development run does not

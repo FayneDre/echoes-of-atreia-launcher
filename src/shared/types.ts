@@ -108,6 +108,8 @@ export interface LauncherState {
   problem?: Problem
   /** What the game server says it is, or null while that is not known (stopped, and no manifest.json in its install). */
   serverVersion: ServerVersion | null
+  /** GitHub is never asked: the news come from the repositories' notes, no release is offered, the launcher does not update itself. */
+  developerMode: boolean
 }
 
 /**
@@ -253,7 +255,7 @@ export function compareVersions(a: string, b: string): number | null {
  * `preparing`: it is downloaded and checked, no server touched yet. `confirm`: ready to install, waiting for the person. `installing`: the
  * servers are stopped and the files changing. `failed`: the last step went wrong, `problem` says which.
  */
-export type ServerUpdateStatus = 'off' | 'dev' | 'current' | 'available' | 'preparing' | 'confirm' | 'installing' | 'failed'
+export type ServerUpdateStatus = 'off' | 'dev' | 'developer' | 'current' | 'available' | 'preparing' | 'confirm' | 'installing' | 'failed'
 
 export type ServerUpdateStep = 'download' | 'navmesh' | 'verify' | 'stop' | 'files' | 'sql' | 'start' | 'return'
 

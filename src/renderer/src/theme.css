@@ -839,6 +839,30 @@ button.link:hover:not(:disabled) {
   color: var(--text);
 }
 
+.install-developer {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(216 180 108 / 12%);
+  cursor: pointer;
+}
+
+.install-developer input {
+  margin-top: 3px;
+}
+
+.install-developer > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.install-developer .muted {
+  font-size: 12px;
+}
+
 .install-dialog .dialog-actions {
   justify-content: flex-end;
 }

@@ -36,6 +36,7 @@ const launcherApi = {
   getNews: (): Promise<NewsState> => ipcRenderer.invoke('news:get-state'),
   refreshNews: (): Promise<void> => ipcRenderer.invoke('news:refresh'),
   onNews: (listener: (state: NewsState) => void): (() => void) => subscribe('news:state', listener),
+  setDeveloperMode: (on: boolean): Promise<void> => ipcRenderer.invoke('settings:set-developer-mode', on),
   getHomeInfo: (): Promise<HomeInfo> => ipcRenderer.invoke('home:get-info'),
   startMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-start'),
   stopMysql: (): Promise<boolean> => ipcRenderer.invoke('launcher:mysql-stop'),
