@@ -56,12 +56,17 @@ test('shows where the stack stands, the news of both projects, the install folde
   await expect(page.getByTestId('hero-bots')).toHaveText('—')
   await expect(page.getByTestId('footer-versions')).toContainText('Launcher 0.')
 
-  // every check passed: the install is one line, unfolded on a click
+  // the install is one line of checks; its folders open in a dialog, so the page does not move
   await expect(page.getByTestId('install-server')).toBeHidden()
   const summary = page.getByTestId('install-summary')
-  await expect(summary).toHaveAttribute('aria-expanded', 'false')
+  await expect(summary).toContainText('Change…')
+  const installPanel = page.locator('.install-panel')
+  const panelHeight = (await installPanel.boundingBox())!.height
   await summary.click()
   await expect(page.getByTestId('install-server')).toBeVisible()
+  expect((await installPanel.boundingBox())!.height).toBe(panelHeight)
+  await page.getByTestId('install-dialog').getByRole('button', { name: 'Close' }).click()
+  await expect(page.getByTestId('install-server')).toBeHidden()
 
   const news = page.getByTestId('news')
   // the newest release with the first paragraph of its notes, drawn as Markdown in the person's language; the list stays out of it

@@ -37,7 +37,8 @@ A tab shows a "new" badge until it has been opened with that release at its top;
 ## The rest of the page
 
 - **Servers**: one row each, with its own Start or Restart (see [how-it-works.md](how-it-works.md), "One server alone").
-- **Installation**: folded to one line of checks while every one passes; forced open, its line disabled, while one fails.
+- **Installation**: one line of checks, whatever passes or fails, with "Change…" ("Fix…" while something is missing); the folders and
+  Java are in a dialog that line opens, so nothing on the page moves.
 - **Server version** ([server-update.md](server-update.md)) sits above the news, so both columns fit the default window (1180×780).
 - **Terminals**: the drawer at the foot, with a search, an "errors only" filter (ERROR and WARN lines, exceptions and their causes) and a
   copy of what the filter shows.

@@ -790,9 +790,30 @@ button.link:hover:not(:disabled) {
   opacity: 1;
 }
 
-.install-summary .chevron {
+.install-edit {
   margin-left: auto;
-  color: var(--gold);
+  color: var(--aether);
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+.install-fix {
+  color: var(--bad);
+  font-weight: 600;
+}
+
+.install-dialog {
+  width: min(720px, calc(100% - 48px));
+  padding: 20px 24px;
+  color: var(--text);
+}
+
+.install-dialog .dialog-actions {
+  justify-content: flex-end;
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 65%);
 }
 
 .check.ok {

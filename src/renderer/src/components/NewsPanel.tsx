@@ -81,7 +81,7 @@ function NotesDialog({ items, first, onClose }: { items: NewsItem[]; first: numb
           {t('news.open')}
         </a>
         <button type="button" className="button-primary" onClick={() => dialog.current?.close()}>
-          {t('news.close')}
+          {t('action.close')}
         </button>
       </div>
     </dialog>
