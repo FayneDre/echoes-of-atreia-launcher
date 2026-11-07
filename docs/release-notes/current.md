@@ -7,6 +7,29 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.5 — 07/11/2026
+
+**Arrive toute seule si tu as une v0.3.0-beta installée avec l'installateur.** Sinon, installe-la à la main avec
+`Echoes-of-Atreia-Setup-0.3.0-beta.5.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.** Pour les taux premium, il faut le serveur v0.1.0-beta.3, qui rend premium tous les comptes des
+joueurs : installe-le depuis le panneau « Version du serveur ».
+
+**Ce qui change**
+- **Les taux sont ceux des comptes premium** : tous les comptes des joueurs sont premium (serveur v0.1.0-beta.3), donc la page Réglages
+  règle les taux premium. Les taux normaux restent ceux des bots et ne sont pas affichés. À la place de « Valeurs officielles », deux
+  boutons mettent les taux aux valeurs officielles d'un compte normal ou d'un compte premium : tu choisis le rythme de l'un ou de l'autre.
+- **Les taux s'appliquent vraiment en jeu** : écrits dans `mygs.properties`, ils n'étaient pas pris en compte. Ils sont maintenant écrits
+  dans `config/main/rates.properties` (la version d'origine est gardée à côté, `rates.properties.before-launcher`). Un taux réglé par une
+  version précédente du launcher y est déplacé au prochain enregistrement.
+- **La fenêtre agrandie ou en plein écran** : toute la page grandit avec la fenêtre au lieu de laisser des marges vides (jusqu'à 160 %).
+- **F11** met le launcher en plein écran et l'en sort ; un bouton « Quitter le plein écran » remplace les boutons de Windows, et Échap en sort
+  aussi.
+
+**Configuration requise** : Windows, un JDK 25 ou plus récent, MySQL, le client Aion 4.8.
+
+---
+
 ## v0.3.0-beta.4 — 07/11/2026
 
 **Arrive toute seule si tu as une v0.3.0-beta installée avec l'installateur.** Sinon, installe-la à la main avec

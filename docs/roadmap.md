@@ -5,8 +5,8 @@ Rewritten on 7 November 2026 as one page by theme, in the same form as the serve
 each feature needs (launcher only, a server setting that exists, server work first): [decisions.md](decisions.md).
 
 Words used for a state: **validated** (checked by the tester on the real servers or database), **built, unverified** (the code and its tests are
-there, nobody has checked it on a real install), **not started**. Published: v0.2.0 (stable, 5 November) and v0.3.0-beta.3 (6 November); the
-commits on `develop` since beta.3 are not published.
+there, nobody has checked it on a real install), **not started**. Published: v0.2.0 (stable, 5 November) and v0.3.0-beta.5 (7 November, with
+server v0.1.0-beta.3).
 
 ## The themes at a glance
 
@@ -14,10 +14,10 @@ commits on `develop` since beta.3 are not published.
 |---|---|---|---|
 | 1 | Play: servers and client | validated; the client's check and game language built 7 November | check in game that `-lang:FRA` starts French |
 | 2 | Distribution and updates | installer and v0.2.0 validated; self-update and server bundles built, unverified | a tester's install going to a pre-release and back |
-| 3 | Server settings | built; taking effect after a restart unverified | check the rates in game |
+| 3 | Server settings | rates validated in game (premium, 7 November) | dungeon re-entry |
 | 4 | Account and backups | validated (sign-in, characters, backup, restore) | check the teleport in game |
 | 5 | Bots page | list validated; settings and curve built, unverified | check the bot settings in game |
-| 6 | Desktop and window | built 6 and 7 November, unpublished | publish as v0.3.0-beta.4 |
+| 6 | Desktop and window | published in v0.3.0-beta.4 and beta.5 | tests that fail under load |
 | 7 | Look and sound | not started | an Elyos and an Asmodian theme |
 | 8 | Client options | not started | several clients at once |
 | 9 | Tools for the server | not started | a server dashboard |
@@ -57,14 +57,13 @@ updates and an undo (milestone 6, [server-update.md](server-update.md)).
 ## 3. Server settings
 
 **Done**: every rate by family, the daily Glory Point loss rank by rank and both factions on one account, written to `mygs.properties` with "restart
-required"; saved settings applied at once through the admin channel when the server runs (`reload-config`). Built, unverified in game: the rates
-taking effect, and world bots keeping their XP pace whatever the players' rate.
+required"; saved settings applied at once through the admin channel when the server runs (`reload-config`). Validated in game on 7 November: the
+premium rates taking effect (server v0.1.0-beta.3 makes every player account premium).
 
 **Left**:
-1. **Check the rates in game** after a restart.
-2. **Dungeon re-entry** (`gameserver.instance.cooldown_rate`): a setting that already exists; for a player alone with bots it changes everything.
-3. **The starting level** (1, or the level 10 Ascension) once the server has it (the server's `group-options-plan.md`).
-4. **Skill learning**: postponed, its rules are still to be defined.
+1. **Dungeon re-entry** (`gameserver.instance.cooldown_rate`): a setting that already exists; for a player alone with bots it changes everything.
+2. **The starting level** (1, or the level 10 Ascension) once the server has it (the server's `group-options-plan.md`).
+3. **Skill learning**: postponed, its rules are still to be defined.
 
 ## 4. Account and backups
 
@@ -94,18 +93,18 @@ options, and the last hour of bots in the world as a curve (built, unverified in
 
 ## 6. Desktop and window
 
-**Done**, built on 6 and 7 November and not published: the launcher's own icon; the taskbar's dot and progress; the icon in the notification area with
+**Done**, built on 6 and 7 November, published in v0.3.0-beta.4, and in beta.5 the page growing with a maximized or full
+screen window and F11: the launcher's own icon; the taskbar's dot and progress; the icon in the notification area with
 its menu; closing to the background, which now closes the window (73 MB less); starting the servers with the launcher, the launcher with Windows, a
 desktop shortcut; the old logs and reports cleaned up to the recycle bin; the problem report; coloured terminals; drawing without the graphics card
 (110 to 190 MB less); the same layout in every language as in French, checked by a test ([desktop.md](desktop.md), [home-page.md](home-page.md)).
 
 **Left**:
-1. **Publish them as v0.3.0-beta.4**, with notes in French and English.
-2. **Tests that fail under load**: the news and client tests now have 90 s; a test that opens the launcher twice or starts the servers
+1. **Tests that fail under load**: the news and client tests now have 90 s; a test that opens the launcher twice or starts the servers
    may still need the same when the whole suite runs with little memory free (the MySQL test failed so once on 7 November).
-3. **A richer problem report**: the logs, the version, the character's position and a screenshot joined by themselves.
-4. **The patch notes inside the launcher**, with a "new" badge after an update, and the beta or stable channel chosen in the options.
-5. **A screenshot gallery** of the client's folder, each one shareable or joined to a report.
+2. **A richer problem report**: the logs, the version, the character's position and a screenshot joined by themselves.
+3. **The patch notes inside the launcher**, with a "new" badge after an update, and the beta or stable channel chosen in the options.
+4. **A screenshot gallery** of the client's folder, each one shareable or joined to a report.
 
 ## 7. Look and sound
 

@@ -6,6 +6,28 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.5 — 2026-11-07
+
+**It arrives by itself if you have a v0.3.0 beta installed with the installer.** Otherwise install it by hand with
+`Echoes-of-Atreia-Setup-0.3.0-beta.5.exe`.
+
+**Minimum server: v0.1.0-beta.1.** The premium rates need server v0.1.0-beta.3, which makes every player account premium: install it from
+the "Server version" panel.
+
+**What changes**
+- **The rates are the premium accounts'**: every player account is premium (server v0.1.0-beta.3), so the Settings page sets the premium
+  rates. The regular rates stay the bots' and are not shown. In place of "Official values", two buttons put the rates at a regular or a
+  premium account's official values: you choose the pace of either.
+- **The rates really apply in game**: written to `mygs.properties`, they were not taken into account. They are now written to
+  `config/main/rates.properties` (the original is kept beside it, `rates.properties.before-launcher`). A rate set by an earlier launcher moves
+  there at the next save.
+- **A maximized or full screen window**: the whole page grows with the window instead of leaving empty margins (up to 160 %).
+- **F11** puts the launcher in full screen and takes it out; a "Leave full screen" button replaces Windows' buttons, and Escape leaves it too.
+
+**Requirements**: Windows, a JDK 25 or later, MySQL, the Aion 4.8 client.
+
+---
+
 ## v0.3.0-beta.4 — 2026-11-07
 
 **It arrives by itself if you have a v0.3.0 beta installed with the installer.** Otherwise install it by hand with
