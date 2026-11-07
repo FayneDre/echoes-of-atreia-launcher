@@ -39,6 +39,8 @@ export const fr: Record<MessageKey, string> = {
   'news.none': 'Aucune version publiée pour l’instant.',
   'news.noNotes': 'Cette version n’a pas de notes.',
   'news.prerelease': 'beta',
+  'news.read': 'Lire la note',
+  'news.close': 'Fermer',
   'news.open': 'Voir sur GitHub',
   'footer.versions': 'Launcher {launcher} · Serveur {server}',
   'terminal.search': 'Chercher dans le journal',

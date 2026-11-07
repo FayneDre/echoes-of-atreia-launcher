@@ -63,12 +63,22 @@ test('shows where the stack stands, the news of both projects, the install folde
   await expect(page.getByTestId('install-server')).toBeVisible()
 
   const news = page.getByTestId('news')
-  // the newest release open, its notes drawn as Markdown in the person's language
-  await expect(news.getByTestId('news-launcher-v0.4.0-beta.1').locator('strong')).toHaveText('Bold launcher news')
-  await expect(news.getByTestId('news-launcher-v0.3.0')).not.toHaveAttribute('open')
+  // the newest release with the first paragraph of its notes, drawn as Markdown in the person's language; the list stays out of it
+  const latest = news.getByTestId('news-launcher-v0.4.0-beta.1')
+  await expect(latest.locator('strong')).toHaveText('Bold launcher news')
+  await expect(latest).not.toContainText('one change')
+  await expect(news.getByTestId('news-launcher-v0.3.0')).not.toContainText('the body')
+  // the whole notes open over the page, and close on Escape
+  await latest.getByRole('button', { name: 'Read the notes' }).click()
+  const dialog = page.getByTestId('news-dialog')
+  await expect(dialog).toContainText('one change')
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
   // a release without notes files shows its body
-  await news.getByTestId('news-launcher-v0.3.0').locator('summary').click()
-  await expect(news.getByTestId('news-launcher-v0.3.0')).toContainText('the body')
+  await news.getByTestId('news-launcher-v0.3.0').getByRole('button', { name: 'Read the notes' }).click()
+  await expect(dialog).toContainText('the body')
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(dialog).toHaveCount(0)
   // the server's tab has not been opened yet
   await expect(news.getByRole('tab', { name: /Server/ })).toContainText('new')
   await news.getByRole('tab', { name: /Server/ }).click()

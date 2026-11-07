@@ -501,6 +501,12 @@ button:hover:not(:disabled) {
   padding-bottom: 12px;
 }
 
+/* every page as wide as the home page: same width, same margins, the scrollbar's place kept on the right only */
+.content-single {
+  grid-template-columns: minmax(0, 1280px);
+  scrollbar-gutter: stable;
+}
+
 .group-list button {
   padding: 5px 12px;
 }
@@ -827,21 +833,65 @@ button.link:hover:not(:disabled) {
 }
 
 .news-item {
-  padding: 10px 14px;
+  padding: 8px 14px;
   border: 1px solid rgb(216 180 108 / 14%);
   border-radius: 3px;
   background: rgb(3 5 12 / 35%);
 }
 
-.news-item[open] {
+.news-latest {
   border-color: var(--gold-line);
 }
 
-.news-item summary {
+.news-head {
   display: flex;
   align-items: center;
   gap: 10px;
-  cursor: pointer;
+}
+
+.news-read {
+  flex: none;
+  font-size: 12px;
+}
+
+/* a few lines of the first paragraph; the whole notes are in the dialog */
+.news-summary {
+  display: -webkit-box;
+  margin-top: 6px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.news-summary p {
+  margin: 0;
+}
+
+.news-dialog {
+  width: min(760px, calc(100% - 48px));
+  max-height: calc(100% - 96px);
+  padding: 20px 24px;
+  color: var(--text);
+}
+
+.news-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.news-dialog::backdrop {
+  background: rgb(0 0 0 / 65%);
+}
+
+.news-dialog-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.news-dialog .dialog-actions {
+  align-items: center;
+  justify-content: space-between;
 }
 
 .news-tag {

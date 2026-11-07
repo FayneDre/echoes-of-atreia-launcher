@@ -39,6 +39,8 @@ export const en = {
   'news.none': 'No release published yet.',
   'news.noNotes': 'This release has no notes.',
   'news.prerelease': 'beta',
+  'news.read': 'Read the notes',
+  'news.close': 'Close',
   'news.open': 'See it on GitHub',
   'footer.versions': 'Launcher {launcher} · Server {server}',
   'terminal.search': 'Search the log',

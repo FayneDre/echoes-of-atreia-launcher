@@ -26,6 +26,10 @@ game server's status or of the activity (`home:get-info`, `useHomeInfo`).
 and every four hours; a source that cannot be read is left out, and the panel says so when neither could be. The tests point it at a local feed (`ECHOES_NEWS_FEED`, `/launcher.json`
 and `/server.json`).
 
+The newest release of a tab shows its summary, the first paragraph of its notes above their headings and lists, cut to four lines;
+the ones before take a line each. "Read the notes" opens the whole notes in a dialog (a native `<dialog>`: Escape, its button or a click
+beside it closes it). The home page's two columns therefore end at the same height whatever a release says.
+
 A tab shows a "new" badge until it has been opened with that release at its top; what was seen is kept in the renderer's local storage
 (`news-seen`), a convenience only: losing it only shows the badge again.
 
@@ -44,3 +48,5 @@ The system title bar is replaced by a themed one (`titleBarStyle: 'hidden'` with
 the title and the tagline: Windows still draws the minimise, maximise and close buttons over its right end, and the bar is the drag area.
 Below it, one row of one height: the character played, the pages, the languages. Nothing in either wraps down to the minimum width (960). A short message after an action
 (saved, backup made) is a toast in a corner for four seconds; the same message again replaces the one shown.
+
+Every page is as wide as the home page (at most 1280 px, the same margins), the scrollbar's place kept on the right only.
