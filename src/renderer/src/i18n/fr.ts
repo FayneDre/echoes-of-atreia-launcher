@@ -3,6 +3,8 @@ import type { MessageKey } from './en'
 export const fr: Record<MessageKey, string> = {
   'language.label': 'Langue',
   'home.tagline': "Atreia n'est plus jamais vide.",
+  'window.leaveFullScreen': 'Quitter le plein écran',
+  'window.leaveFullScreenHint': 'Quitter le plein écran (Échap ou F11)',
   'update.downloading': 'Téléchargement de la version {version} du launcher… {percent} %',
   'update.ready': 'La version {version} du launcher est prête. Elle s’installe à la fermeture du launcher.',
   'update.install': 'Redémarrer et installer',
@@ -120,7 +122,11 @@ export const fr: Record<MessageKey, string> = {
     "Comment les bots du monde gagnent de l'expérience, combattent les joueurs, parlent et commercent. Écrits dans config/mygs.properties comme les réglages du serveur, et appliqués aussitôt quand le serveur de jeu tourne, sauf ce qui est marqué lu au démarrage.",
 
   'settings.intro':
-    'Valeurs des comptes normaux, écrites dans le config/mygs.properties du serveur de jeu (jamais dans ses fichiers par défaut). Un serveur de jeu qui tourne les applique aussitôt.',
+    'Les taux des comptes premium : tous les comptes de joueurs le sont. Les valeurs normales sont les taux officiels d’un compte normal, les valeurs premium ceux d’un compte premium. Écrits dans le config/mygs.properties du serveur de jeu (jamais dans ses fichiers par défaut), un serveur de jeu qui tourne les applique aussitôt.',
+  'settings.regular': 'Valeurs normales',
+  'settings.premium': 'Valeurs premium',
+  'settings.all.regular': 'Tout aux valeurs normales',
+  'settings.all.premium': 'Tout aux valeurs premium',
   'settings.on': 'activé',
   'settings.off': 'désactivé',
   'settings.startOnly': 'lu au démarrage',

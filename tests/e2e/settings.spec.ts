@@ -28,11 +28,17 @@ function overrides(): string {
   return readFileSync(join(install.serverRoot, 'game-server', 'config', 'mygs.properties'), 'latin1')
 }
 
+// the rates are written to the file that defines them: set in mygs.properties, they did not apply in game
+function rates(): string {
+  return readFileSync(join(install.serverRoot, 'game-server', 'config', 'main', 'rates.properties'), 'latin1')
+}
+
 const group = (page: Page, id: string): Locator => page.getByTestId(`group-${id}`)
 
 // The families are tabs: one shows at a time.
 async function select(page: Page, title: string): Promise<void> {
-  await page.getByRole('tab', { name: title }).click()
+  // by the start of its name: a group with changes adds their count to it
+  await page.getByRole('tab', { name: new RegExp(`^${title.replace(/[()]/g, '\\$&')}`) }).click()
 }
 
 test('sets a whole group at once, or each of its settings', async () => {
@@ -50,11 +56,13 @@ test('sets a whole group at once, or each of its settings', async () => {
   await save(page)
 
   const text = overrides()
-  expect(text).toContain('gameserver.rates.xp.solo = 3.0\n')
-  expect(text).toContain('gameserver.rates.xp.group = 5.0\n')
-  expect(text).toContain('gameserver.rates.xp.pvp = 3.0\n')
-  // Another group, untouched, writes nothing.
-  expect(text).not.toContain('gameserver.rates.ap.')
+  // the premium accounts' values, the players': the regular ones stay official
+  expect(rates()).toContain('gameserver.rates.xp.solo = 1.0, 3.0\n')
+  expect(rates()).toContain('gameserver.rates.xp.group = 1.0, 5.0\n')
+  expect(rates()).toContain('gameserver.rates.xp.pvp = 1.0, 3.0\n')
+  // Another group, untouched, keeps its official line, and nothing goes to mygs.properties.
+  expect(rates()).toContain('gameserver.rates.ap.pve = 1.0, 2.0\n')
+  expect(text).not.toContain('gameserver.rates')
   // The person's own lines are still there.
   expect(text).toContain('database.user = aion')
   await app.close()
@@ -64,6 +72,41 @@ test('sets a whole group at once, or each of its settings', async () => {
   await expect(again.page.getByLabel('Experience (XP) — Monsters, in a group')).toHaveValue('5')
   await expect(again.page.getByLabel('Experience (XP) — Monsters, alone')).toHaveValue('3')
   await again.app.close()
+})
+
+test('puts the premium rates at a regular or a premium account official values, every player account being premium', async () => {
+  const { app, page } = await openSettings()
+  const allRegular = page.getByTestId('all-regular')
+  const allPremium = page.getByTestId('all-premium')
+  // the page starts at the premium values
+  await expect(allPremium).toBeDisabled()
+
+  await allRegular.click()
+  await expect(allRegular).toBeDisabled()
+  await expect(page.getByLabel('Experience (XP) — Monsters, alone')).toHaveValue('1')
+  // a rate whose two levels are the same stays as it is
+  await select(page, 'Chances of success')
+  await expect(page.getByLabel('Chances of success — Manastone socketing')).toHaveValue('75')
+  await expect(page.getByLabel('Chances of success — Crafting: critical')).toHaveValue('15')
+  await save(page)
+  // the premium value takes the regular one's, the regular one, the bots', is kept
+  expect(rates()).toContain('gameserver.rates.xp.solo = 1.0, 1.0\n')
+  expect(rates()).toContain('gameserver.rates.crafting.crit_chances = 15.0, 15.0\n')
+  expect(overrides()).not.toContain('manastone_chances')
+
+  // one group back to the premium values, the others stay regular
+  await select(page, 'Experience (XP)')
+  await group(page, 'xp').getByTestId('group-premium').click()
+  await expect(page.getByLabel('Experience (XP) — Monsters, alone')).toHaveValue('2')
+  await expect(group(page, 'xp').getByTestId('group-premium')).toBeDisabled()
+  await save(page)
+  expect(rates()).toContain('gameserver.rates.xp.solo = 1.0, 2.0\n')
+  expect(rates()).toContain('gameserver.rates.crafting.crit_chances = 15.0, 15.0\n')
+
+  await allPremium.click()
+  await save(page)
+  expect(overrides()).not.toContain('gameserver.rates')
+  await app.close()
 })
 
 test('sets the daily Glory Point loss as a share of the official loss, or rank by rank', async () => {
@@ -90,7 +133,7 @@ test('sets the chances of success in percent, and the factions', async () => {
   await select(page, 'Accounts')
   await page.getByLabel('Accounts — Characters of both factions on one account').check()
   await save(page)
-  expect(overrides()).toContain('gameserver.rates.manastone_chances = 100.0\n')
+  expect(rates()).toContain('gameserver.rates.manastone_chances = 75.0, 100.0\n')
   expect(overrides()).toContain('gameserver.character.creation.mode = 1\n')
   await app.close()
 })
@@ -100,12 +143,12 @@ test('goes back to the official values, which leaves nothing of them in mygs.pro
   await select(page, 'Abyss Points (AP)')
   await page.getByLabel('Abyss Points (AP) — All').fill('4')
   await save(page)
-  expect(overrides()).toContain('gameserver.rates.ap.pve = 4.0\n')
+  expect(rates()).toContain('gameserver.rates.ap.pve = 1.0, 4.0\n')
   // Raising every gain does not raise what a PvP death costs.
   expect(overrides()).not.toContain('ap.pvp.loss')
 
-  await page.getByRole('button', { name: 'Everything to the official values' }).click()
-  await expect(page.getByLabel('Abyss Points (AP) — All')).toHaveValue('1')
+  await page.getByRole('button', { name: 'Everything to the premium values' }).click()
+  await expect(page.getByLabel('Abyss Points (AP) — All')).toHaveValue('2')
   await save(page)
   expect(overrides()).not.toContain('gameserver.rates')
   expect(overrides()).not.toContain('Echoes of Atreia launcher')
@@ -114,16 +157,18 @@ test('goes back to the official values, which leaves nothing of them in mygs.pro
 })
 
 test('leaves every setting it was not asked to change as the file had it', async () => {
-  // Values the page cannot show as they are: a premium rate of its own, the character reservation mode.
+  // A rate of the file the page does not change, and a value it cannot show as it is: the character reservation mode.
   const file = join(install.serverRoot, 'game-server', 'config', 'mygs.properties')
   writeFileSync(file, 'gameserver.rates.xp.solo = 2.0, 5.0\ngameserver.character.creation.mode = 2\n', 'latin1')
   const { app, page } = await openSettings()
   await select(page, 'Divine Points (DP)')
   await page.getByLabel('Divine Points (DP) — All').fill('3')
   await save(page)
-  expect(overrides()).toContain('gameserver.rates.xp.solo = 2.0, 5.0\n')
+  // a rate mygs.properties still held moves to its file as it was
+  expect(rates()).toContain('gameserver.rates.xp.solo = 2.0, 5.0\n')
+  expect(overrides()).not.toContain('gameserver.rates')
   expect(overrides()).toContain('gameserver.character.creation.mode = 2\n')
-  expect(overrides()).toContain('gameserver.rates.dp.pve = 3.0\n')
+  expect(rates()).toContain('gameserver.rates.dp.pve = 1.0, 3.0\n')
   await app.close()
 })
 
@@ -147,7 +192,7 @@ test('takes a decimal typed one key at a time', async () => {
   await field.pressSequentially('1.5')
   await expect(field).toHaveValue('1.5')
   await save(page)
-  expect(overrides()).toContain('gameserver.rates.xp.solo = 1.5\n')
+  expect(rates()).toContain('gameserver.rates.xp.solo = 1.0, 1.5\n')
   await app.close()
 })
 
@@ -157,7 +202,7 @@ test('refuses a value the server would not take', async () => {
   await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeDisabled()
   await page.getByLabel('Experience (XP) — All').fill('')
   await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeDisabled()
-  await page.getByLabel('Experience (XP) — All').fill('2')
+  await page.getByLabel('Experience (XP) — All').fill('3')
   await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeEnabled()
   await app.close()
 })
@@ -170,7 +215,7 @@ test('applies the settings at once when the game server runs, without asking for
 
   await page.getByRole('button', { name: 'Server settings' }).click()
   await select(page, 'Glory Points (GP)')
-  await page.getByLabel('Glory Points (GP) — All').fill('2')
+  await page.getByLabel('Glory Points (GP) — All').fill('3')
   await save(page)
   await expect.poll(() => readFileSync(join(install.serverRoot, 'game-server', 'log', 'server_console.log'), 'utf8')).toContain('configuration reloaded')
   await expect(page.getByTestId('restart-needed')).toHaveCount(0)
@@ -191,7 +236,7 @@ test('asks for a restart when the game server cannot read the settings again', a
 
   await page.getByRole('button', { name: 'Server settings' }).click()
   await select(page, 'Glory Points (GP)')
-  await page.getByLabel('Glory Points (GP) — All').fill('2')
+  await page.getByLabel('Glory Points (GP) — All').fill('3')
   await save(page)
   await expect(page.getByTestId('restart-needed')).toContainText('Restart the servers')
 

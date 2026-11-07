@@ -74,16 +74,22 @@ connects to the other two while it starts.
 
 ## Server settings
 
-`src/main/server/serverSettings.ts`. The launcher writes only the game server's `config/mygs.properties`, the overrides the server reads
-on top of its default files (`Config.java`: `new Properties(defaults)`, so an override also wins for the per-rank keys read by pattern).
-Updating the server therefore never conflicts with the player's settings.
+`src/main/server/serverSettings.ts`. The rates are written to the default file that defines them (`config/main/rates.properties`):
+set in `mygs.properties` they did not apply in game (2026-11-07, two people testing on the live server). Its version from before the first
+change is kept as `rates.properties.before-launcher` and holds the official values the page compares with; a rate back to its official
+value gets its official line back, and a rate an earlier launcher left in `mygs.properties` moves to the file at the next save. Every other
+setting goes to `config/mygs.properties`, the overrides the server reads on top of its default files.
 
 - **The catalog** (`src/shared/settingsCatalog.ts`) lists every setting offered, by family: the 30 rates of `rates.properties` (all read
   by the server: 26 in its core, the four arena rates in `data/handlers/instance/pvparenas/`), the daily Glory Point loss of the 9 officer
   ranks, and both factions. A setting the server's files lack is not offered. Labels are `group.<id>` and `setting.<id>` in each
   dictionary, checked by a unit test.
-- **Regular accounts only.** A rate holds one value per membership level (`1.0, 2.0`: regular, premium); the launcher writes the regular
-  value alone (`3.0`), which `Rates.get` then applies to every level.
+- **Premium accounts.** A rate holds one value per membership level (`1.0, 2.0`: regular, premium). Every player account is premium (the
+  server's `loginserver.accounts.minimum_membership`), so the page sets the premium value and writes the line with the regular one, the
+  bots', as the server has it (`3.0` is read as both, `3.0, 5.0` once premium is changed); a line whose every level is official is removed.
+  In place of "Official values", a group with rates and the save bar have "Regular values" and "Premium values": every rate to that account
+  level's official value (`ServerSettings.regular` and `official`), the other settings to their one official value; a button is greyed
+  while the values already match. Groups without rates and the bots page keep "Official values".
 - **A family's field** sets all of its settings to one value, or, for the Glory Point loss, to a share of their official values (rounded
   to whole points, read back from the rank that loses the most, the only one that keeps the share exact). It reads "mixed" when they
   differ. The AP lost on a PvP death is a family of its own, so raising every gain never raises the penalty.

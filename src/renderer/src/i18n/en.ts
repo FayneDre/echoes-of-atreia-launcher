@@ -2,6 +2,8 @@
 export const en = {
   'language.label': 'Language',
   'home.tagline': 'Atreia is never empty.',
+  'window.leaveFullScreen': 'Leave full screen',
+  'window.leaveFullScreenHint': 'Leave full screen (Escape or F11)',
   'footer.disclaimer': 'Unofficial fan project, not affiliated with or endorsed by NCSoft.',
   'update.downloading': 'Downloading version {version} of the launcher… {percent}%',
   'update.ready': 'Version {version} of the launcher is ready. It installs when the launcher closes.',
@@ -118,8 +120,12 @@ export const en = {
   'bots.settingsIntro':
     'How the world’s bots earn experience, fight players, speak and trade. Written to config/mygs.properties like the server settings, and applied at once while the game server runs, except what is marked as read at start.',
 
+  'settings.regular': 'Regular values',
+  'settings.premium': 'Premium values',
+  'settings.all.regular': 'Everything to the regular values',
+  'settings.all.premium': 'Everything to the premium values',
   'settings.intro':
-    'Values for regular accounts, written to the game server’s config/mygs.properties (never to its default files). A game server that runs applies them at once.',
+    'The rates of premium accounts: every player account is one. The regular values are a regular account’s official rates, the premium values a premium account’s. Written to the game server’s config/mygs.properties (never to its default files), a game server that runs applies them at once.',
   'settings.on': 'on',
   'settings.off': 'off',
   'settings.startOnly': 'read at start',

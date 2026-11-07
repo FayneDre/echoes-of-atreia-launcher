@@ -5,13 +5,20 @@
  * `multiplier`: a rate, 1 is the official one. `percent`: a chance of success, in percent. `points`: a number of points. `toggle`: on or off,
  * written 1 or 0. `flag`: on or off, written true or false (the bot options). `count`: a whole number within the definition's bounds.
  * `choice`: one of the definition's options, held as its index.
- * Rates hold one value per membership level on the server; the launcher sets the regular accounts' only, and writes it alone, which the server
- * then applies to every level.
+ * Rates hold one value per membership level on the server ("regular, premium"). The login server makes every player account premium, so the
+ * launcher sets the premium value, the players', and keeps the regular one, the bots' (they have no account), as the server has it. The
+ * regular accounts' official values are still read: the page offers them as a set of rates the players can choose.
  */
 export type SettingKind = 'multiplier' | 'percent' | 'points' | 'toggle' | 'flag' | 'count' | 'choice'
 
 /** What a count is counted in, shown after its field: a percent sign, or a word under `unit.<id>`. */
 export type SettingUnit = 'percent' | 'levels' | 'listings' | 'kinah'
+
+/** The account level a rate applies to. */
+export type Membership = 'premium' | 'regular'
+
+/** Where a membership's value sits in a rate's comma separated list; the server takes the last one when the list is shorter. */
+export const MEMBERSHIP_LEVEL: Record<Membership, number> = { regular: 0, premium: 1 }
 
 export interface SettingDefinition {
   /** Short and stable: the label's key, and the setting's identity between the interface and the main process. */
@@ -27,6 +34,8 @@ export interface SettingDefinition {
   options?: string[]
   /** Read when the game server starts only: a change waits for the next start, whatever the server can read again while it runs. */
   startOnly?: boolean
+  /** A rate's account level: its value is that level's in the key's list. */
+  membership?: Membership
 }
 
 /** Where a group is set: the server settings page, or the bots page. */
@@ -47,7 +56,8 @@ const bot = (id: string, kind: SettingKind, extra: Partial<SettingDefinition> = 
   ...extra
 })
 
-const rate = (id: string, kind: SettingKind = 'multiplier'): SettingDefinition => ({ id, key: `gameserver.rates.${id}`, kind })
+/** A rate, as the premium accounts have it: every player account is premium. */
+const rate = (id: string, kind: SettingKind = 'multiplier'): SettingDefinition => ({ id, key: `gameserver.rates.${id}`, kind, membership: 'premium' })
 
 // The Abyss officer ranks, from the lowest: each loses Glory Points every day at noon.
 const GP_LOSS_RANKS = [
@@ -68,8 +78,8 @@ export const SETTING_GROUPS: SettingGroup[] = [
     globalField: 'same-value',
     settings: ['xp.solo', 'xp.group', 'xp.quest', 'xp.gathering', 'xp.crafting', 'xp.pvp'].map((id) => rate(id))
   },
-  { id: 'skillXp', globalField: 'same-value', settings: [rate('skill_xp.gathering'), rate('skill_xp.crafting')] },
-  { id: 'ap', globalField: 'same-value', settings: [rate('ap.pve'), rate('ap.pvp.gain'), rate('ap.quest'), rate('ap.dredgion')] },
+  { id: 'skillXp', globalField: 'same-value', settings: ['skill_xp.gathering', 'skill_xp.crafting'].map((id) => rate(id)) },
+  { id: 'ap', globalField: 'same-value', settings: ['ap.pve', 'ap.pvp.gain', 'ap.quest', 'ap.dredgion'].map((id) => rate(id)) },
   // A penalty, not a reward: in the gains' group, raising every gain at once would raise it too.
   { id: 'apLoss', globalField: 'none', settings: [rate('ap.pvp.loss')] },
   { id: 'gp', globalField: 'same-value', settings: [rate('gp.gain')] },
@@ -78,8 +88,8 @@ export const SETTING_GROUPS: SettingGroup[] = [
     globalField: 'percent-of-official',
     settings: GP_LOSS_RANKS.map((rank) => ({ id: `gp_loss.${rank}`, key: `gameserver.topranking.gp_loss.${rank}`, kind: 'points' }))
   },
-  { id: 'dp', globalField: 'same-value', settings: [rate('dp.pve'), rate('dp.pvp')] },
-  { id: 'loot', globalField: 'same-value', settings: [rate('drop'), rate('kinah.quest'), rate('gathering.count'), rate('sell_limit')] },
+  { id: 'dp', globalField: 'same-value', settings: ['dp.pve', 'dp.pvp'].map((id) => rate(id)) },
+  { id: 'loot', globalField: 'same-value', settings: ['drop', 'kinah.quest', 'gathering.count', 'sell_limit'].map((id) => rate(id)) },
   {
     id: 'arena',
     globalField: 'same-value',
@@ -181,8 +191,12 @@ export function isAllowed(definition: SettingDefinition, value: unknown): value 
   )
 }
 
-/** The settings of a server, by setting id: what it uses now, and its official values. Settings its files do not have are left out. */
+/**
+ * The settings of a server, by setting id: what it uses now, and its official values (a rate's for premium accounts). Settings its files do not
+ * have are left out. `regular` holds each rate's official value for regular accounts, which the page offers as a whole set.
+ */
 export interface ServerSettings {
   values: Record<string, number>
   official: Record<string, number>
+  regular: Record<string, number>
 }

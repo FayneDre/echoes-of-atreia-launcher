@@ -7,6 +7,7 @@ import {
   SETTING_GROUPS,
   type ServerSettings,
   type SettingDefinition,
+  type Membership,
   type SettingGroup,
   type SettingPage
 } from '../../../shared/settingsCatalog'
@@ -22,6 +23,64 @@ const groupLabel = (group: SettingGroup): MessageKey => `group.${group.id}` as M
 const settingLabel = (definition: SettingDefinition): MessageKey => `setting.${definition.id}` as MessageKey
 
 const isSwitch = (definition: SettingDefinition): boolean => definition.kind === 'toggle' || definition.kind === 'flag'
+
+/**
+ * The official values of these settings for an account level: a rate takes that level's, every other setting its one official value. Every
+ * player account is premium, so the page sets the premium rates, and the regular accounts' official ones are a set the players can take.
+ */
+function officialFor(level: Membership, list: SettingDefinition[], settings: ServerSettings): Values {
+  return Object.fromEntries(
+    list.map((definition) => [
+      definition.id,
+      definition.membership && level === 'regular' ? settings.regular[definition.id]! : settings.official[definition.id]!
+    ])
+  )
+}
+
+const matches = (list: SettingDefinition[], values: Values, target: Values): boolean =>
+  list.every((definition) => values[definition.id] === target[definition.id])
+
+const hasRates = (list: SettingDefinition[]): boolean => list.some((definition) => definition.membership)
+
+/** The buttons that put these settings back: one per account level where there are rates, the official values otherwise. */
+function ResetButtons(props: {
+  list: SettingDefinition[]
+  values: Values
+  settings: ServerSettings
+  whole?: boolean
+  className?: string
+  onChange: (changes: Values) => void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const { list, values, settings } = props
+  if (!hasRates(list)) {
+    const target = officialFor('premium', list, settings)
+    return (
+      <button type="button" className={props.className} disabled={matches(list, values, target)} onClick={() => props.onChange(target)}>
+        {t(props.whole ? 'settings.allOfficial' : 'settings.official')}
+      </button>
+    )
+  }
+  return (
+    <>
+      {(['regular', 'premium'] as const).map((level) => {
+        const target = officialFor(level, list, settings)
+        return (
+          <button
+            key={level}
+            type="button"
+            className={props.className}
+            data-testid={`${props.whole ? 'all' : 'group'}-${level}`}
+            disabled={matches(list, values, target)}
+            onClick={() => props.onChange(target)}
+          >
+            {t(`${props.whole ? 'settings.all' : 'settings'}.${level}` as MessageKey)}
+          </button>
+        )
+      })}
+    </>
+  )
+}
 
 /** What follows a field: a percent sign, a unit word, or for the daily Glory Point loss, "a day". */
 function unitOf(definition: SettingDefinition, t: Translate): string | null {
@@ -115,6 +174,7 @@ function GroupPanel(props: {
   settings: SettingDefinition[]
   values: Values
   official: Values
+  server: ServerSettings
   changed: number
   onChange: (changes: Values) => void
 }): React.JSX.Element {
@@ -135,7 +195,6 @@ function GroupPanel(props: {
         ])
       )
     )
-  const resetGroup = (): void => props.onChange(Object.fromEntries(settings.map((definition) => [definition.id, official[definition.id]!])))
 
   let globalField: React.JSX.Element | null = null
   if (group.globalField === 'same-value') {
@@ -169,9 +228,9 @@ function GroupPanel(props: {
           <h3>{title}</h3>
           {props.changed > 0 && <span className="group-changed">{t('settings.changed', { count: props.changed })}</span>}
         </div>
-        <button type="button" className="small" disabled={props.changed === 0} onClick={resetGroup}>
-          {t('settings.official')}
-        </button>
+        <span className="group-resets">
+          <ResetButtons list={settings} values={values} settings={props.server} className="small" onChange={props.onChange} />
+        </span>
       </div>
       {hint && <p className="hint">{hint}</p>}
 
@@ -342,6 +401,7 @@ export function SettingsPage({ state, page = 'server' }: { state: LauncherState;
           settings={current.settings}
           values={values}
           official={settings.official}
+          server={settings}
           changed={changedIn(current.settings)}
           onChange={change}
         />
@@ -361,9 +421,7 @@ export function SettingsPage({ state, page = 'server' }: { state: LauncherState;
             </span>
           )}
         </span>
-        <button type="button" onClick={() => change(settings.official)}>
-          {t('settings.allOfficial')}
-        </button>
+        <ResetButtons list={definitions} values={values} settings={settings} whole onChange={change} />
         <button type="button" className="button-primary" disabled={!valid || !dirty} onClick={() => void save()}>
           {t('settings.save')}
         </button>
