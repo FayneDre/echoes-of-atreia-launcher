@@ -748,6 +748,11 @@ button:hover:not(:disabled) {
   overflow-wrap: anywhere;
 }
 
+/* an action under its fact's value, in every language: beside it, it fits in English and wraps in French, and the whole page moved */
+.fact-action {
+  flex-basis: 100%;
+}
+
 .fact .elyos {
   color: var(--elyos);
   font-weight: 600;

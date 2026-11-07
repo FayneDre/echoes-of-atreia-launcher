@@ -125,9 +125,11 @@ export function HomeHero({ state, accounts, info, onReloadInfo }: Props): React.
           <dt>{t('hero.lastBackup')}</dt>
           <dd data-testid="hero-backup">
             {info?.lastBackup ? new Date(info.lastBackup).toLocaleString(language, { dateStyle: 'medium', timeStyle: 'short' }) : t('hero.noBackup')}
-            <button type="button" className="small link" disabled={backingUp || !install.serverFound || !idle} onClick={() => void backup()}>
-              {t('hero.backupNow')}
-            </button>
+            <span className="fact-action">
+              <button type="button" className="small link" disabled={backingUp || !install.serverFound || !idle} onClick={() => void backup()}>
+                {t('hero.backupNow')}
+              </button>
+            </span>
           </dd>
         </div>
       </dl>
