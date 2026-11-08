@@ -41,18 +41,17 @@ scripts' `-lang:EN` ([client.md](client.md)).
 ## 2. Distribution and updates
 
 **Done**: the public installer and portable executable; v0.2.0 released (phases 1 to 5); patch notes in French and English shown as "What's new" after
-an update; pre-releases on `develop` in both repositories (the server's release process plan, milestones 1 to 4). Built, unverified: the launcher
-updating itself from GitHub (milestone 5), and a beta launcher installing the server's pre-releases from their bundle and manifest, with the SQL
-updates and an undo (milestone 6, [server-update.md](server-update.md)).
+an update; pre-releases on `develop` in both repositories (the server's release process plan, milestones 1 to 4). Validated on 8 November: the
+launcher updating itself from GitHub (milestone 5), and a beta launcher installing the server's pre-releases from their bundle and manifest, with
+the SQL updates and an undo (milestone 6, [server-update.md](server-update.md)).
 
 **Left**:
-1. **A tester's install going to a published pre-release and back**: verifies milestones 5 and 6 together.
-2. **The first stable pair** (milestone 7): `develop` merged into `main` in both repositories once a pair is validated in game.
-3. **Updates by difference**: only what changed downloaded, each replaced file backed up, the database and the person's files never touched.
-4. **A first download that resumes and verifies**: tens of gigabytes in parts that survive a closed launcher, checked against the manifest.
-5. **Check and repair the install** from the manifest: every file against its hash, what is missing or changed downloaded again.
-6. **Back to the previous version**: the previous bundle kept, so a beta patch that breaks something is undone in one click.
-7. **A first-launch assistant**: Java, MySQL, memory and disk space checked, what can be fixed fixed in one click.
+1. **The first stable pair** (milestone 7): `develop` merged into `main` in both repositories once a pair is validated in game.
+2. **Updates by difference**: only what changed downloaded, each replaced file backed up, the database and the person's files never touched.
+3. **A first download that resumes and verifies**: tens of gigabytes in parts that survive a closed launcher, checked against the manifest.
+4. **Check and repair the install** from the manifest: every file against its hash, what is missing or changed downloaded again.
+5. **Back to the previous version**: the previous bundle kept, so a beta patch that breaks something is undone in one click.
+6. **A first-launch assistant**: Java, MySQL, memory and disk space checked, what can be fixed fixed in one click.
 
 ## 3. Server settings
 
