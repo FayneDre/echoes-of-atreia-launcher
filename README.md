@@ -13,6 +13,20 @@ Early development. The launcher finds the server, the client, Java and MySQL; st
 data; shows their terminals; and launches the game. See [docs/roadmap.md](docs/roadmap.md) for what is done and what comes next and
 [docs/how-it-works.md](docs/how-it-works.md) for how it runs the servers.
 
+## A look at it
+
+<p align="center"><img src="docs/images/home.png" alt="The home page: the servers running, the character played, the bots in the world, the server version and the news" width="880"></p>
+
+| | |
+|---|---|
+| <img src="docs/images/account.png" alt="The Account page: the characters of a game account, and a teleport" width="430"> | <img src="docs/images/server-settings.png" alt="The Server settings page: the rates, group by group" width="430"> |
+| **Account**: sign in with a game account, choose the character to play, teleport it. | **Server settings**: the experience, drop and other rates, against the official values. |
+| <img src="docs/images/bots.png" alt="The Bots page: how the bots earn experience, fight, speak and trade, and the list of bots" width="430"> | <img src="docs/images/backups.png" alt="The Backups page: the backups of both databases" width="430"> |
+| **Bots**: how the world's bots earn experience, fight players, speak and trade, and who is in the world. | **Backups**: the accounts and characters databases, backed up and restored in a click. |
+
+The pictures are of the launcher in English against the tests' fake install (made-up accounts, characters and bots): `npm run screenshots`
+takes them again.
+
 ## Download
 
 Windows builds are on the [Releases](https://github.com/FayneDre/echoes-of-atreia-launcher/releases) page: an installer, or a portable
@@ -34,6 +48,7 @@ npm run test:unit  # Vitest, the logic that needs no window
 npm run test:e2e   # builds, then drives the real window with Playwright, against fake servers
 npm test           # all three
 npm run dist       # the Windows installer and portable exe, in dist/
+npm run screenshots  # the README's pictures, into docs/images/
 ```
 
 The launcher finds the server through the `AION_SERVER_HOME` environment variable, or the folder chosen in its Installation panel.

@@ -48,3 +48,22 @@ test('lays out every page the same in every language as in French', async () => 
   }
   await app.close()
 })
+
+test('shows the home page whole, without a scroll bar, at the first size and in a larger window', async () => {
+  const { app, page } = await launchWith(install)
+  await expect(page.getByTestId('install-summary')).toBeVisible()
+  await expect(page.getByTestId('server-update')).toBeVisible()
+  await page.waitForTimeout(1_000)
+  const overflow = () =>
+    page.evaluate(() => {
+      const scroller = document.querySelector('.page-scroll')!
+      return scroller.scrollHeight - scroller.clientHeight
+    })
+  expect(await overflow(), 'at the first size').toBeLessThanOrEqual(0)
+  // a larger window zooms the page: the same layout, which must still fit
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.setContentSize(1180 * 1.25, 780 * 1.25))
+  await expect.poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.webContents.getZoomFactor())).toBe(1.25)
+  await page.waitForTimeout(300)
+  expect(await overflow(), 'zoomed').toBeLessThanOrEqual(0)
+  await app.close()
+})

@@ -130,6 +130,16 @@ test('shows where the stack stands, the news of both projects, the install folde
   await news.getByRole('tab', { name: /Server/ }).click()
   await expect(news.getByTestId('news-summary')).toContainText('Server news')
   expect(await height()).toBe(launcherHeight)
+  // however long the notes, the home page fits the window: no scroll bar for the few pixels a summary would add
+  const overflow = (): Promise<number> =>
+    page.evaluate(() => {
+      const scroller = document.querySelector('.page-scroll')!
+      return scroller.scrollHeight - scroller.clientHeight
+    })
+  expect(await overflow(), 'server tab').toBeLessThanOrEqual(0)
+  await news.getByRole('tab', { name: /Launcher/ }).click()
+  expect(await overflow(), 'launcher tab').toBeLessThanOrEqual(0)
+  await news.getByRole('tab', { name: /Server/ }).click()
   await expect(news.getByTestId('news-server-v0.2.0-beta.1')).toContainText('Server news in English')
   await expect(news.getByRole('tab', { name: /Server/ })).not.toContainText('new')
 

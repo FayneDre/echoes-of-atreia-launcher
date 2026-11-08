@@ -941,6 +941,34 @@ button.link:hover:not(:disabled) {
   flex-direction: column;
 }
 
+/*
+ * Beside the other column, the news take the height that column leaves and never set it: a long summary, or the server version panel
+ * offering a release, would otherwise make the home page taller than the window and give it a scroll bar for a few pixels. `contain: size`
+ * keeps the panel's content out of the row's height; the summary below gives up its last lines, faded, when the room is short.
+ */
+@media (width >= 900px) {
+  .news-panel {
+    min-height: 190px;
+    overflow: hidden;
+    contain: size;
+  }
+
+  .news-panel .news-latest {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .news-panel .news-summary {
+    flex: 1;
+    height: auto;
+    min-height: calc(2 * 1.55em);
+    max-height: calc(4 * 1.55em);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 1.4em), transparent);
+  }
+}
+
 .news-tabs {
   margin-bottom: 12px;
 }

@@ -27,7 +27,10 @@ once, at the launcher's start (the start is what shows what changed, never a tim
 and `/server.json`).
 
 A tab shows its newest release alone, with its summary (the first paragraph of its notes, above their headings and lists, cut to
-four lines, and the room of four kept when it is shorter or missing), so the panel keeps its height from one tab to the other and however many releases come out and the home page's columns end together. "Read the notes"
+four lines, and the room of four kept when it is shorter or missing), so the panel keeps its height from one tab to the other and however many releases come out and the home page's columns end together.
+Beside the other column the panel never sets the row's height (`contain: size`): it takes what the servers and installation panels leave,
+the summary giving up its last lines, faded, when that is less than four, so a long summary or a server release on offer never gives the home
+page a scroll bar (`home.spec.ts` and `layout.spec.ts` measure it). "Read the notes"
 opens the whole notes in a dialog (a native `<dialog>`: Escape, its button or a click beside it closes it); "Previous versions (n)"
 opens the same dialog on the release before, with every release of the tab listed on its left.
 
@@ -56,7 +59,8 @@ A tab shows a "new" badge until it has been opened with that release at its top;
   Below the line, in the room it leaves (the block keeps its height): the free space of the server's drive (`statfs`, red under 5 GB,
   since a server update downloads close to 2 GB), the backups kept and their size (a link to the Backups page), and the game server's
   database size with MySQL's version (`information_schema`, asked only while MySQL answers).
-- **Server version** ([server-update.md](server-update.md)) sits above the news, so both columns fit the default window (1180×780).
+- **Server version** ([server-update.md](server-update.md)) sits above the news, so both columns fit the default window (1180×780), with
+  a few pixels to spare below (the page's padding is 14 px above, 10 below).
 - **Terminals**: the drawer at the foot, with a search, an "errors only" filter (ERROR and WARN lines, exceptions and their causes) and a
   copy of what the filter shows.
 - **The footer** gives the launcher's version and the server's, as the server answers it or as the install's manifest says.

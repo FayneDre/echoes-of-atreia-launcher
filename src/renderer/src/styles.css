@@ -172,7 +172,8 @@ button.small {
   min-height: 0;
   overflow-y: auto;
   scrollbar-gutter: stable;
-  padding: 16px 20px;
+  /* less below than above: the home page laid out for the first window size fits it with a few pixels to spare, no bar for nothing */
+  padding: 14px 20px 10px;
 }
 
 .home-grid {
