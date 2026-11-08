@@ -169,7 +169,7 @@ export const en = {
     'Every day at noon, each Abyss officer rank loses Glory Points. The group’s field is a share of the official loss: 100 % is official, 0 % turns it off.',
   'hint.chances': 'In percent, for each attempt.',
   'hint.botDensity':
-    'How much of each region’s countryside is peopled; villages are always full. Following the players: full where someone plays, nearly empty elsewhere. Fixed: the percent everywhere, seen or not. At least: following the players, never below the percent. The server stops the arrivals where the machine runs short of memory, whatever is set here.',
+    'How much of each region’s countryside is peopled; villages are always full. Following the players: full where someone plays, nearly empty elsewhere. Fixed: the percent everywhere, seen or not. At least: following the players, never below the percent. When the machine runs short of memory, the server stops the arrivals and moves bots to the maps where someone plays, whatever is set here.',
   'hint.botXp':
     'A percent of the official rate, whatever the players’ rates: at 1 %, a bot takes about thirteen hours to outgrow a region. A bot in a player’s group follows the player’s rate.',
   'hint.botPvp':

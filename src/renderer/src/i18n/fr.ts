@@ -170,7 +170,7 @@ export const fr: Record<MessageKey, string> = {
     "Chaque jour à midi, chaque grade d'officier des Abysses perd des points d'honneur. Le champ de la famille est une part de la perte officielle : 100 % est la perte officielle, 0 % la supprime.",
   'hint.chances': 'En pourcentage, à chaque tentative.',
   'hint.botDensity':
-    "Combien la campagne de chaque région est peuplée ; les villages sont toujours pleins. Suit les joueurs : pleine là où quelqu'un joue, presque vide ailleurs. Fixe : le pourcentage partout, vue ou non. Au moins : suit les joueurs, jamais sous le pourcentage. Le serveur arrête les arrivées là où la machine manque de mémoire, quel que soit ce réglage.",
+    "Combien la campagne de chaque région est peuplée ; les villages sont toujours pleins. Suit les joueurs : pleine là où quelqu'un joue, presque vide ailleurs. Fixe : le pourcentage partout, vue ou non. Au moins : suit les joueurs, jamais sous le pourcentage. Quand la machine manque de mémoire, le serveur arrête les arrivées et déplace des bots vers les cartes où quelqu'un joue, quel que soit ce réglage.",
   'hint.botXp':
     "Un pourcentage du taux officiel, quels que soient les taux des joueurs : à 1 %, un bot met environ treize heures à dépasser sa région. Un bot dans le groupe d'un joueur suit le taux du joueur.",
   'hint.botPvp':

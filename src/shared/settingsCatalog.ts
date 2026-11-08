@@ -113,7 +113,7 @@ export const SETTING_GROUPS: SettingGroup[] = [
     settings: [{ id: 'bothFactions', key: 'gameserver.character.creation.mode', kind: 'toggle' }]
   },
   // How many bots the world holds, read at each review of the population (30 s): a reload applies it within half a minute. The server's
-  // population guard stops the arrivals where the machine runs short, whatever is set here.
+  // population guard stops the arrivals when the machine runs short, whatever is set here.
   {
     id: 'botDensity',
     page: 'bots',
