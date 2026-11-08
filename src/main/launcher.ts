@@ -10,6 +10,8 @@ import {
   type InstallState,
   type LauncherState,
   type LogBatch,
+  POPULATION_API_LEVEL,
+  type PopulationState,
   type Problem,
   type ServerId,
   type ServerSettings,
@@ -19,7 +21,7 @@ import {
 import { launchClient } from './client'
 import { checkClient, clientLanguageFor, type ClientCheck } from './clientCheck'
 import { findClientNear, isClientFolder, readServerLayout, type ServerLayout } from './server/installation'
-import { adminRequest, parseDestinations } from './server/adminChannel'
+import { adminRequest, parseDestinations, parsePopulation } from './server/adminChannel'
 import { parseVersionAnswer, readInstallManifest } from './server/serverVersion'
 import { addressOf } from './accounts/accountStore'
 import { MysqlControl } from './server/mysql'
@@ -499,6 +501,21 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       this.publish()
     }
     return true
+  }
+
+  /**
+   * Where the population of the running game server stands. Null when there is nothing to show rather than a fault: no game server ready, or one
+   * older than the request, which the page then leaves out.
+   */
+  async getPopulation(): Promise<PopulationState | null | Problem> {
+    if (this.servers.game?.current.status !== 'ready' || (this.serverVersion?.apiLevel ?? 0) < POPULATION_API_LEVEL) {
+      return null
+    }
+    const answer = await this.askGame('population')
+    if ('code' in answer) {
+      return answer
+    }
+    return parsePopulation(answer) ?? { code: 'admin-failed', detail: 'unreadable population' }
   }
 
   /** Where the game server can send a character, by name, each name once. */

@@ -200,6 +200,8 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
   write(
     join(serverRoot, 'game-server', 'config', 'main', 'playerbot.properties'),
     [
+      'gameserver.playerbot.density.mode = AUTO',
+      'gameserver.playerbot.density.percent = 30',
       'gameserver.playerbot.xp.solo = 1',
       'gameserver.playerbot.xp.group = 1',
       'gameserver.playerbot.xp.pvp = 100',

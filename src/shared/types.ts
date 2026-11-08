@@ -260,6 +260,24 @@ export interface DestinationSummary {
   name: string
 }
 
+/**
+ * Where the running game server's population stands, from its answer to `population` (API level 2). The totals are the director's last review,
+ * absent until the first one, which comes once the startup is done.
+ */
+export interface PopulationState {
+  mode: string
+  percent: number
+  totals: { awake: number; wanted: number; asleep: number; short: number } | null
+  /** `held` comes with what holds the arrivals: the heap, route planning, or both. */
+  guard: { state: 'open' | 'held' | 'off'; causes: string[] }
+  /** The old generation after a collection, in percent of the heap; null before the first collection that reaches it. */
+  heapPercent: number | null
+  routeWaitSeconds: number
+}
+
+/** The first API level whose game server answers `population`. */
+export const POPULATION_API_LEVEL = 2
+
 /** One of the server's bots. */
 export interface BotSummary {
   id: number

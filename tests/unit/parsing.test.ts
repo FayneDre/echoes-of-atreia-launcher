@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { clientArguments } from '../../src/main/client'
 import { mysqlAddressOf, parseProperties, portOf, readServerConfig } from '../../src/main/server/properties'
-import { javaArgumentsFrom, tokenizeArguments } from '../../src/main/server/startScript'
+import { fitHeapToMachine, heapMegabytesFor, javaArgumentsFrom, tokenizeArguments } from '../../src/main/server/startScript'
 import { parseJavaMajor } from '../../src/main/system/java'
 
 // The game server's start.bat as the server ships it.
@@ -91,5 +91,27 @@ describe('java', () => {
 describe('client', () => {
   it('reaches the local login server on its client port', () => {
     expect(clientArguments(2106, 'FRA')).toEqual(['-ip:127.0.0.1', '-port:2106', '-loginex', '-lang:FRA'])
+  })
+})
+
+describe('fitHeapToMachine', () => {
+  const GB = 1024 ** 3
+  const script = ['-Xms1024m', '-Xmx2560m', '-XX:+UseNUMA', '-cp', 'libs/*', 'com.aionemu.gameserver.GameServer']
+
+  it('gives a smaller machine a smaller heap, by the bands Windows reports', () => {
+    expect(heapMegabytesFor(3.9 * GB)).toBe(1024)
+    expect(heapMegabytesFor(7.8 * GB)).toBe(1536)
+    expect(heapMegabytesFor(11.8 * GB)).toBe(2048)
+    expect(heapMegabytesFor(15.2 * GB)).toBeNull()
+  })
+  it('brings the maximum down and the initial size with it', () => {
+    expect(fitHeapToMachine(script, 7.8 * GB)).toEqual(['-Xms1024m', '-Xmx1536m', '-XX:+UseNUMA', '-cp', 'libs/*', 'com.aionemu.gameserver.GameServer'])
+    expect(fitHeapToMachine(script, 3.9 * GB).slice(0, 2)).toEqual(['-Xms1024m', '-Xmx1024m'])
+    expect(fitHeapToMachine(['-Xms2g', '-Xmx3g', 'Main'], 3.9 * GB)).toEqual(['-Xms1024m', '-Xmx1024m', 'Main'])
+  })
+  it('never raises what start.bat says, and leaves a script without a maximum alone', () => {
+    expect(fitHeapToMachine(script, 15.2 * GB)).toBe(script)
+    expect(fitHeapToMachine(['-Xmx1g', 'Main'], 7.8 * GB)).toEqual(['-Xmx1g', 'Main'])
+    expect(fitHeapToMachine(['-cp', 'libs/*', 'Main'], 3.9 * GB)).toEqual(['-cp', 'libs/*', 'Main'])
   })
 })

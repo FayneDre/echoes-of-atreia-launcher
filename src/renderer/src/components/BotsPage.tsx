@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { BotSummary, LauncherState, Problem } from '../../../shared/types'
+import { POPULATION_API_LEVEL, type BotSummary, type LauncherState, type Problem } from '../../../shared/types'
 import { hasMessage, useI18n } from '../i18n'
 import { BotHistoryChart } from './BotHistoryChart'
+import { PopulationPanel } from './PopulationPanel'
 import { ProblemText } from './ProblemText'
 
 /** A page of each faction's list, and how many more each click shows. */
@@ -113,6 +114,8 @@ export function BotsPage({ state, visible }: { state: LauncherState; visible: bo
           {t('bots.refresh')}
         </button>
       </div>
+      {/* the server's level is learnt just after it is ready: the panel asks once it is known */}
+      <PopulationPanel visible={visible} ready={live && (state.serverVersion?.apiLevel ?? 0) >= POPULATION_API_LEVEL} />
       <BotHistoryChart visible={visible} />
       {bots !== null && bots.length > 0 && (
         <div className="level-bands" aria-label={t('bots.levels')} data-testid="level-bands">

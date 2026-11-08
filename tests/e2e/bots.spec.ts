@@ -48,6 +48,10 @@ test('sets how the bots earn experience, fight, speak and trade', async () => {
   await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.getByRole('button', { name: 'Bots', exact: true }).click()
 
+  await page.getByLabel('Population — The countryside').selectOption({ label: 'Fixed' })
+  await page.getByLabel('Population — Percent').fill('60')
+
+  await page.getByRole('tab', { name: 'Experience' }).click()
   await page.getByLabel('Experience — Monsters, alone').fill('5')
   // One percent is the floor: zero would be no experience at all.
   await page.getByLabel('Experience — Monsters, in a group').fill('0')
@@ -63,6 +67,8 @@ test('sets how the bots earn experience, fight, speak and trade', async () => {
   await save(page)
 
   const text = overrides()
+  expect(text).toContain('gameserver.playerbot.density.mode = FIXED\n')
+  expect(text).toContain('gameserver.playerbot.density.percent = 60\n')
   expect(text).toContain('gameserver.playerbot.xp.solo = 5\n')
   expect(text).toContain('gameserver.playerbot.xp.group = 2\n')
   expect(text).toContain('gameserver.playerbot.pvp.enable = false\n')
@@ -82,11 +88,36 @@ test('saves a bot setting while the file holds another outside what the page off
   const { app, page } = await launchWith(install)
   await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.getByRole('button', { name: 'Bots', exact: true }).click()
+  await page.getByRole('tab', { name: 'Experience' }).click()
   await page.getByLabel('Experience — Monsters, alone').fill('3')
   await save(page)
   const text = overrides()
   expect(text).toContain('gameserver.playerbot.xp.solo = 3\n')
   expect(text).toContain('gameserver.playerbot.broker.size = 3000\n')
+  await app.close()
+})
+
+test('shows where the running server’s population stands, and nothing while no game server runs', async () => {
+  const { app, page } = await launchWith(install)
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
+  await page.getByRole('button', { name: 'Bots', exact: true }).click()
+  await expect(page.getByTestId('faction-ELYOS')).toBeVisible()
+  await expect(page.getByTestId('population')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Start the servers' }).click()
+  await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
+  await page.getByRole('button', { name: 'Bots', exact: true }).click()
+  const population = page.getByTestId('population')
+  await expect(population).toContainText('412 bots of the 450 wanted, 88 asleep')
+  await expect(population).toContainText('Fixed, 60 %')
+  await expect(population).toContainText('Held by the server: short of memory')
+  await expect(population).toContainText('86 %')
+
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Stop the servers' }).click()
+  await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'stopped', { timeout: 30_000 })
+  await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped', { timeout: 30_000 })
   await app.close()
 })
 

@@ -181,6 +181,7 @@ function registerIpc(presence: TaskbarPresence): void {
   )
   ipcMain.handle('bots:list', () => listBots(launcher.currentLayout))
   ipcMain.handle('bots:history', () => botHistory.current)
+  ipcMain.handle('bots:population', () => launcher.getPopulation())
   ipcMain.handle('report:create', async (): Promise<ReportResult | null> => {
     const layout = launcher.currentLayout
     let character = null

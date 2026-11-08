@@ -1383,6 +1383,37 @@ button.link.footer-report {
   color: var(--busy);
 }
 
+/* ---------- Bots: the population now ---------- */
+
+.population {
+  margin: 0 0 18px;
+}
+
+.population h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.population dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.population dt {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.population dd {
+  margin: 2px 0 0;
+}
+
+.population .population-held {
+  color: var(--busy);
+}
+
 /* ---------- Bots: the last hour ---------- */
 
 .bot-history {

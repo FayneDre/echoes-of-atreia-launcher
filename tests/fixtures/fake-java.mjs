@@ -5,7 +5,7 @@
 // thread and stays up (a handler that does not compile), slow-start opens its port
 // 20 s late (a game server still loading its data), slow-register registers 20 s late (one loading its world), no-admin makes the game
 // server ignore the admin folder (a build from before it), old-api makes it answer `version` as a server older than the API levels.
-// Otherwise the game server answers the requests of `admin/`: version (level 1), reload-config, destinations, and teleport, which only
+// Otherwise the game server answers the requests of `admin/`: version (level 2), reload-config, population, destinations, and teleport, which only
 // character 101 (in game in the fake database) accepts.
 import { existsSync, mkdirSync, appendFileSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { connect, createServer } from 'node:net'
@@ -105,10 +105,12 @@ async function main() {
           const [verb, ...words] = command.split(/\s+/)
           let answer = 'error unknown command'
           if (verb === 'version') {
-            answer = existsSync('old-api') ? 'error unknown command version' : ['ok', 'version v0.1.0-beta.1', 'revision abc1234', 'api 1'].join(NEWLINE)
+            answer = existsSync('old-api') ? 'error unknown command version' : ['ok', 'version v0.1.0-beta.1', 'revision abc1234', 'api 2'].join(NEWLINE)
           } else if (verb === 'reload-config') {
             log('Admin channel: configuration reloaded')
             answer = 'ok'
+          } else if (verb === 'population') {
+            answer = ['ok', 'mode FIXED', 'percent 60', 'awake 412', 'wanted 450', 'asleep 88', 'short 0', 'guard held HEAP', 'heap 86', 'route-wait 0'].join(NEWLINE)
           } else if (verb === 'destinations') {
             const place = (...fields) => fields.join(TAB)
             answer = [

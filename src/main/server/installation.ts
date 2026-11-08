@@ -1,8 +1,9 @@
 import { readdir, readFile, stat } from 'node:fs/promises'
+import { totalmem } from 'node:os'
 import { dirname, join } from 'node:path'
 import type { ServerId } from '../../shared/types'
 import { mysqlAddressOf, portOf, readServerConfig } from './properties'
-import { javaArgumentsFrom } from './startScript'
+import { fitHeapToMachine, javaArgumentsFrom } from './startScript'
 
 export interface ServerDefinition {
   id: ServerId
@@ -47,11 +48,13 @@ async function readDefinition(root: string, id: ServerId): Promise<{ definition:
   } catch {
     return null
   }
-  const javaArgs = javaArgumentsFrom(script)
-  const mainClass = javaArgs?.at(-1)
-  if (!javaArgs || !mainClass) {
+  const scriptArgs = javaArgumentsFrom(script)
+  const mainClass = scriptArgs?.at(-1)
+  if (!scriptArgs || !mainClass) {
     return null
   }
+  // only the game server's heap grows with the bots; the login and chat servers keep theirs
+  const javaArgs = id === 'game' ? fitHeapToMachine(scriptArgs, totalmem()) : scriptArgs
   const config = await readServerConfig(dir)
   const port = portOf(config.get(PORT_SETTINGS[id].key)) ?? PORT_SETTINGS[id].fallback
   return { definition: { id, dir, javaArgs, mainClass, port }, config }

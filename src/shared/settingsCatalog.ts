@@ -112,6 +112,17 @@ export const SETTING_GROUPS: SettingGroup[] = [
     globalField: 'none',
     settings: [{ id: 'bothFactions', key: 'gameserver.character.creation.mode', kind: 'toggle' }]
   },
+  // How many bots the world holds, read at each review of the population (30 s): a reload applies it within half a minute. The server's
+  // population guard stops the arrivals where the machine runs short, whatever is set here.
+  {
+    id: 'botDensity',
+    page: 'bots',
+    globalField: 'none',
+    settings: [
+      bot('density.mode', 'choice', { options: ['AUTO', 'FIXED', 'FLOOR'] }),
+      bot('density.percent', 'count', { min: 0, max: 100, unit: 'percent' })
+    ]
+  },
   // The bot options (the server's config/main/playerbot.properties). A world bot's experience is a percent of the official rate: the players'
   // rates never apply to it, so that raising them does not empty the regions of their bots. One percent is the floor, zero being no experience.
   {
