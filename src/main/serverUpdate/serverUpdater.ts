@@ -133,7 +133,7 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
       const plan = await installer.plan(release, this.previous)
       progress('navmesh')(0)
       await installer.fetchNavmesh(release, plan, progress('navmesh'))
-      const found = await jdkMajorVersion()
+      const found = await jdkMajorVersion(this.root)
       const jdk = { needed: release.manifest.java, found, ok: found !== null && found >= release.manifest.java }
       const mysql = await this.launcher.ensureMysql()
       if (mysql) {
@@ -237,7 +237,7 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
 
   private async sqlArgs(): Promise<string[]> {
     const args = ['-ServerRoot', this.root!]
-    const bin = await findMysqlBinDir()
+    const bin = await findMysqlBinDir(this.root)
     return bin ? [...args, '-MysqlBin', bin] : args
   }
 

@@ -28,6 +28,7 @@ import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
 import { needsStart, readServerSettings, writeServerSettings } from './server/serverSettings'
 import { isAutoCleanup, isDeveloperMode, type SettingsStore } from './settings'
+import { ownMysqlOf } from './server/ownRuntimes'
 import { javaCommand, javaMajorVersion } from './system/java'
 
 /**
@@ -233,7 +234,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       serverFound: this.layout !== null,
       clientRoot,
       clientFound,
-      javaVersion: await javaMajorVersion(),
+      javaVersion: await javaMajorVersion(this.layout?.root),
       ...this.clientFacts(clientFound && clientRoot ? await checkClient(clientRoot) : null)
     }
     this.gameStatus = 'stopped'
@@ -318,7 +319,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     if (!this.layout) {
       return this.fail({ code: 'server-missing' })
     }
-    const java = await javaMajorVersion()
+    const java = await javaMajorVersion(this.layout?.root)
     this.install = { ...this.install, javaVersion: java }
     if (java === null) {
       return this.fail({ code: 'java-missing' })
@@ -333,7 +334,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       }
     }
     for (const id of SERVER_IDS.slice(0, SERVER_IDS.indexOf(last) + 1)) {
-      if (this.stopRequested || !(await this.servers[id]!.start(javaCommand()))) {
+      if (this.stopRequested || !(await this.servers[id]!.start(javaCommand(this.layout?.root)))) {
         return false
       }
     }
@@ -422,7 +423,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     const layout = this.layout
     return this.mysql.refresh({
       address: layout?.mysql ?? null,
-      optionsFile: this.settings.current.mysqlOptionsFile ?? null,
+      optionsFile: this.settings.current.mysqlOptionsFile ?? ownMysqlOf(layout?.root)?.optionsFile ?? null,
       credentials: async () => (layout ? addressOf(layout.servers.game.dir) : null)
     })
   }

@@ -157,9 +157,20 @@ down): `mysqld.exe --defaults-file=<it> --port=<the servers' port>`, detached an
 `basedir`, a `bin` beside it, or the service's. It is stopped with `mysqladmin shutdown` under the game server's database account, which
 needs the SHUTDOWN privilege; a refusal is shown as MySQL words it, and MySQL is never killed (verified on MySQL 26.7: the monitor and
 its child both end, "Shutdown complete"). The same shutdown stops a MySQL started by the person's own script while the service is down.
-Windows' `MYSQLShutdown<pid>` event, which would need no account, could not be opened from outside on 26.7. A public install will bring its
-own database run this way (phase 6). Each probe is a connection MySQL sees close before its handshake; MySQL leaves loopback connections out of
+Windows' `MYSQLShutdown<pid>` event, which would need no account, could not be opened from outside on 26.7. A public install brings its
+own database run this way (below). Each probe is a connection MySQL sees close before its handshake; MySQL leaves loopback connections out of
 the count that blocks a host, but a database on another machine would count them.
+
+## What the install carries (`server/ownRuntimes.ts`)
+
+An install made by the server's scripts holds its own Java (`<install>\runtime`, `package-java.ps1`) and its own MySQL (`<install>\mysql`,
+`package-mysql.ps1` then `setup-mysql.ps1`). Each is used when it is there, and only then, so a machine's Java and MySQL still work as before:
+
+- **Java**: `javaCommand(root)` runs `<install>\runtime\bin\java.exe` and puts that folder first in the PATH of the servers (under the key's
+  own spelling, `Path` on Windows). The version checks (`javaMajorVersion`, `jdkMajorVersion`) read the same runtime.
+- **MySQL**: needs `mysql\bin\mysqld.exe` and `mysql\my.ini` both. With them, `mysqlOptionsFile` defaults to that `my.ini` (a value the person
+  chose still wins), so MySQL runs as a program on the port in it, and `mysqldump`, `mysql` and `mysqladmin` (backups, restore, the update's
+  SQL) come from `mysql\bin`.
 
 ## Tests
 

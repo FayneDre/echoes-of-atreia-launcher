@@ -6,6 +6,7 @@ import type { MysqlState, Problem } from '../../shared/types'
 import type { DatabaseAddress } from '../accounts/accountStore'
 import { isPortOpen } from '../system/network'
 import { runTool, type Tool } from './mysqlTool'
+import { ownMysqlOf } from './ownRuntimes'
 import { waitFor } from './wait'
 
 const START_TIMEOUT_MS = 60_000
@@ -81,7 +82,11 @@ export function defaultsFileOf(pathName: string): string | null {
  * The folder of the MySQL programs (`mysqldump`, `mysql`): the one the service's own `mysqld.exe` is in. Null when there is no service or
  * its path cannot be read; the tools are then looked for on the PATH.
  */
-export async function findMysqlBinDir(): Promise<string | null> {
+export async function findMysqlBinDir(root?: string | null): Promise<string | null> {
+  const own = ownMysqlOf(root)
+  if (own) {
+    return own.binDir
+  }
   const service = await findService()
   const executable = service ? executableOf(service.pathName) : null
   return executable ? dirname(executable) : null

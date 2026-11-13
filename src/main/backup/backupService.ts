@@ -31,10 +31,10 @@ async function exists(path: string): Promise<boolean> {
 }
 
 /**
- * `mysqldump` and `mysql`, from the folder of the MySQL service's own server, else from the PATH. The end-to-end tests set
- * ECHOES_FAKE_MYSQL_TOOLS to a folder of scripts that play them.
+ * `mysqldump` and `mysql`, from the install's own MySQL (`<install>\mysql`), else from the folder of the MySQL service's own server, else
+ * from the PATH. The end-to-end tests set ECHOES_FAKE_MYSQL_TOOLS to a folder of scripts that play them.
  */
-async function mysqlTools(): Promise<{ dump: Tool; client: Tool }> {
+async function mysqlTools(root: string): Promise<{ dump: Tool; client: Tool }> {
   const fake = process.env['ECHOES_FAKE_MYSQL_TOOLS']
   if (fake) {
     const env = { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
@@ -43,7 +43,7 @@ async function mysqlTools(): Promise<{ dump: Tool; client: Tool }> {
       client: { command: process.execPath, prefixArgs: [join(fake, 'fake-mysql.mjs')], env }
     }
   }
-  const bin = await findMysqlBinDir()
+  const bin = await findMysqlBinDir(root)
   const resolve = async (name: string): Promise<string> => {
     const local = bin ? join(bin, `${name}.exe`) : null
     return local && (await exists(local)) ? local : name
@@ -155,7 +155,7 @@ export class BackupService {
     if (databases.length === 0) {
       return { code: 'backup-failed', detail: 'No database.url in the servers’ configuration' }
     }
-    const { dump } = await mysqlTools()
+    const { dump } = await mysqlTools(layout.root)
     const versionOptions = await dumpOptions(dump)
     const now = new Date()
     let id = backupIdFor(now)
@@ -222,7 +222,7 @@ export class BackupService {
     if ('code' in safety) {
       return safety
     }
-    const { client } = await mysqlTools()
+    const { client } = await mysqlTools(this.layout()?.root ?? '')
     for (const { entry, address } of targets) {
       const result = await runTool(client, address!, ['--default-character-set=utf8mb4', entry.name], join(dir, entry.file))
       if (result.code !== 0) {
