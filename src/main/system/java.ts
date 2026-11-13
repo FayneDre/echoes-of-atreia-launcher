@@ -12,7 +12,7 @@ export interface JavaCommand {
 /**
  * How to run Java. The end-to-end tests set ECHOES_FAKE_JAVA to a script that plays the servers, run by the launcher's own executable as
  * plain Node; everything else about starting and stopping is then the real code. An install that carries its own runtime
- * (`<root>untime`) uses it, and puts it first in the PATH so that whatever the servers launch finds the same Java.
+ * (`<install>/runtime`) uses it, and puts it first in the PATH so that whatever the servers launch finds the same Java.
  */
 export function javaCommand(root?: string | null): JavaCommand {
   const fake = process.env['ECHOES_FAKE_JAVA']
