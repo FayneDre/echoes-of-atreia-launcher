@@ -1,44 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { LauncherState, UpdateState } from '../../../shared/types'
 import { useI18n } from '../i18n'
-import { Markdown } from './Markdown'
+import { UpdateNotesDialog } from './UpdateNotesDialog'
 
 interface Props {
   update: UpdateState | null
   state: LauncherState
-}
-
-/** The notes of the version offered, over the page: the banner keeps its one line. Closed by its button, Escape or a click beside it. */
-function UpdateNotesDialog({ version, notes, onClose }: { version: string; notes: string; onClose: () => void }): React.JSX.Element {
-  const { t } = useI18n()
-  const dialog = useRef<HTMLDialogElement>(null)
-  useEffect(() => {
-    dialog.current?.showModal()
-  }, [])
-  return (
-    <dialog
-      ref={dialog}
-      className="dialog news-dialog update-dialog"
-      aria-labelledby="update-dialog-title"
-      data-testid="launcher-update-dialog"
-      onClose={onClose}
-      onClick={(event) => {
-        if (event.target === dialog.current) {
-          dialog.current.close()
-        }
-      }}
-    >
-      <h2 id="update-dialog-title">{t('update.notesTitle', { version })}</h2>
-      <div className="news-dialog-body">
-        <Markdown text={notes} testId="launcher-update-notes" />
-      </div>
-      <div className="dialog-actions">
-        <button type="button" className="button-primary" onClick={() => dialog.current?.close()}>
-          {t('action.close')}
-        </button>
-      </div>
-    </dialog>
-  )
 }
 
 /**
@@ -95,7 +62,7 @@ export function UpdateBanner({ update, state }: Props): React.JSX.Element | null
           {t('update.later')}
         </button>
       )}
-      {reading && notes && <UpdateNotesDialog version={version} notes={notes} onClose={() => setReading(false)} />}
+      {reading && notes && <UpdateNotesDialog version={version} notes={notes} testId="launcher-update" onClose={() => setReading(false)} />}
     </div>
   )
 }

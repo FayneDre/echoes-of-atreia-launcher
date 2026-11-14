@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import type { LauncherState, ServerUpdateState } from '../../../shared/types'
 import { useI18n, type MessageKey } from '../i18n'
-import { Markdown } from './Markdown'
 import { ProblemText } from './ProblemText'
+import { UpdateNotesDialog } from './UpdateNotesDialog'
 
 interface Props {
   update: ServerUpdateState | null
@@ -10,10 +11,12 @@ interface Props {
 
 /**
  * The server's own update: the release installed, a newer one with its notes, then what the update will do (default files edited by hand
- * kept, a database that never went through the SQL script) before the person says yes, the steps while it runs, and a way back.
+ * kept, a database that never went through the SQL script) before the person says yes, the steps while it runs, and a way back. Nothing
+ * is downloaded or installed until the person asks; the notes open in a dialog, as the launcher's own do.
  */
 export function ServerUpdatePanel({ update, state }: Props): React.JSX.Element | null {
   const { language, t } = useI18n()
+  const [reading, setReading] = useState(false)
   if (!update || state.activity === 'detecting' || !state.install.serverFound) {
     return null
   }
@@ -36,6 +39,11 @@ export function ServerUpdatePanel({ update, state }: Props): React.JSX.Element |
       {update.available && (update.status === 'available' || update.status === 'failed') && (
         <div className="server-update-row">
           <span>{t('serverUpdate.available', { version: update.available.version })}</span>
+          {notes && (
+            <button type="button" className="link" onClick={() => setReading(true)}>
+              {t('update.notes')}
+            </button>
+          )}
           <button type="button" disabled={!idle} onClick={() => void window.launcher.prepareServerUpdate()}>
             {t(update.status === 'failed' ? 'serverUpdate.retry' : 'serverUpdate.prepare')}
           </button>
@@ -51,6 +59,13 @@ export function ServerUpdatePanel({ update, state }: Props): React.JSX.Element |
       {update.status === 'confirm' && update.available && (
         <div className="server-update-confirm" data-testid="server-update-confirm">
           <p>{t('serverUpdate.confirm', { version: update.available.version })}</p>
+          {notes && (
+            <p>
+              <button type="button" className="link" onClick={() => setReading(true)}>
+                {t('update.notes')}
+              </button>
+            </p>
+          )}
           {update.jdk && !update.jdk.ok && (
             <p className="missing" role="alert" data-testid="server-update-jdk">
               {t('serverUpdate.jdkMissing', { version: update.jdk.needed })}
@@ -97,11 +112,8 @@ export function ServerUpdatePanel({ update, state }: Props): React.JSX.Element |
         </div>
       )}
 
-      {notes && update.available && update.status !== 'current' && (
-        <details className="update-notes">
-          <summary>{t('update.notes')}</summary>
-          <Markdown text={notes} testId="server-update-notes" />
-        </details>
+      {reading && notes && update.available && (
+        <UpdateNotesDialog version={update.available.version} notes={notes} testId="server-update" onClose={() => setReading(false)} />
       )}
     </section>
   )

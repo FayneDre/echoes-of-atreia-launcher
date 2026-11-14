@@ -76,8 +76,14 @@ test('installs a release over a server built from git, then puts it back', async
   const panel = page.getByTestId('server-update')
   await expect(panel).toHaveAttribute('data-status', 'available', { timeout: 20_000 })
   await expect(panel).toContainText('Server v0.2.0-beta.1 is available')
-  await panel.getByText('What’s new').click()
-  await expect(page.getByTestId('server-update-notes')).toHaveText('What changes in server v0.2.0-beta.1')
+  // the notes open over the page, the panel keeps its size
+  const height = (await panel.boundingBox())!.height
+  await panel.getByRole('button', { name: 'What’s new' }).click()
+  const notesDialog = page.getByTestId('server-update-dialog')
+  await expect(notesDialog.getByTestId('server-update-notes')).toHaveText('What changes in server v0.2.0-beta.1')
+  expect((await panel.boundingBox())!.height).toBe(height)
+  await notesDialog.getByRole('button', { name: 'Close' }).click()
+  await expect(notesDialog).toHaveCount(0)
   await startServers(page)
 
   await panel.getByRole('button', { name: 'Update the server' }).click()

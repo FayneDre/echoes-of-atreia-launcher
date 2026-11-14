@@ -29,6 +29,9 @@ pre-releases too. A release without a `manifest.json` (the server's v0.1.0-beta.
 
 ## The update, in two halves
 
+Nothing happens by itself: a newer release is only offered ("Update the server" prepares it, "Install" installs it), as the launcher's own
+update is. Its `notes.<language>.md` open in a dialog from "What's new", beside the offer and again at the confirmation, never inside the panel.
+
 **Prepared with the servers running** (`prepare`): the zip downloaded and checked against the manifest's hash and GitHub's digest, then
 unpacked (only the entries the manifest names, none outside the folder) and every file checked; the plan worked out by hashing the install;
 the maps it needs downloaded, gunzipped and checked; the JDK looked for (`java.home` must hold `javac`: the game server compiles its handlers at
