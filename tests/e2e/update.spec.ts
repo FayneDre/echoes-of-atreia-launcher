@@ -60,17 +60,40 @@ async function open(): ReturnType<typeof launchWith> {
   return launched
 }
 
-test('downloads a newer version and offers to install it, with its notes', async () => {
+test('offers a newer version, downloads it only once accepted, then offers to install it', async () => {
   publish('9.9.9-beta.1')
   const { app, page } = await open()
   const banner = page.getByTestId('launcher-update')
+  await expect(banner).toHaveAttribute('data-status', 'available', { timeout: 20_000 })
+  await expect(banner).toContainText('Version 9.9.9-beta.1 of the launcher is out')
+  // nothing is downloaded until the person accepts
+  await page.waitForTimeout(2_000)
+  await expect(banner).toHaveAttribute('data-status', 'available')
+  // the notes open over the page, the banner keeps its line
+  const height = (await banner.boundingBox())!.height
+  await banner.getByRole('button', { name: 'What’s new' }).click()
+  const dialog = page.getByTestId('launcher-update-dialog')
+  await expect(dialog.getByTestId('launcher-update-notes')).toHaveText('What changes in 9.9.9-beta.1')
+  expect((await banner.boundingBox())!.height).toBe(height)
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(dialog).toHaveCount(0)
+  await banner.getByRole('button', { name: 'Update', exact: true }).click()
   await expect(banner).toHaveAttribute('data-status', 'ready', { timeout: 20_000 })
-  await expect(banner).toContainText('Version 9.9.9-beta.1 of the launcher is ready')
+  await expect(banner).toContainText('Version 9.9.9-beta.1 of the launcher is downloaded')
   await expect(banner.getByRole('button', { name: 'Restart and install' })).toBeEnabled()
-  await banner.getByText('What’s new').click()
-  await expect(page.getByTestId('launcher-update-notes')).toHaveText('What changes in 9.9.9-beta.1')
   await page.getByRole('button', { name: 'FR', exact: true }).click()
+  await banner.getByRole('button', { name: 'Quoi de neuf' }).click()
   await expect(page.getByTestId('launcher-update-notes')).toHaveText('Ce qui change dans 9.9.9-beta.1')
+  await app.close()
+})
+
+test('puts the offer away until the next start when asked later', async () => {
+  publish('9.9.9-beta.1')
+  const { app, page } = await open()
+  const banner = page.getByTestId('launcher-update')
+  await expect(banner).toHaveAttribute('data-status', 'available', { timeout: 20_000 })
+  await banner.getByRole('button', { name: 'Later' }).click()
+  await expect(banner).toHaveCount(0)
   await app.close()
 })
 

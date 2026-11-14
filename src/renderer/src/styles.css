@@ -234,6 +234,22 @@ button.small {
 
 .server-name {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.server-name-fit {
+  flex: 0 1 auto;
+}
+
+.server-spacer {
+  flex: 1;
+}
+
+.icon-button {
+  padding-inline: 6px;
 }
 
 .server-meta {
@@ -443,25 +459,23 @@ button.small {
   color: var(--gold);
 }
 
+/* One line above every page, whatever the language: its notes open in a dialog, never inside it. */
 .update-banner {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
+  white-space: nowrap;
 }
 
-.update-notes {
-  flex-basis: 100%;
+.update-banner .update-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.update-notes summary {
-  cursor: pointer;
-}
-
-/* The banner stays above every page: its notes, however long, keep the page in sight. */
-.update-banner .markdown {
-  max-height: 40vh;
-  overflow-y: auto;
+.update-banner button {
+  flex: none;
 }
 
 .markdown {

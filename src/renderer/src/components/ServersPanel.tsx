@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { SERVER_IDS, type LauncherState, type ServerId, type ServerState } from '../../../shared/types'
 import { useI18n } from '../i18n'
 import { Icon } from './Icon'
@@ -54,11 +55,106 @@ function ServerRow({ server, canAct, onForceStop, onShowLog }: RowProps): React.
   )
 }
 
+/**
+ * How MySQL is run (a Windows service, or a program with a my.ini), over the page: the row keeps the one line of the others. It changes
+ * only while MySQL is down, since the way it was started is the way it is stopped.
+ */
+function MysqlDialog({ state, onClose }: { state: LauncherState; onClose: () => void }): React.JSX.Element {
+  const { t } = useI18n()
+  const dialog = useRef<HTMLDialogElement>(null)
+  const { mysql, activity } = state
+  useEffect(() => {
+    dialog.current?.showModal()
+  }, [])
+  const canChange = activity === 'idle' && mysql.status !== 'ready' && mysql.status !== 'unknown' && mysql.status !== 'starting' && mysql.status !== 'stopping'
+  return (
+    <dialog
+      ref={dialog}
+      className="dialog mysql-dialog"
+      aria-labelledby="mysql-dialog-title"
+      data-testid="mysql-dialog"
+      onClose={onClose}
+      onClick={(event) => {
+        if (event.target === dialog.current) {
+          dialog.current.close()
+        }
+      }}
+    >
+      <h2 id="mysql-dialog-title">{t('server.mysql')}</h2>
+      {mysql.optionsFile ? (
+        <p className="mysql-how">{t('server.mysqlOptions', { file: mysql.optionsFile })}</p>
+      ) : (
+        mysql.serviceName && <p className="mysql-how">{t('server.mysqlService', { name: mysql.serviceName })}</p>
+      )}
+      {!canChange && <p className="muted">{t('server.mysqlChangeStopped')}</p>}
+      <div className="dialog-actions">
+        <button type="button" disabled={!canChange} onClick={() => void window.launcher.chooseMysqlOptions()}>
+          {t('action.mysqlOptions')}
+        </button>
+        {mysql.optionsFile && mysql.serviceName && (
+          <button type="button" disabled={!canChange} onClick={() => void window.launcher.useMysqlService()}>
+            {t('action.mysqlService')}
+          </button>
+        )}
+        <button type="button" className="button-primary" onClick={() => dialog.current?.close()}>
+          {t('action.close')}
+        </button>
+      </div>
+    </dialog>
+  )
+}
+
+/** MySQL on one line like the servers: its state and its start or stop; how it is run opens in a dialog. */
+function MysqlRow({ state }: { state: LauncherState }): React.JSX.Element {
+  const { t } = useI18n()
+  const [choosing, setChoosing] = useState(false)
+  const { mysql, activity } = state
+  const mysqlIdle = activity === 'idle' && mysql.status !== 'starting' && mysql.status !== 'stopping'
+  return (
+    <li className="server-row" data-testid="server-mysql">
+      <div className="server-line">
+        <StatusDot status={mysql.status} />
+        <span className="server-name server-name-fit" title={mysql.port !== null ? t('server.port', { port: mysql.port }) : undefined}>
+          {t('server.mysql')}
+        </span>
+        {mysql.status !== 'unknown' && (
+          <button
+            type="button"
+            className="small icon-button"
+            aria-label={t('server.mysqlHow')}
+            title={t('server.mysqlHow')}
+            onClick={() => setChoosing(true)}
+          >
+            <Icon name="more" />
+          </button>
+        )}
+        {/* beside its name, so the status and the button line up with the servers' */}
+        <span className="server-spacer" />
+        <span className="server-status" data-testid="status-mysql" data-status={mysql.status}>
+          {t(`status.${mysql.status}`)}
+        </span>
+        {(mysql.serviceName || mysql.optionsFile) && (
+          <button
+            type="button"
+            className="small"
+            disabled={!mysqlIdle}
+            onClick={() => void (mysql.status === 'ready' ? window.launcher.stopMysql() : window.launcher.startMysql())}
+          >
+            <Icon name={mysql.status === 'ready' ? 'stop' : 'play'} />
+            {mysql.status === 'ready' ? t('action.mysqlStop') : t('action.mysqlStart')}
+          </button>
+        )}
+      </div>
+      <ProblemText problem={mysql.problem} />
+      {choosing && <MysqlDialog state={state} onClose={() => setChoosing(false)} />}
+    </li>
+  )
+}
+
 export function ServersPanel({ state, onShowLog }: { state: LauncherState; onShowLog: (id: ServerId) => void }): React.JSX.Element {
   const { t } = useI18n()
-  const { mysql, servers, activity, install } = state
+  const { servers, activity, install } = state
   const idle = activity === 'idle'
-  const mysqlIdle = idle && mysql.status !== 'starting' && mysql.status !== 'stopping'
 
   const forceStop = (id: ServerState['id']): void => {
     if (id !== 'game' || window.confirm(t('action.forceConfirm'))) {
@@ -70,42 +166,7 @@ export function ServersPanel({ state, onShowLog }: { state: LauncherState; onSho
     <section className="panel" aria-labelledby="servers-title">
       <h2 id="servers-title">{t('section.servers')}</h2>
       <ul className="server-list">
-        <li className="server-row" data-testid="server-mysql">
-          <div className="server-line">
-            <StatusDot status={mysql.status} />
-            <span className="server-name" title={mysql.port !== null ? t('server.port', { port: mysql.port }) : undefined}>
-              {t('server.mysql')}
-            </span>
-            {mysql.optionsFile && <span className="server-meta">{t('server.mysqlOptions', { file: mysql.optionsFile })}</span>}
-            <span className="server-status" data-testid="status-mysql" data-status={mysql.status}>
-              {t(`status.${mysql.status}`)}
-            </span>
-            {(mysql.serviceName || mysql.optionsFile) && (
-              <button
-                type="button"
-                className="small"
-                disabled={!mysqlIdle}
-                onClick={() => void (mysql.status === 'ready' ? window.launcher.stopMysql() : window.launcher.startMysql())}
-              >
-                {mysql.status === 'ready' ? t('action.mysqlStop') : t('action.mysqlStart')}
-              </button>
-            )}
-          </div>
-          <ProblemText problem={mysql.problem} />
-          {/* How MySQL is run changes only while it is down: the way it was started is the way it is stopped. */}
-          {mysql.status !== 'ready' && mysql.status !== 'unknown' && (
-            <div className="server-line">
-              <button type="button" className="small" disabled={!mysqlIdle} onClick={() => void window.launcher.chooseMysqlOptions()}>
-                {t('action.mysqlOptions')}
-              </button>
-              {mysql.optionsFile && mysql.serviceName && (
-                <button type="button" className="small" disabled={!mysqlIdle} onClick={() => void window.launcher.useMysqlService()}>
-                  {t('action.mysqlService')}
-                </button>
-              )}
-            </div>
-          )}
-        </li>
+        <MysqlRow state={state} />
         {SERVER_IDS.map((id) => (
           <ServerRow
             key={id}

@@ -941,32 +941,9 @@ button.link:hover:not(:disabled) {
   flex-direction: column;
 }
 
-/*
- * Beside the other column, the news take the height that column leaves and never set it: a long summary, or the server version panel
- * offering a release, would otherwise make the home page taller than the window and give it a scroll bar for a few pixels. `contain: size`
- * keeps the panel's content out of the row's height; the summary below gives up its last lines, faded, when the room is short.
- */
-@media (width >= 900px) {
-  .news-panel {
-    min-height: 190px;
-    overflow: hidden;
-    contain: size;
-  }
-
-  .news-panel .news-latest {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .news-panel .news-summary {
-    flex: 1;
-    height: auto;
-    min-height: calc(2 * 1.55em);
-    max-height: calc(4 * 1.55em);
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 1.4em), transparent);
-  }
+/* The news keep their own height, whatever the other column's: a summary of up to three lines, then the links, nothing empty below. */
+.home-column > .news-panel:last-child {
+  flex: none;
 }
 
 .news-tabs {
@@ -1014,9 +991,9 @@ button.link:hover:not(:disabled) {
   font-size: 12px;
 }
 
-/* four lines of the first paragraph, and always the room of four: the panel keeps its height from one tab or one release to another */
+/* the first paragraph, three lines at most, and no room kept for lines it does not have */
 .news-summary {
-  height: calc(4 * 1.55em);
+  max-height: calc(3 * 1.55em);
   margin-top: 6px;
   overflow: hidden;
   line-height: 1.55;
@@ -1032,7 +1009,7 @@ button.link:hover:not(:disabled) {
   margin: 0;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
 }
 
 .news-dialog {
@@ -1105,6 +1082,25 @@ button.link:hover:not(:disabled) {
 .news-dialog .dialog-actions {
   align-items: center;
   justify-content: space-between;
+}
+
+.update-dialog .dialog-actions {
+  justify-content: flex-end;
+}
+
+.mysql-dialog {
+  width: min(620px, calc(100% - 48px));
+  padding: 20px 24px;
+  color: var(--text);
+}
+
+.mysql-dialog .mysql-how {
+  overflow-wrap: anywhere;
+}
+
+.mysql-dialog .dialog-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .news-tag {

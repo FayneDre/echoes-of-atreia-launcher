@@ -9,9 +9,9 @@ const LANGUAGES = ['en', 'fr'] as const
 /**
  * The launcher updates itself from its GitHub releases (`build.publish` in package.json, read from the installer's app-update.yml): a beta
  * follows the pre-releases, a stable one only the releases, decided by its own version, with no setting. It checks once, at start (never in
- * the developer mode); a newer version downloads in the background and installs when the launcher closes, which the person can ask for at once. Closing
- * goes through the window's usual question when servers run, so an update never stops a server by itself, and nothing is offered while a
- * start or a stop is under way.
+ * the developer mode). A newer version is only offered: nothing is downloaded until the person accepts it, and nothing is installed until
+ * they ask, closing the launcher alone never installs it. Installing closes the window the usual way, through its question when servers
+ * run, so an update never stops a server by itself, and nothing is offered while a start or a stop is under way.
  *
  * The portable build cannot replace itself: it only says a newer version exists and where. A development run does not update at all,
  * unless the end-to-end tests give a feed (`ECHOES_UPDATE_FEED`, a folder served over HTTP with a latest.yml, as a release carries).
@@ -35,8 +35,9 @@ export class LauncherUpdater extends EventEmitter<{ state: [UpdateState] }> {
     }
     this.started = true
     autoUpdater.allowPrerelease = isBetaVersion(app.getVersion())
-    autoUpdater.autoDownload = !this.portable
-    autoUpdater.autoInstallOnAppQuit = !this.portable
+    // the person decides: an update found is offered, downloaded once accepted, installed once asked
+    autoUpdater.autoDownload = false
+    autoUpdater.autoInstallOnAppQuit = false
     if (this.feed) {
       autoUpdater.forceDevUpdateConfig = true
       autoUpdater.setFeedURL({ provider: 'generic', url: this.feed })
@@ -50,7 +51,7 @@ export class LauncherUpdater extends EventEmitter<{ state: [UpdateState] }> {
       if (this.portable) {
         this.set({ status: 'portable', version: info.version, releaseUrl: `${REPOSITORY}/releases/tag/v${info.version}` })
       } else {
-        this.set({ status: 'downloading', version: info.version, percent: 0 })
+        this.set({ status: 'available', version: info.version })
       }
       void this.fetchNotes(info)
     })
@@ -64,11 +65,24 @@ export class LauncherUpdater extends EventEmitter<{ state: [UpdateState] }> {
     autoUpdater.on('error', (error) => {
       console.warn('Update check failed:', error.message)
       if (this.state.status === 'downloading') {
-        this.set({ status: 'idle' })
+        // the offer stays: the person may try again
+        this.set({ ...this.state, status: 'available', percent: undefined })
       }
     })
     this.set({ status: 'idle' })
     void this.check()
+  }
+
+  /** The person accepted the version offered: it downloads, then waits to be installed. */
+  download(): boolean {
+    if (this.state.status !== 'available') {
+      return false
+    }
+    this.set({ ...this.state, status: 'downloading', percent: 0 })
+    autoUpdater.downloadUpdate().catch(() => {
+      // reported by the 'error' event
+    })
+    return true
   }
 
   /**

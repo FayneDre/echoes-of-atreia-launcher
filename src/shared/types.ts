@@ -301,7 +301,7 @@ export interface BotSummary {
  * The launcher's own update. `off`: a run that cannot update itself (not installed, such as a development run). `portable`: the portable
  * build, which cannot replace itself, so a newer version is only pointed to. `ready`: downloaded, installed when the launcher closes.
  */
-export type UpdateStatus = 'off' | 'idle' | 'downloading' | 'ready' | 'portable'
+export type UpdateStatus = 'off' | 'idle' | 'available' | 'downloading' | 'ready' | 'portable'
 
 export interface UpdateState {
   status: UpdateStatus

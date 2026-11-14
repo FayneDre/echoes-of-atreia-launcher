@@ -95,12 +95,16 @@ test('shows where the stack stands, the news of both projects, the install folde
   await page.getByTestId('install-backups').getByRole('button').click()
   await expect(page.getByRole('button', { name: 'Backups', exact: true })).toHaveAttribute('aria-current', 'page')
   await page.getByRole('button', { name: 'Home', exact: true }).click()
-  // the two columns end together
+  // the news end under their links, whatever the other column's height: no empty room inside the panel, nor above the links
   const bottom = async (selector: string): Promise<number> => {
     const box = (await page.locator(selector).boundingBox())!
     return Math.round(box.y + box.height)
   }
-  expect(await bottom('.install-panel')).toBe(await bottom('[data-testid=news]'))
+  await expect(page.getByTestId('news-summary')).not.toBeEmpty()
+  expect((await bottom('[data-testid=news]')) - (await bottom('[data-testid=news] .news-latest'))).toBeLessThanOrEqual(24)
+  expect(
+    (await page.locator('[data-testid=news] .news-actions').boundingBox())!.y - (await bottom('[data-testid=news-summary]'))
+  ).toBeLessThanOrEqual(12)
 
   const news = page.getByTestId('news')
   // the newest release with the first paragraph of its notes, drawn as Markdown in the person's language; the list stays out of it
@@ -125,11 +129,8 @@ test('shows where the stack stands, the news of both projects, the install folde
   await expect(dialog).toHaveCount(0)
   // the server's tab has not been opened yet
   await expect(news.getByRole('tab', { name: /Server/ })).toContainText('new')
-  const height = async (): Promise<number> => (await news.boundingBox())!.height
-  const launcherHeight = await height()
   await news.getByRole('tab', { name: /Server/ }).click()
   await expect(news.getByTestId('news-summary')).toContainText('Server news')
-  expect(await height()).toBe(launcherHeight)
   // however long the notes, the home page fits the window: no scroll bar for the few pixels a summary would add
   const overflow = (): Promise<number> =>
     page.evaluate(() => {

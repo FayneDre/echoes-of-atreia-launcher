@@ -355,6 +355,7 @@ function registerIpc(presence: TaskbarPresence): void {
     return !result.canceled && folder ? serverSetup.install(folder) : null
   })
   ipcMain.handle('update:get-state', () => updater.current)
+  ipcMain.handle('update:download', () => updater.download())
   // Not while servers start or stop, or the server's files change; closing then asks what to do with the running ones, as any close does.
   ipcMain.handle('update:install', () => {
     const { activity } = launcher.getState()

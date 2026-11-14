@@ -82,6 +82,7 @@ const launcherApi = {
   onState: (listener: (state: LauncherState) => void): (() => void) => subscribe('launcher:state', listener),
   onLines: (listener: (batch: LogBatch) => void): (() => void) => subscribe('launcher:lines', listener),
   getUpdate: (): Promise<UpdateState> => ipcRenderer.invoke('update:get-state'),
+  downloadUpdate: (): Promise<boolean> => ipcRenderer.invoke('update:download'),
   installUpdate: (): Promise<boolean> => ipcRenderer.invoke('update:install'),
   onUpdate: (listener: (state: UpdateState) => void): (() => void) => subscribe('update:state', listener),
   getServerUpdate: (): Promise<ServerUpdateState> => ipcRenderer.invoke('server-update:get-state'),

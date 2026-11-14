@@ -30,7 +30,13 @@ test('starts MySQL with the chosen my.ini on the servers’ port, and stops it t
   const { app, page } = await launchWith(install)
   await page.getByRole('button', { name: 'EN', exact: true }).click()
   await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'stopped')
-  await expect(mysqlRow(page)).toContainText(optionsFile)
+  // how MySQL is run opens over the page, the row keeps its one line
+  await mysqlRow(page).getByRole('button', { name: 'How MySQL is run' }).click()
+  const dialog = page.getByTestId('mysql-dialog')
+  await expect(dialog).toContainText(optionsFile)
+  await expect(dialog.getByRole('button', { name: 'Start with my own my.ini…' })).toBeEnabled()
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(dialog).toHaveCount(0)
 
   await mysqlRow(page).getByRole('button', { name: 'Start', exact: true }).click()
   await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'ready', { timeout: 20_000 })
