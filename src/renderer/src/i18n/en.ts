@@ -410,12 +410,14 @@ export const en = {
   'terminal.empty': 'Nothing yet.',
 
   'quit.title': 'The servers are still running',
-  'quit.body': 'Stop them before leaving? The game server saves every character as it stops, which can take a few minutes.',
+  'quit.body': 'What to do with the servers as you leave?',
   'quit.stop': 'Stop them and quit',
+  'quit.stopHint': 'The game server saves every character, then everything stops cleanly. Can take a few minutes.',
   'quit.leave': 'Leave them running and quit',
+  'quit.leaveHint': 'They run on unwatched; the launcher takes them back when it next opens.',
   'quit.cancel': 'Cancel',
   'quit.background': 'Keep them in the background',
-  'quit.backgroundHint': 'In the background, the launcher stays in the notification area, by the clock, and keeps watching the servers.',
+  'quit.backgroundHint': 'The launcher goes by the clock and keeps watching the servers.',
   'report.open': 'Report a problem',
   'report.intro':
     'The launcher gathers what is needed to understand it: the end of each server’s log, the bot notes of this run, the versions and the character played. Nothing is sent: the file stays on this computer.',

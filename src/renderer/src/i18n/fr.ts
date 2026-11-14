@@ -413,13 +413,14 @@ export const fr: Record<MessageKey, string> = {
   'terminal.empty': 'Rien pour le moment.',
 
   'quit.title': 'Les serveurs tournent encore',
-  'quit.body':
-    "Les arrêter avant de partir ? Le serveur de jeu sauvegarde chaque personnage en s'arrêtant, ce qui peut prendre quelques minutes.",
+  'quit.body': 'Que faire des serveurs en partant ?',
   'quit.stop': 'Les arrêter et quitter',
+  'quit.stopHint': 'Le serveur de jeu sauvegarde chaque personnage, puis tout s’arrête proprement. Peut prendre quelques minutes.',
   'quit.leave': 'Les laisser tourner et quitter',
+  'quit.leaveHint': 'Ils continuent sans surveillance ; le launcher les reprendra à sa prochaine ouverture.',
   'quit.cancel': 'Annuler',
   'quit.background': 'Les garder en arrière-plan',
-  'quit.backgroundHint': 'En arrière-plan, le launcher reste dans la zone de notification, près de l’horloge, et continue de surveiller les serveurs.',
+  'quit.backgroundHint': 'Le launcher se range près de l’horloge et continue de surveiller les serveurs.',
   'report.open': 'Signaler un problème',
   'report.intro':
     'Le launcher rassemble ce qu’il faut pour le comprendre : la fin du journal de chaque serveur, les notes de bots de cette session, les versions et le personnage joué. Rien n’est envoyé : le fichier reste sur cet ordinateur.',

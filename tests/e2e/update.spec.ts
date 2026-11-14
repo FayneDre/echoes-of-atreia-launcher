@@ -74,6 +74,8 @@ test('offers a newer version, downloads it only once accepted, then offers to in
   await banner.getByRole('button', { name: 'What’s new' }).click()
   const dialog = page.getByTestId('launcher-update-dialog')
   await expect(dialog.getByTestId('launcher-update-notes')).toHaveText('What changes in 9.9.9-beta.1')
+  // the notes wrap, though the banner that opens them keeps its text on one line
+  expect(await dialog.getByTestId('launcher-update-notes').evaluate((element) => getComputedStyle(element).whiteSpace)).toBe('normal')
   expect((await banner.boundingBox())!.height).toBe(height)
   await dialog.getByRole('button', { name: 'Close' }).click()
   await expect(dialog).toHaveCount(0)
