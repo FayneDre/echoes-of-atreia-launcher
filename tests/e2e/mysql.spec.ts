@@ -69,3 +69,19 @@ test('says why MySQL would not shut down, and leaves it running', async () => {
   expect(existsSync(join(install.root, 'mysql-data', 'mysqld-shutdown'))).toBe(false)
   await app.close()
 })
+
+test('says MySQL is stopped when it went away behind the launcher, and never shows it ready on a failed stop', async () => {
+  const { app, page } = await launchWith(install)
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
+  await mysqlRow(page).getByRole('button', { name: 'Start', exact: true }).click()
+  await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'ready', { timeout: 20_000 })
+
+  // stopped from elsewhere (a script, a crash): the row still says ready until the person acts on it
+  const marker = join(install.root, 'mysql-data', 'mysqld-shutdown')
+  writeFileSync(marker, '')
+  await expect.poll(() => existsSync(marker), { timeout: 20_000 }).toBe(false)
+  await mysqlRow(page).getByRole('button', { name: 'Stop', exact: true }).click()
+  await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'stopped', { timeout: 20_000 })
+  await expect(mysqlRow(page).getByRole('alert')).toHaveCount(0)
+  await app.close()
+})

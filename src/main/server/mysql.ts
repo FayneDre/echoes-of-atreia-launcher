@@ -310,6 +310,11 @@ export class MysqlControl {
   }
 
   async stop(): Promise<Problem | null> {
+    // Already gone (stopped from elsewhere, or ended by itself): nothing to stop, and nothing to say but that it is stopped.
+    if (!(await this.isUp())) {
+      this.update({ status: 'stopped', problem: undefined })
+      return null
+    }
     // A running service is stopped as a service. A MySQL started any other way (the program mode, the person's own script) is asked to
     // shut down, as stopping the service would leave it running.
     const service = this.setup.optionsFile ? null : await findService()
@@ -323,10 +328,10 @@ export class MysqlControl {
     this.update({ status: 'stopping', problem: undefined })
     const code = await controlService(name, 'stop')
     if (code === DECLINED) {
-      return this.fail('ready', { code: 'mysql-refused' })
+      return this.failStop({ code: 'mysql-refused' })
     }
     if (!(await waitFor(async () => !(await this.isUp()), START_TIMEOUT_MS, 1000))) {
-      return this.fail('ready', { code: 'mysql-timeout', detail: `sc stop ${name}: ${code}` })
+      return this.failStop({ code: 'mysql-timeout', detail: `sc stop ${name}: ${code}` })
     }
     this.update({ status: 'stopped' })
     return null
@@ -335,7 +340,7 @@ export class MysqlControl {
   private async shutdown(): Promise<Problem | null> {
     const credentials = await this.setup.credentials()
     if (!credentials) {
-      return this.fail('ready', { code: 'mysql-shutdown-failed', detail: 'database.url' })
+      return this.failStop({ code: 'mysql-shutdown-failed', detail: 'database.url' })
     }
     this.update({ status: 'stopping', problem: undefined })
     const program = this.setup.optionsFile ? await serverProgramFor(this.setup.optionsFile) : null
@@ -343,10 +348,10 @@ export class MysqlControl {
     const { code, stderr } = await runTool(tool, credentials, ['shutdown'])
     if (code !== 0) {
       // Most often the servers' account lacks the SHUTDOWN privilege: MySQL says so, and it is shown as it is.
-      return this.fail('ready', { code: 'mysql-shutdown-failed', detail: stderr || `mysqladmin: ${code}` })
+      return this.failStop({ code: 'mysql-shutdown-failed', detail: stderr || `mysqladmin: ${code}` })
     }
     if (!(await waitFor(async () => !(await this.isUp()), START_TIMEOUT_MS, 500))) {
-      return this.fail('ready', { code: 'mysql-timeout', detail: 'mysqladmin shutdown' })
+      return this.failStop({ code: 'mysql-timeout', detail: 'mysqladmin shutdown' })
     }
     this.update({ status: 'stopped' })
     return null
@@ -355,5 +360,10 @@ export class MysqlControl {
   private fail(status: MysqlState['status'], problem: Problem): Problem {
     this.update({ status, problem })
     return problem
+  }
+
+  /** A stop that did not happen: MySQL is said ready only if its port still answers, never on the word of the attempt. */
+  private async failStop(problem: Problem): Promise<Problem> {
+    return this.fail((await this.isUp()) ? 'ready' : 'stopped', problem)
   }
 }
