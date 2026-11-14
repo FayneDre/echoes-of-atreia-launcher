@@ -434,7 +434,9 @@ export const en = {
   'install.uninstallConfirm':
     'Uninstall the server in {folder}?\n\nThe servers are stopped, a backup of your accounts and characters is kept in Documents\\Echoes of Atreia\\backups, then the folder is deleted.',
   'install.uninstalling': 'Uninstalling the server…',
-  'install.uninstalled': 'The server is uninstalled. Your characters are backed up in {folder}',
+  'install.uninstalledTitle': 'Server uninstalled',
+  'install.uninstalled':
+    'The server and its database were removed. A last backup of your accounts and characters is kept in this folder:',
   'install.startServers': 'Start the servers when the launcher opens',
   'install.startWithWindows': 'Start the launcher with Windows',
   'install.desktopShortcut': 'Shortcut on the desktop',

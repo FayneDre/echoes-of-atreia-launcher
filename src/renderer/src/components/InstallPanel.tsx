@@ -78,6 +78,16 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
     void window.launcher.setSystemOption(option, on).then(setSystem)
   }
   const { install } = state
+  // Where the last backup was kept once the server is gone: said in a dialog that stays until it is closed, not a toast that fades.
+  const [keptIn, setKeptIn] = useState<string | null>(null)
+  const doneDialog = useRef<HTMLDialogElement | null>(null)
+  // the panel's two faces each hold the dialog: whichever is drawn opens it while there is something to say
+  const holdDoneDialog = (element: HTMLDialogElement | null): void => {
+    doneDialog.current = element
+    if (element && keptIn !== null && !element.open) {
+      element.showModal()
+    }
+  }
   const uninstall = async (): Promise<void> => {
     if (!window.confirm(t('install.uninstallConfirm', { folder: install.serverRoot ?? '' }))) {
       return
@@ -88,8 +98,30 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
       return
     }
     dialog.current?.close()
-    notify(t('install.uninstalled', { folder: result.kept }), 'success')
+    setKeptIn(result.kept)
   }
+  // rendered whatever the panel shows: the detection that follows an uninstall must not take it away
+  const uninstalled = (
+    <dialog
+      ref={holdDoneDialog}
+      className="dialog"
+      data-testid="uninstalled-dialog"
+      aria-labelledby="uninstalled-title"
+      onClose={() => setKeptIn(null)}
+      onClick={closeOnBackdropClick}
+    >
+      <h2 id="uninstalled-title">{t('install.uninstalledTitle')}</h2>
+      <p>{t('install.uninstalled')}</p>
+      <p>
+        <code className="path">{keptIn}</code>
+      </p>
+      <div className="dialog-actions">
+        <button type="button" className="button-primary" onClick={() => doneDialog.current?.close()}>
+          {t('action.close')}
+        </button>
+      </div>
+    </dialog>
+  )
   // The folders can only change while nothing runs: the running servers belong to the current one.
   const locked =
     state.activity !== 'idle' || SERVER_IDS.some((id) => state.servers[id].status !== 'stopped' && state.servers[id].status !== 'failed')
@@ -102,6 +134,7 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
         <p className="install-detecting" data-testid="install-detecting">
           {t('install.detecting')}
         </p>
+        {uninstalled}
       </section>
     )
   }
@@ -303,6 +336,7 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
           </button>
         </div>
       </dialog>
+      {uninstalled}
     </section>
   )
 }

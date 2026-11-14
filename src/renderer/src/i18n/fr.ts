@@ -438,7 +438,9 @@ export const fr: Record<MessageKey, string> = {
   'install.uninstallConfirm':
     'Désinstaller le serveur de {folder} ?\n\nLes serveurs sont arrêtés, une sauvegarde de vos comptes et personnages est gardée dans Documents\\Echoes of Atreia\\backups, puis le dossier est supprimé.',
   'install.uninstalling': 'Désinstallation du serveur…',
-  'install.uninstalled': 'Le serveur est désinstallé. Vos personnages sont sauvegardés dans {folder}',
+  'install.uninstalledTitle': 'Serveur désinstallé',
+  'install.uninstalled':
+    'Le serveur et sa base de données ont été supprimés. Une dernière sauvegarde de vos comptes et personnages est gardée dans ce dossier :',
   'install.startServers': 'Démarrer les serveurs à l’ouverture du launcher',
   'install.startWithWindows': 'Lancer le launcher avec Windows',
   'install.desktopShortcut': 'Raccourci sur le bureau',

@@ -59,7 +59,15 @@ test('uninstalls a server it installed: the servers stopped, a last backup kept 
     void dialog.accept()
   })
   await row.getByRole('button', { name: 'Uninstall the server…' }).click()
-  await expect(page.getByText('The server is uninstalled.')).toBeVisible({ timeout: 60_000 })
+  // said in a dialog that stays until it is closed, with where the backup went
+  const done = page.getByTestId('uninstalled-dialog')
+  await expect(done).toBeVisible({ timeout: 60_000 })
+  await expect(done).toContainText('Server uninstalled')
+  await expect(done).toContainText(kept)
+  await page.waitForTimeout(6_000)
+  await expect(done).toBeVisible()
+  await done.getByRole('button', { name: 'Close' }).click()
+  await expect(done).toBeHidden()
   expect(question).toContain(install.serverRoot)
 
   expect(existsSync(install.serverRoot)).toBe(false)
