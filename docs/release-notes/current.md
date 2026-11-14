@@ -7,6 +7,32 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.6 — 14/11/2026
+
+**Arrive toute seule si tu as une v0.3.0-beta installée avec l'installateur.** Sinon, installe-la à la main avec
+`Echoes-of-Atreia-Setup-0.3.0-beta.6.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien, la densité des bots et la population du serveur demandent le serveur
+v0.1.0-beta.5.
+
+**Ce qui change**
+- **Installer le serveur à partir de rien** : sur un ordinateur qui n'a que le client du jeu, l'accueil propose « Installer le serveur ». Tu
+  choisis un dossier (vide, ou un dossier `echoes-server` y est créé) ; le launcher vérifie la place sur le disque, télécharge et vérifie le
+  serveur, son Java, sa base de données MySQL et les cartes des bots (environ 2,1 Go), crée la base sur un port libre et prend ce dossier comme
+  serveur. Rien n'est installé dans Windows. Un téléchargement interrompu reprend où il en était ; si la base n'a pas pu être créée,
+  « Réessayer » reprend à cette étape.
+- **Le Java et le MySQL de l'installation** : un serveur qui porte les siens (dossiers `runtime` et `mysql`) démarre avec eux, et les
+  sauvegardes utilisent ses outils ; sinon rien ne change.
+- **La densité des bots** sur la page Bots : le mode et le pourcentage, et la population du serveur en cours (les bots éveillés sur ceux
+  voulus, les endormis, et si le serveur retient les arrivées faute de mémoire ou de calcul de trajets).
+- **La mémoire du serveur de jeu adaptée à l'ordinateur** : 1 Go sous 6 Go de mémoire, 1,5 Go sous 10 Go, 2 Go sous 14 Go, la valeur du
+  serveur au-delà.
+
+**Configuration requise** : Windows et le client Aion 4.8. Un JDK 25 et MySQL seulement pour un serveur installé autrement que par le
+launcher.
+
+---
+
 ## v0.3.0-beta.5 — 07/11/2026
 
 **Arrive toute seule si tu as une v0.3.0-beta installée avec l'installateur.** Sinon, installe-la à la main avec

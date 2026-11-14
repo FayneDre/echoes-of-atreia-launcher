@@ -6,6 +6,30 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.6 — 2026-11-14
+
+**It arrives by itself if you have a v0.3.0 beta installed with the installer.** Otherwise install it by hand with
+`Echoes-of-Atreia-Setup-0.3.0-beta.6.exe`.
+
+**Minimum server: v0.1.0-beta.1.** The install from nothing, the bot density and the server's population need server v0.1.0-beta.5.
+
+**What changes**
+- **Install the server from nothing**: on a computer that has nothing but the game client, the home page offers "Install the server". You
+  pick a folder (an empty one, or one an `echoes-server` folder is made in); the launcher checks the room on the drive, downloads and checks the
+  server, its Java, its MySQL database and the bots' maps (about 2.1 GB), makes the database on a free port and takes that folder as its server.
+  Nothing is installed on Windows. A download that stops is taken up where it was; if the database could not be made, "Try again" starts at
+  that step.
+- **The install's own Java and MySQL**: a server that carries its own (`runtime` and `mysql` folders) is started with them, and the backups use
+  its tools; otherwise nothing changes.
+- **The bot density** on the Bots page: the mode and the percentage, and the running server's population (the bots awake out of those wanted,
+  those asleep, and whether the server holds arrivals for want of memory or of route planning).
+- **The game server's memory fitted to the computer**: 1 GB under 6 GB of memory, 1.5 GB under 10 GB, 2 GB under 14 GB, the server's own value
+  above.
+
+**System requirements**: Windows and the Aion 4.8 client. A JDK 25 and MySQL only for a server installed some other way than by the launcher.
+
+---
+
 ## v0.3.0-beta.5 — 2026-11-07
 
 **It arrives by itself if you have a v0.3.0 beta installed with the installer.** Otherwise install it by hand with
