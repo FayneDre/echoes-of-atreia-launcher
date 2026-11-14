@@ -35,9 +35,9 @@ run against fake servers (`tests/fixtures/`), never the real installation; a tes
 
 ## Branches and releases
 
-- `main`: stable, the default on GitHub; stable releases `vX.Y.Z` are made from it. It moves only by merging `develop` once a version has been
-  validated in game.
-- `develop`: day-to-day work; test builds are GitHub **pre-releases** `vX.Y.Z-beta.N` made from it, so `Latest` keeps pointing at the stable one.
+- `main`: the one branch, the default on GitHub (`develop` until 14 November 2026: one developer gained nothing from two). Every version is
+  a tag on it: test builds `vX.Y.Z-beta.N` are GitHub **pre-releases**, so `Latest` keeps pointing at the stable one; a stable `vX.Y.Z` goes
+  on a commit a beta was validated on. To fix a stable once `main` has moved on, a branch is cut from its tag that day.
 - Versions are this launcher's own, independent of the server's; a release declares the lowest server version it needs. The release process
   is the server repository's `docs/architecture/plans/release-process-plan.md`.
 - `tools/release.ps1 -Version X.Y.Z[-beta.N]` makes a release: it refuses a wrong branch, a dirty tree, a `package.json` of another version,

@@ -20,7 +20,7 @@ How a beta launcher installs the server's pre-releases, and a stable one its rel
 `manifest.json` at the install's root says it (`readInstallOrigin`):
 
 - `"source": "deploy"`: written by the server's deploy script, a development install. **No release is ever offered over it**: a bundle is
-  often older than `develop`. A manifest the launcher cannot read is treated the same way, never as no manifest.
+  often older than `main`. A manifest the launcher cannot read is treated the same way, never as no manifest.
 - `"source": "release"`: installed from a bundle; the manifest is that bundle's, which tells which default files are still untouched.
 - none: a server built from git. The first update installs over it.
 

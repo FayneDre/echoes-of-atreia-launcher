@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Tags a launcher release, vX.Y.Z-beta.N (a pre-release, from develop) or vX.Y.Z (from main), builds its installers and writes its GitHub release
+    Tags a launcher release, vX.Y.Z-beta.N (a pre-release) or vX.Y.Z (stable), both from main, builds its installers and writes its GitHub release
     notes. Pushes the tag only with -Push; publishing the release is left to the user.
 
 .DESCRIPTION
     The same process as the server's tools/tag-patch.ps1 (the server repository's docs/architecture/plans/release-process-plan.md): semantic
     versions of the launcher's own, notes in French and English, a body built the same way. Refuses, each time saying why:
     - a version that is not X.Y.Z or X.Y.Z-beta.N, that is tagged already, or that is not above the highest version tagged;
-    - a beta made from another branch than develop, a release from another branch than main;
+    - a version made from another branch than main;
     - a dirty tree, and a package.json whose version is not this one (electron-builder names the installers after it, the updater reads it);
     - docs/release-notes/current.md (French) or current.en.md (English) with no entry for the tag, or an entry that names no minimum server
       version ("Serveur minimum : vX.Y.Z..." in French, "Minimum server: vX.Y.Z..." in English), or two entries that name different ones;
@@ -77,9 +77,9 @@ try {
     $highest = @(git tag --list 'v*' | Where-Object { Get-VersionKey $_ } | Sort-Object { Get-VersionKey $_ }) | Select-Object -Last 1
     if ($highest -and (Get-VersionKey $highest) -ge $key) { throw "$tag is not above $highest, the highest version tagged." }
 
+    # One branch: a beta and a stable are both tags on main, a stable on a commit a beta was validated on.
     $branch = git rev-parse --abbrev-ref HEAD
-    $wanted = if ($preRelease) { 'develop' } else { 'main' }
-    if ($branch -ne $wanted) { throw "$tag is made from $wanted, and this is $branch." }
+    if ($branch -ne 'main') { throw "$tag is made from main, and this is $branch." }
 
     if (git status --porcelain) { throw 'The working tree has uncommitted changes. Commit them, then release from a clean tree.' }
 
