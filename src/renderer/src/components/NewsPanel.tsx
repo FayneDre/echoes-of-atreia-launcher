@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { NewsItem, NewsSource, NewsState } from '../../../shared/types'
 import { useI18n } from '../i18n'
 import { Markdown } from './Markdown'
+import { closeOnBackdropClick } from '../dialog'
 
 const SOURCES: NewsSource[] = ['launcher', 'server']
 const SEEN_KEY = 'news-seen'
@@ -52,11 +53,7 @@ function NotesDialog({ items, first, onClose }: { items: NewsItem[]; first: numb
       aria-labelledby="news-dialog-title"
       data-testid="news-dialog"
       onClose={onClose}
-      onClick={(event) => {
-        if (event.target === dialog.current) {
-          dialog.current.close()
-        }
-      }}
+      onClick={closeOnBackdropClick}
     >
       <h2 id="news-dialog-title">
         {t(`news.${item.source}`)} {item.tag}

@@ -68,7 +68,7 @@ connects to the other two while it starts.
   only `Latest`: no setting. Checked once, at start (the start is what finds an update; never in the developer mode, see [home-page.md](home-page.md)); a newer version is only offered, in a one-line banner,
   with the release's `notes.<language>.md` in a dialog: nothing downloads before "Update" is clicked, "Later" hides the offer until the
   next start, and closing the launcher never installs it (`autoDownload` and `autoInstallOnAppQuit` off: the tester wants to accept every
-  update). Once downloaded, "Restart and install" closes the window the usual way, so the question about
+  update). A download that fails says so and offers "Try again". Once downloaded, "Restart and install" closes the window the usual way, so the question about
   running servers comes first, and the installer starts only once the launcher has quit (`quitAndInstall` would start it before). Never
   offered while servers start or stop. The portable build cannot replace itself: it links to the release. A development run does not
   update; the tests give a local feed (`ECHOES_UPDATE_FEED`, `ECHOES_UPDATE_CONFIG`).

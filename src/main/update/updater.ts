@@ -66,7 +66,7 @@ export class LauncherUpdater extends EventEmitter<{ state: [UpdateState] }> {
       console.warn('Update check failed:', error.message)
       if (this.state.status === 'downloading') {
         // the offer stays: the person may try again
-        this.set({ ...this.state, status: 'available', percent: undefined })
+        this.set({ ...this.state, status: 'available', percent: undefined, failed: true })
       }
     })
     this.set({ status: 'idle' })
@@ -78,7 +78,7 @@ export class LauncherUpdater extends EventEmitter<{ state: [UpdateState] }> {
     if (this.state.status !== 'available') {
       return false
     }
-    this.set({ ...this.state, status: 'downloading', percent: 0 })
+    this.set({ ...this.state, status: 'downloading', percent: 0, failed: undefined })
     autoUpdater.downloadUpdate().catch(() => {
       // reported by the 'error' event
     })

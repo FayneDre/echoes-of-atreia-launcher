@@ -288,10 +288,7 @@ button:hover:not(:disabled) {
   min-width: 0;
 }
 
-/* the two columns end at the same height */
-.home-column > .panel:last-child {
-  flex: 1;
-}
+/* each panel keeps its own height: none is stretched to the other column's, with nothing in the room it gains */
 
 /* ---------- Terminals ---------- */
 
@@ -939,11 +936,6 @@ button.link:hover:not(:disabled) {
 .news-panel {
   display: flex;
   flex-direction: column;
-}
-
-/* The news keep their own height, whatever the other column's: a summary of up to three lines, then the links, nothing empty below. */
-.home-column > .news-panel:last-child {
-  flex: none;
 }
 
 .news-tabs {

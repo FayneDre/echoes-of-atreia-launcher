@@ -11,6 +11,7 @@ import {
 } from '../../../shared/types'
 import { formatSize } from '../format'
 import { useI18n } from '../i18n'
+import { closeOnBackdropClick } from '../dialog'
 
 function FolderRow(props: {
   label: string
@@ -152,11 +153,7 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
         className="dialog install-dialog"
         aria-labelledby="install-dialog-title"
         data-testid="install-dialog"
-        onClick={(event) => {
-          if (event.target === dialog.current) {
-            dialog.current.close()
-          }
-        }}
+        onClick={closeOnBackdropClick}
       >
         <h2 id="install-dialog-title">{t('section.install')}</h2>
         {locked && <p className="muted">{t('install.locked')}</p>}

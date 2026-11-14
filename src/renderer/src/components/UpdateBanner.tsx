@@ -32,7 +32,7 @@ export function UpdateBanner({ update, state }: Props): React.JSX.Element | null
   return (
     <div className="banner update-banner" role="status" data-testid="launcher-update" data-status={update.status}>
       <span className="update-text">
-        {update.status === 'available' && t('update.available', { version })}
+        {update.status === 'available' && t(update.failed ? 'update.failed' : 'update.available', { version })}
         {update.status === 'downloading' && t('update.downloading', { version, percent: update.percent ?? 0 })}
         {update.status === 'ready' && t('update.ready', { version })}
         {update.status === 'portable' && t('update.portable', { version })}
@@ -44,7 +44,7 @@ export function UpdateBanner({ update, state }: Props): React.JSX.Element | null
       )}
       {update.status === 'available' && (
         <button type="button" className="small" onClick={() => void window.launcher.downloadUpdate()}>
-          {t('update.accept')}
+          {t(update.failed ? 'update.retry' : 'update.accept')}
         </button>
       )}
       {update.status === 'ready' && (

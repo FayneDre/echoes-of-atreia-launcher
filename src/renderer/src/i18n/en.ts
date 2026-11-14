@@ -8,6 +8,8 @@ export const en = {
   'update.available': 'Version {version} of the launcher is out.',
   'update.accept': 'Update',
   'update.later': 'Later',
+  'update.failed': 'The download of version {version} of the launcher failed.',
+  'update.retry': 'Try again',
   'update.notesTitle': 'What’s new in version {version}',
   'update.downloading': 'Downloading version {version} of the launcher… {percent}%',
   'update.ready': 'Version {version} of the launcher is downloaded.',

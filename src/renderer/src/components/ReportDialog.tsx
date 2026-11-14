@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import type { ReportResult } from '../../../shared/types'
 import { useI18n } from '../i18n'
+import { closeOnBackdropClick } from '../dialog'
 
 /**
  * "Report a problem", at the foot of every page: makes a zip of what is needed to understand it (the end of each server's log, the run's bot
@@ -37,11 +38,7 @@ export function ReportDialog(): React.JSX.Element {
         className="dialog report-dialog"
         aria-labelledby="report-title"
         data-testid="report-dialog"
-        onClick={(event) => {
-          if (event.target === dialog.current) {
-            dialog.current.close()
-          }
-        }}
+        onClick={closeOnBackdropClick}
       >
         <h2 id="report-title">{t('report.open')}</h2>
         <p>{t('report.intro')}</p>

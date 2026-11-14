@@ -8,6 +8,8 @@ export const fr: Record<MessageKey, string> = {
   'update.available': 'La version {version} du launcher est sortie.',
   'update.accept': 'Mettre à jour',
   'update.later': 'Plus tard',
+  'update.failed': 'Le téléchargement de la version {version} du launcher a échoué.',
+  'update.retry': 'Réessayer',
   'update.notesTitle': 'Quoi de neuf dans la version {version}',
   'update.downloading': 'Téléchargement de la version {version} du launcher… {percent} %',
   'update.ready': 'La version {version} du launcher est téléchargée.',

@@ -54,7 +54,10 @@ A tab shows a "new" badge until it has been opened with that release at its top;
 
 - **Servers**: one row each, one line each, with its own Start or Restart (see [how-it-works.md](how-it-works.md), "One server alone").
   MySQL's row is the same line: how it is run (its my.ini or the Windows service, and the buttons that change it while it is stopped)
-  opens in a dialog from the "…" beside its name, so a long path never breaks the row.
+  opens in a dialog from the "…" beside its name, so a long path never breaks the row. With neither a service nor a my.ini, "Start with my
+  own my.ini…" takes the start button's place on the row: the one way to start it is never hidden. No panel is stretched to the other
+  column's height (each ends under its content; `home.spec.ts` measures the news and the installation panels). A click in a dialog's own
+  padding leaves it open, a click beside it closes it (`dialog.ts`).
 - **Installation**: one line of checks, whatever passes or fails, with "Change…" ("Fix…" while something is missing); the folders and
   Java are in a dialog that line opens, so nothing on the page moves.
   Below the line, in the room it leaves (the block keeps its height): the free space of the server's drive (`statfs`, red under 5 GB,

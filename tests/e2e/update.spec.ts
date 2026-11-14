@@ -87,6 +87,22 @@ test('offers a newer version, downloads it only once accepted, then offers to in
   await app.close()
 })
 
+test('says when the download failed, and offers it again', async () => {
+  publish('9.9.9-beta.1')
+  const { app, page } = await open()
+  const banner = page.getByTestId('launcher-update')
+  await expect(banner).toHaveAttribute('data-status', 'available', { timeout: 20_000 })
+  // the installer is gone from the release: the download fails
+  rmSync(join(feedDir, 'Echoes-of-Atreia-Setup-9.9.9-beta.1.exe'))
+  await banner.getByRole('button', { name: 'Update', exact: true }).click()
+  await expect(banner).toContainText('The download of version 9.9.9-beta.1 of the launcher failed', { timeout: 20_000 })
+  await expect(banner).toHaveAttribute('data-status', 'available')
+  publish('9.9.9-beta.1')
+  await banner.getByRole('button', { name: 'Try again' }).click()
+  await expect(banner).toHaveAttribute('data-status', 'ready', { timeout: 20_000 })
+  await app.close()
+})
+
 test('puts the offer away until the next start when asked later', async () => {
   publish('9.9.9-beta.1')
   const { app, page } = await open()

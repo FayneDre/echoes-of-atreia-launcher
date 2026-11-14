@@ -35,7 +35,10 @@ test('starts MySQL with the chosen my.ini on the servers’ port, and stops it t
   const dialog = page.getByTestId('mysql-dialog')
   await expect(dialog).toContainText(optionsFile)
   await expect(dialog.getByRole('button', { name: 'Start with my own my.ini…' })).toBeEnabled()
-  await dialog.getByRole('button', { name: 'Close' }).click()
+  // a click in the dialog's own padding leaves it open, a click beside it closes it
+  await dialog.click({ position: { x: 4, y: 4 } })
+  await expect(dialog).toBeVisible()
+  await page.mouse.click(5, 5)
   await expect(dialog).toHaveCount(0)
 
   await mysqlRow(page).getByRole('button', { name: 'Start', exact: true }).click()

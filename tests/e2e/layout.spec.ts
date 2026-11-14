@@ -97,3 +97,16 @@ test('keeps the home page whole when MySQL is down and run with a my.ini of a lo
   expect(await overflow(), 'zoomed').toBeLessThanOrEqual(0)
   await app.close()
 })
+
+test('offers to start MySQL with a my.ini on its own line when there is neither a service nor a my.ini', async () => {
+  await install.dispose()
+  install = await createFakeInstall({ mysqlUp: false })
+  const { app, page } = await launchWith(install, { ECHOES_FAKE_NO_MYSQL_SERVICE: '1' })
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
+  const row = page.getByTestId('server-mysql')
+  await expect(page.getByTestId('status-mysql')).toHaveAttribute('data-status', 'missing')
+  await expect(row.getByRole('button', { name: 'Start with my own my.ini…' })).toBeVisible()
+  const height = async (id: string): Promise<number> => (await page.getByTestId(`server-${id}`).boundingBox())!.height
+  expect(await height('mysql')).toBe(await height('chat'))
+  await app.close()
+})

@@ -313,6 +313,8 @@ export interface UpdateState {
   notes?: Partial<Record<'en' | 'fr', string>>
   /** The release's page, for the portable build. */
   releaseUrl?: string
+  /** The last download of the version offered failed (offline, GitHub unreachable): it is offered again, saying so. */
+  failed?: boolean
 }
 
 /** A launcher whose version carries a pre-release part follows the pre-releases; a stable one only the releases. */

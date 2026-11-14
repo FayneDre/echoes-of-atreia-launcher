@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useI18n } from '../i18n'
 import { Markdown } from './Markdown'
+import { closeOnBackdropClick } from '../dialog'
 
 interface Props {
   version: string
@@ -27,11 +28,7 @@ export function UpdateNotesDialog({ version, notes, testId, onClose }: Props): R
       aria-labelledby={`${testId}-dialog-title`}
       data-testid={`${testId}-dialog`}
       onClose={onClose}
-      onClick={(event) => {
-        if (event.target === dialog.current) {
-          dialog.current.close()
-        }
-      }}
+      onClick={closeOnBackdropClick}
     >
       <h2 id={`${testId}-dialog-title`}>{t('update.notesTitle', { version })}</h2>
       <div className="news-dialog-body">

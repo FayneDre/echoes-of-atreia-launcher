@@ -48,7 +48,8 @@ interface ServiceInfo {
  * in use must not be the one started).
  */
 async function findService(): Promise<ServiceInfo | null> {
-  if (process.platform !== 'win32') {
+  // the tests' machine may have a MySQL service of its own: they can say there is none
+  if (process.platform !== 'win32' || process.env['ECHOES_FAKE_NO_MYSQL_SERVICE']) {
     return null
   }
   const { stdout } = await runPowerShell(

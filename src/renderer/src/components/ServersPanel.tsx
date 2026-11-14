@@ -3,6 +3,7 @@ import { SERVER_IDS, type LauncherState, type ServerId, type ServerState } from 
 import { useI18n } from '../i18n'
 import { Icon } from './Icon'
 import { ProblemText } from './ProblemText'
+import { closeOnBackdropClick } from '../dialog'
 
 function StatusDot({ status }: { status: string }): React.JSX.Element {
   return <span className={`dot dot-${status}`} aria-hidden="true" />
@@ -74,11 +75,7 @@ function MysqlDialog({ state, onClose }: { state: LauncherState; onClose: () => 
       aria-labelledby="mysql-dialog-title"
       data-testid="mysql-dialog"
       onClose={onClose}
-      onClick={(event) => {
-        if (event.target === dialog.current) {
-          dialog.current.close()
-        }
-      }}
+      onClick={closeOnBackdropClick}
     >
       <h2 id="mysql-dialog-title">{t('server.mysql')}</h2>
       {mysql.optionsFile ? (
@@ -142,6 +139,12 @@ function MysqlRow({ state }: { state: LauncherState }): React.JSX.Element {
           >
             <Icon name={mysql.status === 'ready' ? 'stop' : 'play'} />
             {mysql.status === 'ready' ? t('action.mysqlStop') : t('action.mysqlStart')}
+          </button>
+        )}
+        {/* no service and no my.ini: the one way to start it, in the start button's place, so nobody has to guess it is behind "…" */}
+        {mysql.status === 'missing' && !mysql.serviceName && !mysql.optionsFile && (
+          <button type="button" className="small" disabled={!mysqlIdle} onClick={() => void window.launcher.chooseMysqlOptions()}>
+            {t('action.mysqlOptions')}
           </button>
         )}
       </div>

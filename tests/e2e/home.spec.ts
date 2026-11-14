@@ -101,6 +101,8 @@ test('shows where the stack stands, the news of both projects, the install folde
     return Math.round(box.y + box.height)
   }
   await expect(page.getByTestId('news-summary')).not.toBeEmpty()
+  // neither is the installation panel stretched to the other column
+  expect((await bottom('.install-panel')) - (await bottom('.install-panel .install-facts'))).toBeLessThanOrEqual(24)
   expect((await bottom('[data-testid=news]')) - (await bottom('[data-testid=news] .news-latest'))).toBeLessThanOrEqual(24)
   expect(
     (await page.locator('[data-testid=news] .news-actions').boundingBox())!.y - (await bottom('[data-testid=news-summary]'))
