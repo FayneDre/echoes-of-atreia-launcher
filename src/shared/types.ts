@@ -296,11 +296,13 @@ export interface PopulationState {
   mode: string
   percent: number
   totals: { awake: number; wanted: number; asleep: number; short: number } | null
-  /** `held` comes with what holds the arrivals: the heap, route planning, or both. */
+  /** `held` comes with what holds the arrivals: the heap, route planning, the machine's memory, or several. */
   guard: { state: 'open' | 'held' | 'off'; causes: string[] }
   /** The old generation after a collection, in percent of the heap; null before the first collection that reaches it. */
   heapPercent: number | null
   routeWaitSeconds: number
+  /** The machine's memory in use, in percent, the game client and every other program included; null from a server that does not say. */
+  machinePercent: number | null
 }
 
 /** The first API level whose game server answers `population`. */

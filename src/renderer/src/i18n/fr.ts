@@ -207,7 +207,7 @@ export const fr: Record<MessageKey, string> = {
     "Chaque jour à midi, chaque grade d'officier des Abysses perd des points d'honneur. Le champ de la famille est une part de la perte officielle : 100 % est la perte officielle, 0 % la supprime.",
   'hint.chances': 'En pourcentage, à chaque tentative.',
   'hint.botDensity':
-    'Combien de bots occupent les zones de chasse de chaque carte. Les villages et les capitales ne changent pas : ils sont toujours pleins. Si l’ordinateur manque de mémoire, le serveur cesse de faire venir des bots, quel que soit ce réglage.',
+    'Combien de bots occupent les zones de chasse de chaque carte. Les villages et les capitales ne changent pas : ils sont toujours pleins. Quand la RAM du PC dépasse le seuil choisi ci-dessous, ou que le serveur manque de mémoire, il cesse de faire venir des bots ; ceux qui sont là restent.',
   'hint.botXp':
     "Un pourcentage du taux officiel, quels que soient les taux des joueurs : à 1 %, un bot met environ treize heures à dépasser sa région. Un bot dans le groupe d'un joueur suit le taux du joueur.",
   'hint.botPvp':
@@ -269,6 +269,11 @@ export const fr: Record<MessageKey, string> = {
     'Comme « Selon les joueurs », sans jamais descendre sous le pourcentage : le monde reste vivant même quand personne ne joue.',
   'settingHint.bots.density.percent':
     'Au-delà de 50 %, les bots peuvent rester sur place en attendant que le serveur calcule leurs trajets.',
+  'setting.bots.guard.machine.enable': 'Arrêter les arrivées quand la RAM du PC est pleine',
+  'settingHint.bots.guard.machine.enable':
+    'Toute la RAM de l’ordinateur, le jeu et les autres programmes compris, comme dans le gestionnaire des tâches. Désactivé, seule la mémoire du serveur compte.',
+  'setting.bots.guard.machine.hold': 'Seuil de RAM du PC',
+  'settingHint.bots.guard.machine.hold': 'Les bots recommencent à arriver 5 points en dessous.',
   'setting.bots.xp.solo': 'Monstres, en solo',
   'setting.bots.xp.group': 'Monstres, en groupe',
   'setting.bots.xp.pvp': 'Joueurs tués',
@@ -469,8 +474,10 @@ export const fr: Record<MessageKey, string> = {
   'population.held': 'En pause : le serveur manque de {causes}',
   'population.cause.HEAP': 'mémoire',
   'population.cause.ROUTES': 'calcul de trajets',
+  'population.cause.MACHINE': 'RAM libre sur le PC',
   'population.heap': 'Mémoire du serveur de jeu',
   'population.heapUnknown': 'pas encore mesurée',
+  'population.machine': 'RAM du PC utilisée',
   'quit.stopping': 'Arrêt des serveurs…',
 
   'problem.server-missing': 'Aucune installation du serveur trouvée. Choisis le dossier du serveur ci-dessous.',

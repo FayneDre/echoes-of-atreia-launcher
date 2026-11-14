@@ -36,7 +36,7 @@ export interface SettingDefinition {
   startOnly?: boolean
   /** A rate's account level: its value is that level's in the key's list. */
   membership?: Membership
-  /** Left unused while another setting of its group holds that option: shown greyed out, its value kept. */
+  /** Left unused while another setting of its group holds that option (a switch's are `on` and `off`): shown greyed out, its value kept. */
   unusedWhen?: { setting: string; option: string }
 }
 
@@ -115,14 +115,17 @@ export const SETTING_GROUPS: SettingGroup[] = [
     settings: [{ id: 'bothFactions', key: 'gameserver.character.creation.mode', kind: 'toggle' }]
   },
   // How many bots the world holds, read at each review of the population (30 s): a reload applies it within half a minute. The server's
-  // population guard stops the arrivals when the machine runs short, whatever is set here.
+  // population guard stops the arrivals when the machine runs short, whatever is set here; the machine's memory is the one mark the page sets
+  // (the server releases five points under it).
   {
     id: 'botDensity',
     page: 'bots',
     globalField: 'none',
     settings: [
       bot('density.mode', 'choice', { options: ['AUTO', 'FIXED', 'FLOOR'] }),
-      bot('density.percent', 'count', { min: 0, max: 100, unit: 'percent', unusedWhen: { setting: 'bots.density.mode', option: 'AUTO' } })
+      bot('density.percent', 'count', { min: 0, max: 100, unit: 'percent', unusedWhen: { setting: 'bots.density.mode', option: 'AUTO' } }),
+      bot('guard.machine.enable', 'flag'),
+      bot('guard.machine.hold', 'count', { min: 50, max: 99, unit: 'percent', unusedWhen: { setting: 'bots.guard.machine.enable', option: 'off' } })
     ]
   },
   // The bot options (the server's config/main/playerbot.properties). A world bot's experience is a percent of the official rate: the players'

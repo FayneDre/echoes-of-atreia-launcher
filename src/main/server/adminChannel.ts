@@ -88,7 +88,8 @@ export function parsePopulation(lines: string[]): PopulationState | null {
     totals: awake != null && wanted != null && asleep != null && short != null ? { awake, wanted, asleep, short } : null,
     guard: { state, causes: state === 'held' ? causes : [] },
     heapPercent: count('heap'),
-    routeWaitSeconds: count('route-wait') ?? 0
+    routeWaitSeconds: count('route-wait') ?? 0,
+    machinePercent: count('machine')
   }
 }
 

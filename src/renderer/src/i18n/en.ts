@@ -206,7 +206,7 @@ export const en = {
     'Every day at noon, each Abyss officer rank loses Glory Points. The group’s field is a share of the official loss: 100 % is official, 0 % turns it off.',
   'hint.chances': 'In percent, for each attempt.',
   'hint.botDensity':
-    'How many bots fill the hunting grounds of each map. Villages and capitals do not change: they are always full. When the computer runs short of memory, the server stops bringing bots in, whatever is set here.',
+    'How many bots fill the hunting grounds of each map. Villages and capitals do not change: they are always full. When the computer’s RAM goes past the mark chosen below, or the server runs short of memory, it stops bringing bots in; those already there stay.',
   'hint.botXp':
     'A percent of the official rate, whatever the players’ rates: at 1 %, a bot takes about thirteen hours to outgrow a region. A bot in a player’s group follows the player’s rate.',
   'hint.botPvp':
@@ -266,6 +266,11 @@ export const en = {
     'Every map stays at the percent, a player on it or not: the world is the same, seen or unseen.',
   'optionHint.bots.density.mode.FLOOR': 'Like “By the players”, never below the percent: the world stays alive with nobody playing.',
   'settingHint.bots.density.percent': 'Above 50 %, bots may stand still while the server plans their routes.',
+  'setting.bots.guard.machine.enable': 'Stop arrivals when the PC’s RAM is full',
+  'settingHint.bots.guard.machine.enable':
+    'All of the computer’s RAM, the game and the other programs included, as the task manager shows it. Off, only the server’s memory counts.',
+  'setting.bots.guard.machine.hold': 'PC RAM mark',
+  'settingHint.bots.guard.machine.hold': 'Bots start arriving again 5 points under it.',
   'setting.bots.xp.solo': 'Monsters, alone',
   'setting.bots.xp.group': 'Monsters, in a group',
   'setting.bots.xp.pvp': 'Player kills',
@@ -466,8 +471,10 @@ export const en = {
   'population.held': 'Paused: the server is short of {causes}',
   'population.cause.HEAP': 'memory',
   'population.cause.ROUTES': 'route planning',
+  'population.cause.MACHINE': 'free RAM on the PC',
   'population.heap': 'Game server memory',
   'population.heapUnknown': 'not measured yet',
+  'population.machine': 'PC RAM in use',
   'quit.stopping': 'Stopping the servers…',
 
   'problem.server-missing': 'No server installation found. Choose the server folder below.',

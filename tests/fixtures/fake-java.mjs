@@ -114,7 +114,9 @@ async function main() {
             log('Admin channel: configuration reloaded')
             answer = 'ok'
           } else if (verb === 'population') {
-            answer = ['ok', 'mode FIXED', 'percent 60', 'awake 412', 'wanted 450', 'asleep 88', 'short 0', 'guard held HEAP', 'heap 86', 'route-wait 0'].join(NEWLINE)
+            answer = ['ok', 'mode FIXED', 'percent 60', 'awake 412', 'wanted 450', 'asleep 88', 'short 0', 'guard held HEAP MACHINE', 'heap 86', 'route-wait 0', 'machine 92'].join(
+              NEWLINE
+            )
           } else if (verb === 'destinations') {
             const place = (...fields) => fields.join(TAB)
             answer = [

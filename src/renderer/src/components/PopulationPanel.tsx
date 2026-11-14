@@ -69,6 +69,12 @@ export function PopulationPanel({ visible, ready }: { visible: boolean; ready: b
           <dt>{t('population.heap')}</dt>
           <dd>{population.heapPercent === null ? t('population.heapUnknown') : `${population.heapPercent} %`}</dd>
         </div>
+        {population.machinePercent !== null && (
+          <div>
+            <dt>{t('population.machine')}</dt>
+            <dd>{`${population.machinePercent} %`}</dd>
+          </div>
+        )}
       </dl>
     </div>
   )

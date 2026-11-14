@@ -118,6 +118,9 @@ function formatOfficial(definition: SettingDefinition, value: number, t: Transla
 /** Whether another setting of the group holds the option that leaves this one unused. */
 function isUnused(when: { setting: string; option: string }, settings: SettingDefinition[], values: Values): boolean {
   const other = settings.find((definition) => definition.id === when.setting)
+  if (other !== undefined && isSwitch(other)) {
+    return (values[other.id] === 1 ? 'on' : 'off') === when.option
+  }
   return other?.options !== undefined && other.options[values[other.id]!] === when.option
 }
 

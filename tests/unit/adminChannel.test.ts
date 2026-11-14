@@ -24,24 +24,26 @@ describe('parseDestinations', () => {
 describe('parsePopulation', () => {
   it('reads the density, the totals and the guard', () => {
     expect(
-      parsePopulation(['mode FIXED', 'percent 60', 'awake 900', 'wanted 1000', 'asleep 300', 'short 2', 'guard held HEAP ROUTES', 'heap 86', 'route-wait 25'])
+      parsePopulation(['mode FIXED', 'percent 60', 'awake 900', 'wanted 1000', 'asleep 300', 'short 2', 'guard held HEAP ROUTES MACHINE', 'heap 86', 'route-wait 25', 'machine 93'])
     ).toEqual({
       mode: 'FIXED',
       percent: 60,
       totals: { awake: 900, wanted: 1000, asleep: 300, short: 2 },
-      guard: { state: 'held', causes: ['HEAP', 'ROUTES'] },
+      guard: { state: 'held', causes: ['HEAP', 'ROUTES', 'MACHINE'] },
       heapPercent: 86,
-      routeWaitSeconds: 25
+      routeWaitSeconds: 25,
+      machinePercent: 93
     })
   })
-  it('has no totals before the first review, and no heap before the first collection', () => {
+  it('has no totals before the first review, no heap before the first collection, and no machine from an older server', () => {
     expect(parsePopulation(['mode AUTO', 'percent 30', 'guard open', 'heap unknown', 'route-wait 0'])).toEqual({
       mode: 'AUTO',
       percent: 30,
       totals: null,
       guard: { state: 'open', causes: [] },
       heapPercent: null,
-      routeWaitSeconds: 0
+      routeWaitSeconds: 0,
+      machinePercent: null
     })
   })
   it('takes an answer without the density or a known guard for unreadable', () => {
