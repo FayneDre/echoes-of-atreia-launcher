@@ -664,6 +664,24 @@ button.small {
   color: var(--gold);
 }
 
+/* what a row's setting does, or its chosen option, under its name: the room of two lines whatever the language or the option chosen, so
+   nothing moves when either changes */
+.setting-hint {
+  display: block;
+  min-height: calc(2 * 1.45em);
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.setting-row.unused .setting-label,
+.setting-row.unused .value-input,
+.setting-row.unused .official {
+  opacity: 0.55;
+}
+
 .toggle-cell {
   display: flex;
   justify-content: flex-start;

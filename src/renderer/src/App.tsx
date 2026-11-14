@@ -82,13 +82,14 @@ export function App(): React.JSX.Element {
     setTerminalsOpen(true)
   }
 
-  // A server that fails opens its log, once per failure.
+  // A server that fails has its log's tab picked, the drawer left as it was: opened by itself, it pushed the home page past the window. Its
+  // row's "Why?" dialog offers the log.
   const failed = SERVER_IDS.find((id) => state?.servers[id].status === 'failed') ?? null
   useEffect(() => {
     if (failed) {
-      showLog(failed)
+      setTerminal(failed)
     }
-  }, [failed]) // only a new failure opens the drawer
+  }, [failed]) // only a new failure picks the tab
 
   return (
     <div className="app">

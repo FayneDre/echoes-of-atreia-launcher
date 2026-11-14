@@ -48,8 +48,15 @@ test('sets how the bots earn experience, fight, speak and trade', async () => {
   await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.getByRole('button', { name: 'Bots', exact: true }).click()
 
-  await page.getByLabel('Population — The countryside').selectOption({ label: 'Fixed' })
-  await page.getByLabel('Population — Percent').fill('60')
+  // each mode says what it does under the setting's name, and the percent it does not use is greyed out
+  const population = page.getByTestId('group-botDensity')
+  const percent = page.getByLabel('Population — Percent of a full ground')
+  await expect(population).toContainText('The percent is not used.')
+  await expect(percent).toBeDisabled()
+  await page.getByLabel('Population — Hunting grounds filled').selectOption({ label: 'Constant' })
+  await expect(population).toContainText('Every map stays at the percent')
+  await expect(percent).toBeEnabled()
+  await percent.fill('60')
 
   await page.getByRole('tab', { name: 'Experience' }).click()
   await page.getByLabel('Experience — Monsters, alone').fill('5')
@@ -109,9 +116,9 @@ test('shows where the running server’s population stands, and nothing while no
   await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
   await page.getByRole('button', { name: 'Bots', exact: true }).click()
   const population = page.getByTestId('population')
-  await expect(population).toContainText('412 bots of the 450 wanted, 88 asleep')
-  await expect(population).toContainText('Fixed, 60 %')
-  await expect(population).toContainText('Held by the server: short of memory')
+  await expect(population).toContainText('412 present of the 450 wanted (88 in reserve, out of the world)')
+  await expect(population).toContainText('Constant, 60 %')
+  await expect(population).toContainText('Paused: the server is short of memory')
   await expect(population).toContainText('86 %')
 
   await page.getByRole('button', { name: 'Home' }).click()

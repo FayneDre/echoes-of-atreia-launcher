@@ -115,3 +115,24 @@ test('offers to start MySQL with a my.ini on its own line when there is neither 
   expect(await height('mysql')).toBe(await height('chat'))
   await app.close()
 })
+
+test('ends both home columns on the same line, at the foot of the window, and spaces the options evenly', async () => {
+  const { app, page } = await launchWith(install)
+  await expect(page.getByTestId('install-summary')).toBeVisible()
+  await expect(page.getByTestId('server-update')).toBeVisible()
+  await page.waitForTimeout(1_000)
+  const bottom = (selector: string) => page.locator(selector).evaluate((element) => Math.round(element.getBoundingClientRect().bottom))
+  const installBottom = await bottom('.install-panel')
+  expect(await bottom('[data-testid="news"]'), 'the news against the install panel').toBe(installBottom)
+  // the room under the columns is the page's padding alone
+  const scrollerBottom = await page.locator('.page-scroll').evaluate((element) => Math.round(element.getBoundingClientRect().bottom))
+  expect(scrollerBottom - installBottom).toBeLessThanOrEqual(12)
+
+  await page.getByTestId('install-summary').click()
+  const gaps = await page.locator('.install-options').evaluate((list) => {
+    const boxes = [...list.children].map((child) => child.getBoundingClientRect())
+    return boxes.slice(1).map((box, index) => Math.round(box.top - boxes[index]!.bottom))
+  })
+  expect(new Set(gaps).size, `gaps between the options: ${gaps.join(', ')}`).toBe(1)
+  await app.close()
+})

@@ -111,14 +111,12 @@ test('shows why a server stopped while starting', async () => {
   const { app, page } = await open()
   await page.getByRole('button', { name: 'Start the servers' }).click()
   await expect(status(page, 'game')).toHaveAttribute('data-status', 'failed', { timeout: READY_TIMEOUT })
-  // a failure opens its log
-  await expect(page.getByTestId('terminals-toggle')).toHaveAttribute('aria-expanded', 'true')
-  await expect(page.getByRole('log')).toContainText('Fake failure on start')
-  // the row keeps its one line: a "Why?" button, the problem and what the server wrote opened over the page
+  // the row keeps its one line: a "Why?" button, the problem and what the server wrote opened over the page; the terminals stay closed, so
+  // the page keeps its height
   const problem = page.getByTestId('server-game').getByRole('alert')
   const details = page.getByTestId('server-game').getByTestId('problem-dialog')
   await expect(details).toBeHidden()
-  await page.getByTestId('terminals-toggle').click()
+  await expect(page.getByTestId('terminals-toggle')).toHaveAttribute('aria-expanded', 'false')
   const overflow = await page.evaluate(() => {
     const scroller = document.querySelector('.page-scroll')!
     return scroller.scrollHeight - scroller.clientHeight
@@ -130,6 +128,11 @@ test('shows why a server stopped while starting', async () => {
   await expect(details).toContainText('fake failure on start')
   await details.getByRole('button', { name: 'Close' }).click()
   await expect(details).toBeHidden()
+  // the log is one click away, at the failed server's tab
+  await problem.getByRole('button', { name: 'Why?' }).click()
+  await details.getByRole('button', { name: 'Show the log' }).click()
+  await expect(page.getByTestId('terminals-toggle')).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('log')).toContainText('Fake failure on start')
 
   await stopAll(page)
   await app.close()

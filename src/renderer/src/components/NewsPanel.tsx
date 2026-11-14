@@ -1,10 +1,30 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { NewsItem, NewsSource, NewsState } from '../../../shared/types'
 import { useI18n } from '../i18n'
 import { Markdown } from './Markdown'
 import { closeOnBackdropClick } from '../dialog'
 
 const SOURCES: NewsSource[] = ['launcher', 'server']
+
+/** As many whole lines of the summary as its room holds, which the window sets: the text is cut after a line, never through one. */
+function useSummaryLines(): React.RefCallback<HTMLDivElement> {
+  const observer = useRef<ResizeObserver | null>(null)
+  return useCallback((element: HTMLDivElement | null) => {
+    observer.current?.disconnect()
+    observer.current = null
+    if (!element) {
+      return
+    }
+    const fit = (): void => {
+      const line = parseFloat(getComputedStyle(element).lineHeight)
+      const lines = line > 0 ? Math.max(3, Math.floor(element.clientHeight / line)) : 3
+      element.style.setProperty('--summary-lines', String(lines))
+    }
+    observer.current = new ResizeObserver(fit)
+    observer.current.observe(element)
+    fit()
+  }, [])
+}
 const SEEN_KEY = 'news-seen'
 
 /** The newest tag of each source the person has opened, kept in this browser only: a convenience, gone with its storage. */
@@ -101,6 +121,7 @@ export function NewsPanel({ news }: { news: NewsState | null }): React.JSX.Eleme
   const [source, setSource] = useState<NewsSource>('launcher')
   const [seen, setSeen] = useState(readSeen)
   const [reading, setReading] = useState<number | null>(null)
+  const summaryRoom = useSummaryLines()
   const items = (news?.items ?? []).filter((item) => item.source === source)
   const latest = items[0]
   const newest = (of: NewsSource): string | undefined => news?.items.find((item) => item.source === of)?.tag
@@ -145,8 +166,8 @@ export function NewsPanel({ news }: { news: NewsState | null }): React.JSX.Eleme
             {latest.prerelease && <span className="tag tag-manual">{t('news.prerelease')}</span>}
             <span className="news-date">{dateOf(latest, language)}</span>
           </div>
-          {/* the room of four lines even when the summary is shorter or missing: switching tabs moves nothing */}
-          <div className="news-summary" data-testid="news-summary">
+          {/* the room the column leaves, even when the summary is shorter or missing: switching tabs moves nothing */}
+          <div className="news-summary" data-testid="news-summary" ref={summaryRoom}>
             {summary && <Markdown text={summary} />}
           </div>
           <div className="news-actions">

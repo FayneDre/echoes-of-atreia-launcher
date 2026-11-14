@@ -36,6 +36,8 @@ export interface SettingDefinition {
   startOnly?: boolean
   /** A rate's account level: its value is that level's in the key's list. */
   membership?: Membership
+  /** Left unused while another setting of its group holds that option: shown greyed out, its value kept. */
+  unusedWhen?: { setting: string; option: string }
 }
 
 /** Where a group is set: the server settings page, or the bots page. */
@@ -120,7 +122,7 @@ export const SETTING_GROUPS: SettingGroup[] = [
     globalField: 'none',
     settings: [
       bot('density.mode', 'choice', { options: ['AUTO', 'FIXED', 'FLOOR'] }),
-      bot('density.percent', 'count', { min: 0, max: 100, unit: 'percent' })
+      bot('density.percent', 'count', { min: 0, max: 100, unit: 'percent', unusedWhen: { setting: 'bots.density.mode', option: 'AUTO' } })
     ]
   },
   // The bot options (the server's config/main/playerbot.properties). A world bot's experience is a percent of the official rate: the players'

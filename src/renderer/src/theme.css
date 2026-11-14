@@ -288,7 +288,31 @@ button:hover:not(:disabled) {
   min-width: 0;
 }
 
-/* each panel keeps its own height: none is stretched to the other column's, with nothing in the room it gains */
+/* The page fills the window, and both columns end on the same line: the last panel of each takes the room left, and puts it to use (the
+   install panel's facts sit at its foot, the news summary shows more lines). */
+.content-home .page-scroll {
+  display: flex;
+  flex-direction: column;
+}
+
+.content-home .home-grid {
+  flex: 1 0 auto;
+  width: 100%;
+  grid-template-rows: auto 1fr;
+}
+
+.home-column > .panel:last-child {
+  flex: 1 0 auto;
+}
+
+.install-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.install-panel > .install-facts {
+  margin-top: auto;
+}
 
 /* ---------- Terminals ---------- */
 
@@ -905,7 +929,9 @@ button.link:hover:not(:disabled) {
   font-weight: 500;
 }
 
+/* no paragraph margin under a hint: every option is the same distance from the next, with a hint or without */
 .install-option .muted {
+  margin: 0;
   font-size: 12px;
 }
 
@@ -983,9 +1009,18 @@ button.link:hover:not(:disabled) {
   font-size: 12px;
 }
 
-/* the first paragraph, three lines at most, and always the room of three: the panel keeps its height from one tab to the other */
+/* the panel takes the column's room, the summary all of it left: its height is the window's, never its text's, so the panel keeps its
+   height from one tab to the other; whole lines only, as many as fit, three at least */
+.news-latest {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+
 .news-summary {
-  height: calc(3 * 1.55em);
+  flex: 1 0 calc(3 * 1.55em);
+  min-height: calc(3 * 1.55em);
+  height: 0;
   margin-top: 6px;
   overflow: hidden;
   line-height: 1.55;
@@ -1001,7 +1036,7 @@ button.link:hover:not(:disabled) {
   margin: 0;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: var(--summary-lines, 3);
 }
 
 .news-dialog {

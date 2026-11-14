@@ -97,8 +97,12 @@ function formatOfficial(definition: SettingDefinition, value: number, t: Transla
   switch (definition.kind) {
     case 'multiplier':
       return `x${value}`
-    case 'choice':
-      return definition.options?.[value] ?? String(value)
+    case 'choice': {
+      const option = definition.options?.[value]
+      if (option === undefined) return String(value)
+      const key = `option.${definition.id}.${option}`
+      return hasMessage(key) ? t(key as MessageKey) : option
+    }
     case 'toggle':
     case 'flag':
       return t(value === 1 ? 'settings.on' : 'settings.off')
@@ -111,12 +115,27 @@ function formatOfficial(definition: SettingDefinition, value: number, t: Transla
   }
 }
 
+/** Whether another setting of the group holds the option that leaves this one unused. */
+function isUnused(when: { setting: string; option: string }, settings: SettingDefinition[], values: Values): boolean {
+  const other = settings.find((definition) => definition.id === when.setting)
+  return other?.options !== undefined && other.options[values[other.id]!] === when.option
+}
+
+/** What a row says under its label: a choice's chosen option explained (`optionHint.<id>.<option>`), else the setting's own `settingHint.<id>`. */
+function settingHint(definition: SettingDefinition, value: number, t: Translate): string | null {
+  const option = definition.kind === 'choice' ? definition.options?.[value] : undefined
+  const keys = [option !== undefined ? `optionHint.${definition.id}.${option}` : null, `settingHint.${definition.id}`]
+  const key = keys.find((candidate) => candidate !== null && hasMessage(candidate))
+  return key ? t(key as MessageKey) : null
+}
+
 function NumberInput(props: {
   label: string
   definition: SettingDefinition
   value: number | null
   placeholder?: string
   unit?: string | null
+  disabled?: boolean
   onChange: (value: number) => void
 }): React.JSX.Element {
   const { definition } = props
@@ -138,6 +157,7 @@ function NumberInput(props: {
         step={definition.kind === 'multiplier' ? 0.5 : 1}
         value={props.value === null || Number.isNaN(props.value) ? '' : props.value}
         placeholder={props.placeholder}
+        disabled={props.disabled}
         onChange={(event) => props.onChange(event.currentTarget.valueAsNumber)}
       />
       {suffix && (
@@ -246,9 +266,15 @@ function GroupPanel(props: {
           const value = values[definition.id]!
           const label = `${title} — ${t(settingLabel(definition))}`
           const modified = value !== official[definition.id]
+          const unused = definition.unusedWhen !== undefined && isUnused(definition.unusedWhen, settings, values)
+          const rowHint = settingHint(definition, value, t)
+          const classes = ['setting-row', modified ? 'modified' : '', unused ? 'unused' : ''].filter(Boolean).join(' ')
           return (
-            <div key={definition.id} className={modified ? 'setting-row modified' : 'setting-row'}>
-              <span className="setting-label">{t(settingLabel(definition))}</span>
+            <div key={definition.id} className={classes}>
+              <span className="setting-label">
+                {t(settingLabel(definition))}
+                {rowHint && <span className="setting-hint">{rowHint}</span>}
+              </span>
               {isSwitch(definition) ? (
                 <span className="toggle-cell">
                   <input
@@ -272,6 +298,7 @@ function GroupPanel(props: {
                   definition={definition}
                   value={value}
                   unit={unitOf(definition, t)}
+                  disabled={unused}
                   onChange={(next) => props.onChange({ [definition.id]: next })}
                 />
               )}
