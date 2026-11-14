@@ -6,6 +6,24 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.8 — 2026-11-14
+
+**Offered by the launcher** if you have v0.3.0-beta.7: "Update" on the line at the top of the window. Otherwise install it by hand with
+`Echoes-of-Atreia-Setup-0.3.0-beta.8.exe`.
+
+**Minimum server: v0.1.0-beta.1.** The install from nothing needs server v0.1.0-beta.6 (beta.5's database does not start on a fresh
+Windows).
+
+**What changes**
+- **Uninstall the server**: a server the launcher installed itself is uninstalled from the Installation window ("Change…" on the home page),
+  and the launcher's uninstaller offers to remove it too. The servers are stopped, a backup of your accounts and characters is kept in
+  `Documents\Echoes of Atreia\backups`, then the server's folder is deleted. A server you installed yourself is never offered, nor one
+  installed by an earlier launcher.
+- **No scroll bar in a small window**: when the window is smaller than its first size (a small screen, or Windows opening it a little
+  smaller), the page shrinks with it.
+
+---
+
 ## v0.3.0-beta.7 — 2026-11-14
 
 **It arrives by itself if you have a v0.3.0 beta installed with the installer** (for the last time: from this one on, an update is offered,

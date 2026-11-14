@@ -7,6 +7,24 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.8 — 14/11/2026
+
+**Proposée par le launcher** si tu as la v0.3.0-beta.7 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la main
+avec `Echoes-of-Atreia-Setup-0.3.0-beta.8.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien demande le serveur v0.1.0-beta.6 (la base de données de la beta.5 ne
+démarre pas sur un Windows neuf).
+
+**Ce qui change**
+- **Désinstaller le serveur** : un serveur que le launcher a installé lui-même se désinstalle depuis la fenêtre « Installation »
+  (« Modifier… » sur l'accueil), et le désinstalleur du launcher propose aussi de l'enlever. Les serveurs sont arrêtés, une sauvegarde de tes
+  comptes et personnages est gardée dans `Documents\Echoes of Atreia\backups`, puis le dossier du serveur est supprimé. Un serveur que tu as
+  installé toi-même n'est jamais proposé, ni un serveur installé avec une version précédente du launcher.
+- **Plus de barre de défilement dans une petite fenêtre** : quand la fenêtre est plus petite que sa taille de départ (un petit écran, ou
+  Windows qui l'ouvre un peu plus petite), la page rétrécit avec elle.
+
+---
+
 ## v0.3.0-beta.7 — 14/11/2026
 
 **Arrive toute seule si tu as une v0.3.0-beta installée avec l'installateur** (c'est la dernière fois : à partir de celle-ci, une mise à jour
