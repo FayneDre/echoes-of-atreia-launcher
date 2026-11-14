@@ -983,9 +983,9 @@ button.link:hover:not(:disabled) {
   font-size: 12px;
 }
 
-/* the first paragraph, three lines at most, and no room kept for lines it does not have */
+/* the first paragraph, three lines at most, and always the room of three: the panel keeps its height from one tab to the other */
 .news-summary {
-  max-height: calc(3 * 1.55em);
+  height: calc(3 * 1.55em);
   margin-top: 6px;
   overflow: hidden;
   line-height: 1.55;

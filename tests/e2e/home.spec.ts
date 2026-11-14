@@ -31,8 +31,9 @@ test.beforeEach(async () => {
   const notes: Record<string, string> = {
     'v0.4.0-beta.1/en': '**Bold launcher news**\n\n- one change',
     'v0.4.0-beta.1/fr': '**Nouveautés du launcher**\n\n- un changement',
-    // a summary longer than the launcher's: the panel must not change height from one tab to the other
-    'v0.2.0-beta.1/en': 'Server news in English.' + ' A long sentence about the server.'.repeat(30)
+    // a summary longer than the launcher's: the panel must not change height from one tab to the other; above it, the revision line the
+    // server's tag-patch.ps1 writes first, which is no summary
+    'v0.2.0-beta.1/en': 'Revision `fc837c4`, the one `//bot version` shows.\n\nServer news in English.' + ' A long sentence about the server.'.repeat(30)
   }
   feed = createServer((request, response) => {
     const base = `http://127.0.0.1:${(feed.address() as AddressInfo).port}`
@@ -131,8 +132,12 @@ test('shows where the stack stands, the news of both projects, the install folde
   await expect(dialog).toHaveCount(0)
   // the server's tab has not been opened yet
   await expect(news.getByRole('tab', { name: /Server/ })).toContainText('new')
+  const launcherHeight = (await news.boundingBox())!.height
   await news.getByRole('tab', { name: /Server/ }).click()
   await expect(news.getByTestId('news-summary')).toContainText('Server news')
+  await expect(news.getByTestId('news-summary')).not.toContainText('Revision')
+  // one line of summary or three, the panel keeps its height from one tab to the other
+  expect((await news.boundingBox())!.height, 'server tab against launcher tab').toBe(launcherHeight)
   // however long the notes, the home page fits the window: no scroll bar for the few pixels a summary would add
   const overflow = (): Promise<number> =>
     page.evaluate(() => {

@@ -16,11 +16,17 @@ function readSeen(): Partial<Record<NewsSource, string>> {
   }
 }
 
+/**
+ * The server's published notes open with the revision they were built from (its tools/tag-patch.ps1): a line for `//bot version`, not what
+ * the release is about.
+ */
+const REVISION_LINE = /^(Revision|Révision) `[0-9a-f]+`[^\n]*$/
+
 /** The first paragraph of the notes, above their headings and lists: what the release is about, in a few lines. */
 export function summaryOf(notes: string): string {
   for (const block of notes.split(/\r?\n\s*\r?\n/)) {
     const text = block.trim()
-    if (text !== '' && !/^(#|[-*+] |\d+\. |```|>|<)/.test(text)) {
+    if (text !== '' && !/^(#|[-*+] |\d+\. |```|>|<)/.test(text) && !REVISION_LINE.test(text)) {
       return text
     }
   }
