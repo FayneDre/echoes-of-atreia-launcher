@@ -6,6 +6,27 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.7 — 2026-11-14
+
+**It arrives by itself if you have a v0.3.0 beta installed with the installer** (for the last time: from this one on, an update is offered,
+never installed without you). Otherwise install it by hand with `Echoes-of-Atreia-Setup-0.3.0-beta.7.exe`.
+
+**Minimum server: v0.1.0-beta.1.** The install from nothing needs server v0.1.0-beta.5.
+
+**What changes**
+- **Updates happen when you decide**: a new launcher version is offered on one line at the top of the window, with "What's new", "Update"
+  and "Later". Nothing is downloaded before "Update", nothing installed before "Restart and install", and closing the launcher no longer
+  installs anything. A download that fails says so and offers "Try again".
+- **"What's new" opens in a window**, for the launcher and the server alike: the page no longer moves.
+- **The home page fits the window** with no scroll bar:
+  - the database (MySQL) takes one line like the servers; how it is run (your my.ini or the Windows service) opens from the "…" button
+    beside its name;
+  - with neither a service nor a my.ini, "Start with my own my.ini…" is on the row itself;
+  - What's new and Installation are no longer stretched with empty room.
+- **A window no longer closes** on a click in its margin; only on a click beside it.
+
+---
+
 ## v0.3.0-beta.6 — 2026-11-14
 
 **It arrives by itself if you have a v0.3.0 beta installed with the installer.** Otherwise install it by hand with
@@ -87,79 +108,3 @@ the "Server version" panel.
 - **Installing the server** from the launcher has not been checked on a real tester's install yet.
 
 **Requirements**: Windows, a JDK 25 or newer, MySQL, the Aion 4.8 client.
-
----
-
-## v0.3.0-beta.3 — 2026-11-06
-
-**It arrives by itself if you have v0.3.0-beta.2 installed** (with the installer): the first update the launcher makes on its own. Otherwise
-install it by hand with `Echoes-of-Atreia-Setup-0.3.0-beta.3.exe`.
-
-**Minimum server: v0.1.0-beta.1.** To install the server from the launcher, server v0.1.0-beta.2 is needed, the first shipped built.
-
-**What changes**
-- **The launcher installs the server**: a "Server version" panel on the home page shows the version installed and offers the newest server
-  pre-release, with its notes. "Update the server" downloads and checks everything while the servers run (the server, then the navmesh maps
-  that changed: 1.8 GB the first time), then shows what will happen: the settings files you edited, which stay as they are (the new version
-  is put beside them as `.new-<version>`), and your database if it has never been through the server's SQL script. "Install" stops the
-  servers cleanly, replaces the files keeping a copy of each, updates the database (after a backup of it) and starts the servers again.
-- **Going back**: "Return to..." puts the previous version's files back. The database keeps the update's changes; its backup is in the
-  server's `backups` folder.
-- **A JDK 25 is needed** (not only Java): the launcher checks it before installing and says what to do when it is missing.
-- **A development server** (installed by the server's deploy script) is never replaced by a published version.
-
-**Not fixed yet** (known, no need to report it)
-- **Installing the server** was checked in tests and on a trial bundle only, not on a real tester's install yet.
-- **The client's language** is forced to English: a client that only has French shows Korean.
-
-**Requirements**: Windows, a JDK 25 or later, MySQL, the Aion 4.8 client.
-
----
-
-## v0.3.0-beta.2 — 2026-11-06
-
-**Install it once by hand, with the installer** (`Echoes-of-Atreia-Setup-0.3.0-beta.2.exe`, not the portable build): it is the first version
-that updates itself, and the next ones come through the launcher.
-
-**Minimum server: v0.1.0-beta.1.** The launcher now checks it by itself.
-
-**What changes**
-- **Self-update**: the launcher looks for its versions on GitHub at start, then every 4 hours (a beta follows the pre-releases, a stable
-  version only the stable ones). A newer version downloads in the background, a banner says when it is ready, with its notes in your language,
-  and it installs when the launcher closes. "Restart and install" installs it at once: if servers run, closing asks what to do with them as
-  usual, and nothing is offered during a start or a stop. The portable copy cannot replace itself: it only says a version is out and where to
-  download it.
-- **Server version**: the launcher asks the game server for its version once it is ready, and reads it from the install's `manifest.json`
-  when it is stopped. A server too old for this launcher shows a banner that says which version to install.
-- **Servers already running**: the launcher takes over a server started outside it only when there is just one of its kind on the computer.
-  When there are several, it no longer guesses which is yours, and asks you to stop it yourself in its window rather than stop another one.
-
-**Not fixed yet** (known, no need to report it)
-- **Updating from GitHub** was checked against a local test server only: the real check is the move to beta.3.
-- **The client's language** is forced to English: a client that only has French shows Korean.
-
-**Requirements**: Windows, Java 25 or later, MySQL, the Aion 4.8 client.
-
----
-
-## v0.3.0-beta.1 — 2026-11-06
-
-The launcher's first pre-release: it is made from the `develop` branch, and the stable version (`Latest`) stays v0.2.0.
-
-**Minimum server: v0.1.0-beta.1**, the server's first pre-release (it has the admin channel and the bot settings the Bots, Teleport and Settings
-pages need). The launcher does not check the server's version by itself yet: that comes in a later version.
-
-**What changes**
-- **MySQL stopping at once**: when Windows starts the MySQL service but MySQL stops right after, the launcher says why (the service's state,
-  the configuration file it reads and the last errors of its log) instead of waiting for nothing.
-- **MySQL with your own my.ini**: "Start with my own my.ini…" runs MySQL as a program with your file, without the service and without asking
-  for administrator rights. "Use the Windows service" goes back to the service. The launcher stops it with `mysqladmin shutdown`, never by
-  killing it: the game server's database account needs the SHUTDOWN privilege, or the launcher shows MySQL's refusal.
-
-**Not fixed yet** (known, no need to report it)
-- **The client's language** is forced to English: a client that only has French shows Korean.
-- **The "my own my.ini" mode** was checked on a throwaway MySQL install, not on yours yet.
-
-**Requirements**: Windows, Java 25 or later, MySQL, the Aion 4.8 client.
-
----
