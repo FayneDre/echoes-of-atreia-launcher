@@ -6,6 +6,26 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.11 — 2026-11-14
+
+**Offered by the launcher** if you have v0.3.0-beta.10: "Update" on the line at the top of the window. Otherwise install it by hand with
+`Echoes-of-Atreia-Setup-0.3.0-beta.11.exe`.
+
+**Minimum server: v0.1.0-beta.1.** The install from nothing needs server v0.1.0-beta.6; the administration panel, a server newer than
+v0.1.0-beta.6 (it says so otherwise).
+
+**What changes**
+- **No terminal window when MySQL starts**: MySQL started a second process that opened its own console.
+- **Notices lie over the page** ("Restart the servers…", update, server too old): they no longer push the home page's panels down, and a
+  cross closes them.
+- **Server settings**: the panel takes the whole window, its list scrolls inside, and the "Save" bar no longer hides any row.
+- **Bots**: the "Bots in the world, last hour" curve is gone.
+- **Account: an Administration panel for an administrator account**, beside the teleport, while the character is in game: Invulnerable,
+  Invisible, Left alone, See hidden, No cooldowns, Fly anywhere, and whether the »Admin« tag shows. Each box does what the game master
+  command typed in game does.
+
+---
+
 ## v0.3.0-beta.10 — 2026-11-14
 
 **Offered by the launcher** if you have v0.3.0-beta.9: "Update" on the line at the top of the window. Otherwise install it by hand with
@@ -106,63 +126,3 @@ never installed without you). Otherwise install it by hand with `Echoes-of-Atrei
   above.
 
 **System requirements**: Windows and the Aion 4.8 client. A JDK 25 and MySQL only for a server installed some other way than by the launcher.
-
----
-
-## v0.3.0-beta.5 — 2026-11-07
-
-**It arrives by itself if you have a v0.3.0 beta installed with the installer.** Otherwise install it by hand with
-`Echoes-of-Atreia-Setup-0.3.0-beta.5.exe`.
-
-**Minimum server: v0.1.0-beta.1.** The premium rates need server v0.1.0-beta.3, which makes every player account premium: install it from
-the "Server version" panel.
-
-**What changes**
-- **The rates are the premium accounts'**: every player account is premium (server v0.1.0-beta.3), so the Settings page sets the premium
-  rates. The regular rates stay the bots' and are not shown. In place of "Official values", two buttons put the rates at a regular or a
-  premium account's official values: you choose the pace of either.
-- **The rates really apply in game**: written to `mygs.properties`, they were not taken into account. They are now written to
-  `config/main/rates.properties` (the original is kept beside it, `rates.properties.before-launcher`). A rate set by an earlier launcher moves
-  there at the next save.
-- **A maximized or full screen window**: the whole page grows with the window instead of leaving empty margins (up to 160 %).
-- **F11** puts the launcher in full screen and takes it out; a "Leave full screen" button replaces Windows' buttons, and Escape leaves it too.
-
-**Requirements**: Windows, a JDK 25 or later, MySQL, the Aion 4.8 client.
-
----
-
-## v0.3.0-beta.4 — 2026-11-07
-
-**It arrives by itself if you have a v0.3.0 beta installed with the installer.** Otherwise install it by hand with
-`Echoes-of-Atreia-Setup-0.3.0-beta.4.exe`.
-
-**Minimum server: v0.1.0-beta.1.**
-
-**What changes**
-- **The game language**: the client was started with a language code it does not know, hence Korean on a client that holds French alone. The
-  launcher now checks the client's folder before starting the game (the engine's files, the language packs of `L10N`) and offers, in
-  Installation → "Game language", the languages whose pack is complete; by default, the launcher's own. A missing file or pack is named, and
-  Play refuses rather than start a game that will not run.
-- **A real icon** for the launcher, its title bar, the installer and the desktop shortcut. If Windows keeps the old one on the shortcut, it
-  changes at the next restart.
-- **Keep the servers in the background**: closing the window while the servers run offers a new answer that leaves them running under the
-  launcher, which stays by the clock. Its icon opens the window again; its menu plays, starts or stops the servers, or quits.
-- **The taskbar** shows the servers' state with a dot, and the progress of a backup or an update.
-- **Options** in Installation: start the servers when the launcher opens, start the launcher with Windows, a desktop shortcut, and old files
-  cleaned up at each start (to the recycle bin: the servers' archived logs past 30 days or 1 GB, the reports past the 10 newest; backups are
-  never touched).
-- **Report a problem** (at the bottom of the window): makes a zip of the servers' and the launcher's logs, the bots' notes and a summary,
-  without your Windows account name, and opens the page to report it on GitHub.
-- **A new home page**: the servers' state as a banner, the character, the bots in the world, the game server's memory and the last backup;
-  the launcher's and the server's news; free space, backups and the database's size. The layout is the same in French and English.
-- **Bots page**: the last hour's curve of the bots in the world, by faction.
-- **Terminals**: in a drawer at the bottom, errors in red, warnings in yellow, a button that opens the logs' folder.
-- **Less memory**: the launcher no longer uses the graphics card (110 to 190 MB less, left to the game), and its window is closed in the
-  background (70 MB less).
-
-**Not fixed yet** (known, no need to report it)
-- **The French pack** going around comes from another build of the game: it lacks three files of the English pack (the 4.8 intro and two
-  cutscene sound archives), and some 4.8 texts may be missing from it. The launcher says so in Installation.
-- **Installing the server** from the launcher has not been checked on a real tester's install yet.
-
-**Requirements**: Windows, a JDK 25 or newer, MySQL, the Aion 4.8 client.
