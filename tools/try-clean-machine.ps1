@@ -8,8 +8,9 @@
     opens; the person then installs the server from the home page into a folder of the sandbox's own disk (never a mapped folder: MySQL's data
     stays on a real disk). Two folders are mapped from this computer:
     - in (read only): the Setup and collect.cmd;
-    - out (writable): where collect.cmd, run inside before closing, copies the launcher's settings and reports, and the logs of the servers
-      and of MySQL. Everything else is lost with the sandbox.
+    - out (writable): where collect.cmd, run inside before closing, copies the launcher's settings and reports, the logs of the servers and
+      of MySQL, a JVM crash file (hs_err_pid*.log), the game server's configuration, and what an uninstall kept in Documents. Everything
+      else is lost with the sandbox.
     With -Client, the game client's folder is mapped read only too, to press Play inside.
 
     Needs the Windows feature "Windows Sandbox" (Containers-DisposableClientVM), turned on once by an administrator, then a restart:
@@ -66,7 +67,9 @@ set OUT=%OUT: =0%
 set OUT=%OUT:,=-%
 mkdir "%OUT%"
 xcopy /E /I /Q /Y "%APPDATA%\Echoes of Atreia" "%OUT%\launcher" >nul
-powershell -NoProfile -Command "`$s = Get-Content -Raw \"`$env:APPDATA\Echoes of Atreia\settings.json\" | ConvertFrom-Json; if (`$s.serverRoot) { `$r = `$s.serverRoot; foreach (`$d in 'chat-server\log','login-server\log','game-server\log','mysql\data','reports') { `$p = Join-Path `$r `$d; if (Test-Path `$p) { `$t = Join-Path '%OUT%\server' `$d; New-Item -ItemType Directory -Force `$t | Out-Null; Get-ChildItem `$p -File | Where-Object { `$_.Extension -in '.log','.err','.zip','.txt' } | Copy-Item -Destination `$t } }; Get-ChildItem `$r | Select-Object Name,Length | Out-File '%OUT%\server\listing.txt' }"
+powershell -NoProfile -Command "`$s = Get-Content -Raw \"`$env:APPDATA\Echoes of Atreia\settings.json\" | ConvertFrom-Json; if (`$s.serverRoot) { `$r = `$s.serverRoot; foreach (`$d in 'chat-server\log','login-server\log','game-server\log','game-server','game-server\config','mysql','mysql\data','reports') { `$p = Join-Path `$r `$d; if (Test-Path `$p) { `$t = Join-Path '%OUT%\server' `$d; New-Item -ItemType Directory -Force `$t | Out-Null; Get-ChildItem `$p -File | Where-Object { `$_.Extension -in '.log','.err','.zip','.txt','.properties','.ini','.json' } | Copy-Item -Destination `$t } }; Get-ChildItem `$r | Select-Object Name,Length | Out-File '%OUT%\server\listing.txt' }"
+rem what an uninstall kept: the last backup of the accounts and characters
+if exist "%USERPROFILE%\Documents\Echoes of Atreia" xcopy /E /I /Q /Y "%USERPROFILE%\Documents\Echoes of Atreia" "%OUT%\documents" >nul
 echo Copied to %OUT%
 pause
 "@ | Set-Content -Encoding ascii (Join-Path $in 'collect.cmd')
