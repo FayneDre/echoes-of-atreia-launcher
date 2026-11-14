@@ -66,6 +66,7 @@ export const fr: Record<MessageKey, string> = {
   'bots.bandTitle': '{count} bots',
   'action.showLog': 'Voir le journal',
   'action.details': 'Détails',
+  'action.why': 'Pourquoi ?',
   'action.startOne': 'Démarrer',
   'action.restartOne': 'Redémarrer',
   'section.serverUpdate': 'Version du serveur',
@@ -483,7 +484,7 @@ export const fr: Record<MessageKey, string> = {
   'problem.exited': "Le serveur s'est arrêté tout seul.",
   'problem.start-crashed': 'Le serveur a planté au démarrage :',
   'problem.port-timeout': "Le serveur n'a pas ouvert son port en deux minutes.",
-  'problem.register-timeout': "Le serveur de jeu n'a pas rejoint le serveur de connexion en dix minutes.",
+  'problem.register-timeout': 'Le serveur de jeu n’a plus rien écrit pendant cinq minutes sans rejoindre le serveur de connexion (ou une heure est passée).',
   'problem.stop-unanswered':
     "Le serveur de jeu n'a pas répondu à la demande d'arrêt. Cette version du serveur est peut-être trop ancienne.",
   'problem.stop-timeout': "Le serveur ne s'est pas arrêté à temps.",

@@ -9,11 +9,19 @@ import { isPortOpen } from '../system/network'
 import { findJavaProcesses, isProcessAlive, killProcess } from '../system/processes'
 import type { ServerDefinition } from './installation'
 import { fileMentions, LogTail } from './logTail'
-import { waitFor } from './wait'
+import { delay, waitFor } from './wait'
 
 const PORT_TIMEOUT_MS = 120_000
-// The game server registers with the login server once its whole startup is over, bots included: two to five minutes.
-const REGISTER_TIMEOUT_MS = 600_000
+// The game server registers with the login server once its whole startup is over, bots included: two to five minutes on an install that
+// has its bots, more than ten on a first start that makes them all (a clean-machine install on 14 November was still populating maps at
+// ten). A start that still writes is still starting: it fails after this long without a line, or past the ceiling.
+const REGISTER_SILENCE_MS = 300_000
+const REGISTER_CEILING_MS = 3_600_000
+
+/** Whether a game server waiting to register has waited too long: silent for five minutes, or an hour in all. */
+export function registrationOverdue(startedAt: number, lastLineAt: number, now: number): boolean {
+  return now - startedAt >= REGISTER_CEILING_MS || now - Math.max(startedAt, lastLineAt) >= REGISTER_SILENCE_MS
+}
 // Saving every bot took up to 510 s; the shutdown delay comes on top when players are online.
 const STOP_TIMEOUT_MS = 900_000
 // The server deletes the request within half a second: still there after this, nothing is reading it.
@@ -63,6 +71,8 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
   private exitCode: number | null = null
   private spawnError: string | null = null
   private registered = false
+  /** When the server last wrote a line: a start that writes is still at work. */
+  private lastLineAt = 0
   // The game server opens its port, then installs its shutdown hook and starts watching for the request, in the same breath.
   private portOpened = false
   // A stop asked while the start is still under way: the start gives up at its next step instead of reporting a failure.
@@ -123,6 +133,7 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
   }
 
   private onLines(lines: string[]): void {
+    this.lastLineAt = Date.now()
     const kept = lines.slice(-LOG_LINES_KEPT)
     if (this.waitsForRegistration && kept.some((line) => line.includes(REGISTERED_LINE))) {
       this.registered = true
@@ -194,16 +205,20 @@ export class ServerProcess extends EventEmitter<{ state: [ServerState]; lines: [
   }
 
   private async awaitRegistration(): Promise<boolean> {
-    const registered = await waitFor(
-      () => this.registered,
-      REGISTER_TIMEOUT_MS,
-      1000,
-      () => this.exited || this.crashed || this.stopRequested || this.state.status === 'stopped'
-    )
-    if (registered && this.state.status === 'registering') {
+    const startedAt = Date.now()
+    while (!this.registered) {
+      if (this.exited || this.crashed || this.stopRequested || this.state.status === 'stopped') {
+        return false
+      }
+      if (registrationOverdue(startedAt, this.lastLineAt, Date.now())) {
+        return false
+      }
+      await delay(1000)
+    }
+    if (this.state.status === 'registering') {
       this.update({ status: 'ready', readyAt: this.state.external ? undefined : Date.now() })
     }
-    return registered
+    return true
   }
 
   // A server the launcher did not start has no exit event: it is checked on.

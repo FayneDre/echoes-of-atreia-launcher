@@ -66,6 +66,7 @@ export const en = {
   'bots.bandTitle': '{count} bots',
   'action.showLog': 'Show the log',
   'action.details': 'Details',
+  'action.why': 'Why?',
   'action.startOne': 'Start',
   'action.restartOne': 'Restart',
   'section.serverUpdate': 'Server version',
@@ -481,7 +482,7 @@ export const en = {
   'problem.exited': 'The server stopped by itself.',
   'problem.start-crashed': 'The server failed while starting:',
   'problem.port-timeout': 'The server did not open its port within two minutes.',
-  'problem.register-timeout': 'The game server did not reach the login server within ten minutes.',
+  'problem.register-timeout': 'The game server stopped writing for five minutes without reaching the login server (or an hour went by).',
   'problem.stop-unanswered': 'The game server did not answer the stop request. This server version may be too old for it.',
   'problem.stop-timeout': 'The server did not stop in time.',
   'problem.stop-unknown-process':

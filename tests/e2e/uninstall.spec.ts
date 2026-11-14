@@ -50,6 +50,9 @@ test('uninstalls a server it installed: the servers stopped, a last backup kept 
   await page.getByTestId('install-summary').click()
   const row = page.getByTestId('install-uninstall')
   await expect(row).toContainText('keeps a backup of your accounts and characters')
+  // read in full before the button: wrapped, never cut with "..."
+  const hint = row.locator('.install-value')
+  expect(await hint.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(0)
   let question = ''
   page.once('dialog', (dialog) => {
     question = dialog.message()

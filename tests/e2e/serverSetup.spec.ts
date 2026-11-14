@@ -147,7 +147,7 @@ test('a database that could not be made is tried again without downloading the s
   await expect(panel).toContainText('The server’s install did not finish.')
   expect(await overflow(page), 'failed').toBeLessThanOrEqual(0)
   await panel.getByRole('button', { name: 'See the install…' }).click()
-  await expect(dialog.getByText('Details')).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Details' })).toBeVisible()
   expect(bundleRequests()).toBe(1)
   expect(existsSync(join(target, 'setup-calls.txt'))).toBe(false)
   // what the script made before it failed is undone, so the next run starts from nothing as the real script requires

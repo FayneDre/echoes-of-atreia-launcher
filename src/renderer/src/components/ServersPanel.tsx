@@ -33,6 +33,8 @@ function ServerRow({ server, canAct, onForceStop, onShowLog }: RowProps): React.
         <span className="server-status" data-testid={`status-${server.id}`} data-status={server.status}>
           {t(`status.${server.status}`)}
         </span>
+        {/* why, in a dialog: the row keeps its one line, and so does the page its height */}
+        <ProblemText problem={server.problem} onShowLog={onShowLog} compact />
         {canForce && (
           <button type="button" className="button-danger small" onClick={onForceStop}>
             {t('action.forceStop')}
@@ -51,7 +53,6 @@ function ServerRow({ server, canAct, onForceStop, onShowLog }: RowProps): React.
           </button>
         )}
       </div>
-      <ProblemText problem={server.problem} onShowLog={onShowLog} />
     </li>
   )
 }
@@ -130,6 +131,7 @@ function MysqlRow({ state }: { state: LauncherState }): React.JSX.Element {
         <span className="server-status" data-testid="status-mysql" data-status={mysql.status}>
           {t(`status.${mysql.status}`)}
         </span>
+        <ProblemText problem={mysql.problem} compact />
         {(mysql.serviceName || mysql.optionsFile) && (
           <button
             type="button"
@@ -148,7 +150,6 @@ function MysqlRow({ state }: { state: LauncherState }): React.JSX.Element {
           </button>
         )}
       </div>
-      <ProblemText problem={mysql.problem} />
       {choosing && <MysqlDialog state={state} onClose={() => setChoosing(false)} />}
     </li>
   )

@@ -111,12 +111,25 @@ test('shows why a server stopped while starting', async () => {
   const { app, page } = await open()
   await page.getByRole('button', { name: 'Start the servers' }).click()
   await expect(status(page, 'game')).toHaveAttribute('data-status', 'failed', { timeout: READY_TIMEOUT })
-  const problem = page.getByTestId('server-game').getByRole('alert')
-  await expect(problem).toContainText('The server stopped by itself.')
-  await expect(problem).toContainText('fake failure on start')
   // a failure opens its log
   await expect(page.getByTestId('terminals-toggle')).toHaveAttribute('aria-expanded', 'true')
   await expect(page.getByRole('log')).toContainText('Fake failure on start')
+  // the row keeps its one line: a "Why?" button, the problem and what the server wrote opened over the page
+  const problem = page.getByTestId('server-game').getByRole('alert')
+  const details = page.getByTestId('server-game').getByTestId('problem-dialog')
+  await expect(details).toBeHidden()
+  await page.getByTestId('terminals-toggle').click()
+  const overflow = await page.evaluate(() => {
+    const scroller = document.querySelector('.page-scroll')!
+    return scroller.scrollHeight - scroller.clientHeight
+  })
+  expect(overflow, 'home page with a failed server').toBeLessThanOrEqual(0)
+  await problem.getByRole('button', { name: 'Why?' }).click()
+  await expect(details).toBeVisible()
+  await expect(details).toContainText('The server stopped by itself.')
+  await expect(details).toContainText('fake failure on start')
+  await details.getByRole('button', { name: 'Close' }).click()
+  await expect(details).toBeHidden()
 
   await stopAll(page)
   await app.close()
@@ -136,7 +149,9 @@ test('gives up at once on a game server whose main thread died, says why, and st
   await expect(page.getByTestId('restart-game')).toHaveText('Start')
 
   rmSync(join(install.serverRoot, 'game-server', 'crash-on-start'))
-  await page.getByRole('button', { name: 'Show the log' }).click()
+  await problem.getByRole('button', { name: 'Why?' }).click()
+  await problem.getByRole('button', { name: 'Show the log' }).click()
+  await expect(problem.getByTestId('problem-dialog')).toBeHidden()
   await expect(page.getByRole('tab', { name: 'Game server' })).toHaveAttribute('aria-selected', 'true')
   await page.getByTestId('restart-game').click()
   await expect(status(page, 'game')).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })

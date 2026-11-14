@@ -316,11 +316,24 @@ button.small {
   overflow-wrap: anywhere;
 }
 
-.problem-details summary {
-  margin-top: 4px;
-  color: var(--text-muted);
-  font-size: 12px;
-  cursor: pointer;
+/* on the row's own line: no taller than the row's other buttons, so the row keeps its height */
+.problem-compact {
+  display: inline-flex;
+  margin-top: 0;
+}
+
+.problem-why {
+  color: var(--bad);
+}
+
+.problem-dialog {
+  width: min(760px, calc(100% - 48px));
+}
+
+/* a log excerpt scrolls inside its dialog, never the page */
+.problem-dialog .problem-detail {
+  max-height: 60vh;
+  overflow: auto;
 }
 
 .problem-detail {
@@ -352,6 +365,11 @@ button.small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.install-uninstall .install-value {
+  /* what the uninstall does is read in full before the button: it wraps instead of ending in "..." */
+  white-space: normal;
 }
 
 .install-value.missing {
