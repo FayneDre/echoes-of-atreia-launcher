@@ -3,7 +3,6 @@ import { LAUNCHER_VERSION_ARG } from '../shared/types'
 import type {
   AccountsState,
   BackupSummary,
-  BotSample,
   BotSummary,
   DestinationSummary,
   FolderKind,
@@ -46,7 +45,6 @@ const launcherApi = {
   createReport: (): Promise<ReportResult | null> => ipcRenderer.invoke('report:create'),
   showReport: (): Promise<void> => ipcRenderer.invoke('report:show'),
   openReportIssue: (): Promise<void> => ipcRenderer.invoke('report:open-issue'),
-  getBotHistory: (): Promise<BotSample[]> => ipcRenderer.invoke('bots:history'),
   start: (): Promise<boolean> => ipcRenderer.invoke('launcher:start'),
   stop: (): Promise<boolean> => ipcRenderer.invoke('launcher:stop'),
   forceStop: (server: ServerId): Promise<boolean> => ipcRenderer.invoke('launcher:force-stop', server),

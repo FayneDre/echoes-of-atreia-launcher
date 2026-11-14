@@ -84,22 +84,6 @@ test('colours the error lines of a terminal', async () => {
   await app.close()
 })
 
-test('draws the bots in the world over the last hour', async () => {
-  const { app, page } = await open({ ECHOES_BOT_SAMPLE_MS: '300' })
-  await page.getByRole('button', { name: 'Bots', exact: true }).click()
-  await expect(page.getByTestId('bot-history')).toContainText('The curve starts once the game server is ready')
-  await page.getByRole('button', { name: 'Home', exact: true }).click()
-  await startAll(page)
-  // a point is counted every 300 ms; the page reads them when it opens
-  await new Promise((wait) => setTimeout(wait, 1_000))
-  await page.getByRole('button', { name: 'Bots', exact: true }).click()
-  await expect(page.getByTestId('bot-history-elyos')).toHaveText('Elyos 1')
-  await expect(page.getByTestId('bot-history-asmodians')).toHaveText('Asmodian 1')
-  await page.getByRole('button', { name: 'Home', exact: true }).click()
-  await stopAll(page)
-  await app.close()
-})
-
 test('starts the servers when the launcher opens, once asked, and makes the desktop shortcut', async () => {
   const desktop = join(install.root, 'desktop')
   mkdirSync(desktop)

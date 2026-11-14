@@ -3,6 +3,7 @@ import { AccountPage } from './components/AccountPage'
 import { BackupsPage } from './components/BackupsPage'
 import { BotsPage } from './components/BotsPage'
 import { InstallPanel } from './components/InstallPanel'
+import { Notice } from './components/Notice'
 import { QuitDialog } from './components/QuitDialog'
 import { ReportDialog } from './components/ReportDialog'
 import { ServerSetupPanel } from './components/ServerSetupPanel'
@@ -69,6 +70,21 @@ export function App(): React.JSX.Element {
   // a new value reads the home information again at once (after a backup made from the hero)
   const [infoTick, setInfoTick] = useState(0)
   const homeInfo = useHomeInfo(state, page === 'home', infoTick)
+  // A notice closed stays closed until what it says stops being true: the next one that needs a restart shows again.
+  const [restartClosed, setRestartClosed] = useState(false)
+  const [tooOldClosed, setTooOldClosed] = useState(false)
+  const restartNeeded = state?.restartNeeded ?? false
+  const tooOld = state ? isServerTooOld(state.serverVersion) : false
+  useEffect(() => {
+    if (!restartNeeded) {
+      setRestartClosed(false)
+    }
+  }, [restartNeeded])
+  useEffect(() => {
+    if (!tooOld) {
+      setTooOldClosed(false)
+    }
+  }, [tooOld])
   const setTerminalsOpen = (open: boolean): void => {
     setTerminalsOpenState(open)
     try {
@@ -150,19 +166,24 @@ export function App(): React.JSX.Element {
         </div>
       </header>
 
-      {state && <UpdateBanner update={update} state={state} />}
+      {/* The notices lie over the top of the page: one appearing never pushes the page's panels down. */}
+      <div className="notices">
+        <div className="notices-stack">
+          {state && <UpdateBanner update={update} state={state} />}
 
-      {state && isServerTooOld(state.serverVersion) && NEEDS_SERVER_API.includes(page) && (
-        <p className="banner" role="alert" data-testid="server-too-old">
-          {t('server.tooOld', { level: state.serverVersion!.apiLevel, needed: MIN_SERVER_API_LEVEL, version: MIN_SERVER_VERSION })}
-        </p>
-      )}
+          {state && isServerTooOld(state.serverVersion) && NEEDS_SERVER_API.includes(page) && !tooOldClosed && (
+            <Notice testId="server-too-old" role="alert" onClose={() => setTooOldClosed(true)}>
+              {t('server.tooOld', { level: state.serverVersion!.apiLevel, needed: MIN_SERVER_API_LEVEL, version: MIN_SERVER_VERSION })}
+            </Notice>
+          )}
 
-      {state?.restartNeeded && (
-        <p className="banner" role="status" data-testid="restart-needed">
-          {t('settings.restartNeeded')}
-        </p>
-      )}
+          {state?.restartNeeded && !restartClosed && (
+            <Notice testId="restart-needed" role="status" onClose={() => setRestartClosed(true)}>
+              {t('settings.restartNeeded')}
+            </Notice>
+          )}
+        </div>
+      </div>
 
       {/* Every page stays mounted and the others are hidden: what was typed on one survives a look at another. */}
       {state && (
@@ -204,7 +225,7 @@ export function App(): React.JSX.Element {
         </main>
       )}
       {state && (
-        <main className="content content-single" hidden={page !== 'settings'}>
+        <main className="content content-single content-fill" hidden={page !== 'settings'}>
           <SettingsPage state={state} />
         </main>
       )}

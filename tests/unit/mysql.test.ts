@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { defaultsFileOf, executableOf, lastErrors, parseOptionFile } from '../../src/main/server/mysql'
+import { defaultsFileOf, executableOf, lastErrors, parseOptionFile, takesNoMonitor } from '../../src/main/server/mysql'
 
 // The command line the MySQL installer gives its Windows service.
 const SERVICE_PATH = '"C:\\Program Files\\MySQL\\MySQL Server 26.7\\bin\\mysqld.exe" --defaults-file="C:\\ProgramData\\MySQL\\MySQL Server 26.7\\my.ini" MySQL267'
@@ -65,5 +65,16 @@ describe('the MySQL error log', () => {
   it('gives nothing when there is no file to read', async () => {
     expect(await lastErrors(null)).toEqual([])
     expect(await lastErrors(join(tmpdir(), 'no-such-folder', 'my.ini'))).toEqual([])
+  })
+})
+
+describe('the monitor mysqld', () => {
+  it('is turned off on a MySQL that knows the option, and only there', () => {
+    expect(takesNoMonitor('mysqld.exe  Ver 26.7.0 for Win64 on x86_64 (MySQL Community Server - GPL)')).toBe(true)
+    expect(takesNoMonitor('mysqld  Ver 8.0.12 for Win64 on x86_64 (MySQL Community Server - GPL)')).toBe(true)
+    expect(takesNoMonitor('mysqld  Ver 8.0.11 for Win64 on x86_64 (MySQL Community Server - GPL)')).toBe(false)
+    expect(takesNoMonitor('mysqld  Ver 5.7.44 for Win64 on x86_64 (MySQL Community Server (GPL))')).toBe(false)
+    expect(takesNoMonitor('mysqld.exe  Ver 11.4.2-MariaDB for Win64 on AMD64 (mariadb.org binary distribution)')).toBe(false)
+    expect(takesNoMonitor('')).toBe(false)
   })
 })

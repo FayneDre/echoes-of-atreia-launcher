@@ -5,6 +5,10 @@ import { createServer } from 'node:net'
 import { join } from 'node:path'
 
 const args = process.argv.slice(2)
+if (args.includes('--version')) {
+  console.log('mysqld.exe  Ver 8.4.0 for Win64 on x86_64 (MySQL Community Server - GPL)')
+  process.exit(0)
+}
 const port = Number(args.find((arg) => arg.startsWith('--port='))?.slice('--port='.length))
 const optionsFile = args.find((arg) => arg.startsWith('--defaults-file='))?.slice('--defaults-file='.length)
 const data = process.env.ECHOES_FAKE_MYSQL_DATA

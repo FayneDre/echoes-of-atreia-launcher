@@ -477,6 +477,57 @@ button.small {
   color: var(--gold);
 }
 
+/* The notices take no room of their own: they lie over the top of the page, under the header, on a solid ground (the theme's banner is
+   see-through). */
+.notices {
+  position: relative;
+  height: 0;
+  z-index: 30;
+}
+
+.notices-stack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-raised);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 45%);
+}
+
+.notices-stack:empty {
+  display: none;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notice-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.notice-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  color: inherit;
+}
+
+.notice-close:hover {
+  border-color: var(--gold-line);
+}
+
 /* One line above every page, whatever the language: its notes open in a dialog, never inside it. */
 .update-banner {
   display: flex;
@@ -587,6 +638,38 @@ button.small {
 .group-list button:hover:not(:disabled) {
   border-color: var(--border);
   color: var(--text);
+}
+
+/* A page whose one panel fills the window: the page never scrolls, the panel's settings do, above a save bar that covers nothing. */
+.content-fill {
+  overflow: hidden;
+  grid-template-rows: minmax(0, 1fr);
+  align-content: stretch;
+}
+
+.content-fill > .settings-page {
+  min-height: 0;
+}
+
+.content-fill .settings-layout {
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.content-fill .group-list,
+.content-fill .group-panel {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.content-fill .group-panel {
+  padding-right: 8px;
+  scrollbar-gutter: stable;
+}
+
+.content-fill .save-bar {
+  position: static;
 }
 
 .group-list button[aria-selected='true'] {

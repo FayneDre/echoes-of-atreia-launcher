@@ -44,7 +44,8 @@ test('starts MySQL with the chosen my.ini on the servers’ port, and stops it t
   await mysqlRow(page).getByRole('button', { name: 'Start', exact: true }).click()
   await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'ready', { timeout: 20_000 })
   const args = JSON.parse(readFileSync(join(install.root, 'mysql-data', 'mysqld-args.json'), 'utf8')) as string[]
-  expect(args).toEqual([`--defaults-file=${optionsFile}`, `--port=${install.ports.mysql}`])
+  // no second mysqld, the one that would open a console window
+  expect(args).toEqual([`--defaults-file=${optionsFile}`, `--port=${install.ports.mysql}`, '--no-monitor'])
 
   await mysqlRow(page).getByRole('button', { name: 'Stop', exact: true }).click()
   await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'stopped', { timeout: 20_000 })

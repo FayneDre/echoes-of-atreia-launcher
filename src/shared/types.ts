@@ -452,13 +452,6 @@ export interface DatabaseInfo {
 /** Below this, the free space shows as a warning: a server update downloads close to 2 GB, and backups pile up. */
 export const LOW_DISK_BYTES = 5 * 1024 ** 3
 
-/** How many bots were in the world at a moment (milliseconds since 1970), by faction: one point of the home's last hour. */
-export interface BotSample {
-  at: number
-  elyos: number
-  asmodians: number
-}
-
 /** The options that touch Windows itself; null for one this launcher cannot offer (run from its sources, it is not the program to start). */
 export interface SystemOptions {
   startWithWindows: boolean | null

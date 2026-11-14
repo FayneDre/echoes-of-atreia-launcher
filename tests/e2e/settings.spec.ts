@@ -125,6 +125,23 @@ test('sets the daily Glory Point loss as a share of the official loss, or rank b
   await app.close()
 })
 
+test('fills the window with its panel: the page never scrolls, the settings scroll above a save bar that covers none of them', async () => {
+  const { app, page } = await openSettings()
+  await select(page, 'Daily Glory Point loss')
+  const main = page.locator('main:has([data-testid="settings-server"])')
+  expect(await main.evaluate((element) => element.scrollHeight - element.clientHeight)).toBe(0)
+  const last = page.getByLabel('Daily Glory Point loss — Supreme Commander')
+  await last.scrollIntoViewIfNeeded()
+  const row = await last.boundingBox()
+  const bar = await page.getByTestId('settings-server').locator('.save-bar').boundingBox()
+  expect(row!.y + row!.height).toBeLessThanOrEqual(bar!.y)
+  // the panel reaches the bottom of the page
+  const panel = await page.getByTestId('settings-server').boundingBox()
+  const footer = await page.locator('footer.footer').boundingBox()
+  expect(footer!.y - (panel!.y + panel!.height)).toBeLessThan(40)
+  await app.close()
+})
+
 test('sets the chances of success in percent, and the factions', async () => {
   const { app, page } = await openSettings()
   await select(page, 'Chances of success')

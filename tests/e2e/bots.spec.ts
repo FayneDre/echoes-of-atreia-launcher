@@ -143,13 +143,20 @@ test('asks for a restart for a bot setting the game server reads at start only, 
   await page.getByRole('tab', { name: 'Broker' }).click()
   await expect(page.getByTestId('group-broker')).toContainText('read at start')
   await page.getByLabel('Broker — Buys players’ listings').uncheck()
+  const tabBefore = await page.getByRole('tab', { name: 'Broker' }).boundingBox()
   await save(page)
   await expect(page.getByTestId('restart-needed')).toContainText('Restart the servers')
+  // the notice lies over the page: nothing under it moves down
+  expect((await page.getByRole('tab', { name: 'Broker' }).boundingBox())?.y).toBe(tabBefore?.y)
 
   // A later save the server applies at once does not take the notice away: the buyer still waits for a start.
   await page.getByLabel('Broker — Listings per faction').fill('8000')
   await save(page)
   await expect(page.getByTestId('restart-needed')).toContainText('Restart the servers')
+
+  // its cross closes it
+  await page.getByTestId('restart-needed').getByRole('button', { name: 'Close' }).click()
+  await expect(page.getByTestId('restart-needed')).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Home' }).click()
   await page.getByRole('button', { name: 'Stop the servers' }).click()

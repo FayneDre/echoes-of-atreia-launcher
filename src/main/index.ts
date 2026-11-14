@@ -15,7 +15,6 @@ import appIcon from '../../build/icon.ico?asset'
 import { AccountService } from './accounts/accountService'
 import { accountStoreFor } from './accounts/accountStore'
 import { BackupService } from './backup/backupService'
-import { BotHistory } from './bots/botHistory'
 import { listBots } from './bots/botList'
 import { setGithubCacheDir } from './github/cachedJson'
 import { Launcher } from './launcher'
@@ -90,7 +89,6 @@ async function botsInWorld(): Promise<HomeInfo['botsInWorld']> {
 }
 
 // a point a minute; the end-to-end tests ask for one every few hundred milliseconds
-const botHistory = new BotHistory(botsInWorld, Number(process.env['ECHOES_BOT_SAMPLE_MS'] ?? 60_000))
 
 /** The interface's language, which the tray's menu and a report's issue text follow. */
 let language: TrayLanguage = 'fr'
@@ -183,7 +181,6 @@ function registerIpc(presence: TaskbarPresence): void {
     Number.isInteger(id) ? accounts.selectCharacter(id as number) : undefined
   )
   ipcMain.handle('bots:list', () => listBots(launcher.currentLayout))
-  ipcMain.handle('bots:history', () => botHistory.current)
   ipcMain.handle('bots:population', () => launcher.getPopulation())
   ipcMain.handle('report:create', async (): Promise<ReportResult | null> => {
     const layout = launcher.currentLayout
@@ -585,7 +582,6 @@ if (process.argv.includes(UNINSTALL_SERVER_ARG)) {
     presence.start()
     registerIpc(presence)
     openWindow()
-    botHistory.start()
     // Everything GitHub is asked is asked once, here: the start is what shows a new version. After the settings (the developer mode) and the
     // server folder (where the repositories' notes are), the server's releases once the launcher has found its folder (below).
     void settings.load()
@@ -617,7 +613,6 @@ app.on('window-all-closed', () => {
   if (inBackground) {
     return
   }
-  botHistory.stop()
   launcher.dispose()
   app.quit()
 })

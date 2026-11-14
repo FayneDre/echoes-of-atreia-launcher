@@ -66,18 +66,6 @@ report made: it never names a path to show.
 The error lines of a log (`ERROR`, an exception, its `Caused by:` and `at` lines) show in red, the `WARN` ones in amber; "Errors only"
 keeps both. Each line stays one text node, so a copied selection is the log as written. "Open the folder" opens the server's `log` folder.
 
-## The bots' last hour
-
-`src/main/bots/botHistory.ts`. While the game server is ready, the launcher counts the bots in the world by faction once a minute (the same
-count as the home's banner) and keeps an hour of points, in memory only: a launcher started again starts a new curve. A count that cannot
-be read adds no point, and two points more than three minutes apart are not joined, so a server that was down shows as a gap rather than a
-line across it.
-
-The Bots page draws it (`BotHistoryChart.tsx`): one 2-pixel line a faction, labelled at its end, with a legend, a crosshair and the two
-counts on hover, and a hidden table for screen readers. The faction colours are checked for colour blindness against the panels' surface;
-the interface's light Elyos blue was too light for a line there, so the chart uses a deeper one. The page asks for the points every 20
-seconds while it shows; the tests ask the launcher for a point every few hundred milliseconds (`ECHOES_BOT_SAMPLE_MS`).
-
 ## Memory
 
 The window is drawn without the graphics card (`app.disableHardwareAcceleration()` in `src/main/index.ts`): its GPU process held 110 to

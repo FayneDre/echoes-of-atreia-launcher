@@ -3,7 +3,8 @@ const PATHS = {
   stop: 'M7 7h10v10H7z',
   restart: 'M12 5a7 7 0 1 1-6.6 4.7l1.9.6A5 5 0 1 0 12 7v3L7.5 6 12 2z',
   log: 'M4 5h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4z',
-  more: 'M4 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0zm6 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0zm6 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0z'
+  more: 'M4 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0zm6 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0zm6 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0z',
+  close: 'M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12 19 17.6 17.6 19 12 13.4 6.4 19 5 17.6 10.6 12 5 6.4z'
 } as const
 
 /** A small glyph drawn in the text's colour, beside a button's label (which stays the accessible name). */

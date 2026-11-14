@@ -141,6 +141,29 @@ async function serverProgramFor(optionsFile: string): Promise<string | null> {
 }
 
 /**
+ * Whether the server `mysqld --version` describes takes `--no-monitor`: MySQL from 8.0.12 on Windows, never MariaDB, which refuses an option it
+ * does not know. Without it such a MySQL starts a second mysqld of its own (the monitor behind `RESTART`), and that one, its parent having no
+ * console, opens a console window of its own. `--loose-no-monitor` is not read as the same option.
+ */
+export function takesNoMonitor(versionOutput: string): boolean {
+  if (/mariadb/i.test(versionOutput)) {
+    return false
+  }
+  const version = versionOutput.match(/\bVer\s+(\d+)\.(\d+)\.(\d+)/)
+  if (!version) {
+    return false
+  }
+  const [major, minor, patch] = version.slice(1).map(Number) as [number, number, number]
+  return major > 8 || (major === 8 && (minor > 0 || patch >= 12))
+}
+
+function versionOf(command: string, args: string[], env: NodeJS.ProcessEnv): Promise<string> {
+  return new Promise((resolve) => {
+    execFile(command, [...args, '--version'], { env, timeout: 15_000, windowsHide: true }, (_error, stdout) => resolve(String(stdout)))
+  })
+}
+
+/**
  * The last errors MySQL wrote in its error log, as the option file places it (`log-error`, relative to `datadir`, else `<host>.err` in
  * `datadir`). Best effort: a file the launcher may not read gives none.
  */
@@ -287,12 +310,18 @@ export class MysqlControl {
     // The port the servers connect to, whatever the file says, as the person's own script gives it.
     const args = [`--defaults-file=${optionsFile}`, `--port=${this.setup.address!.port}`]
     const fake = program === process.env['ECHOES_FAKE_MYSQLD']
-    const child = spawn(fake ? process.execPath : program, fake ? [program, ...args] : args, {
+    const command = fake ? process.execPath : program
+    const prefixArgs = fake ? [program] : []
+    const env = fake ? { ...process.env, ELECTRON_RUN_AS_NODE: '1' } : process.env
+    if (takesNoMonitor(await versionOf(command, prefixArgs, env))) {
+      args.push('--no-monitor')
+    }
+    const child = spawn(command, [...prefixArgs, ...args], {
       cwd: dirname(program),
       detached: true,
       stdio: 'ignore',
       windowsHide: true,
-      env: fake ? { ...process.env, ELECTRON_RUN_AS_NODE: '1' } : process.env
+      env
     })
     let exitCode: number | null = null
     let failure: string | null = null
