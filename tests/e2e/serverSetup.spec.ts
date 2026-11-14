@@ -89,7 +89,6 @@ async function startInstall(page: Page): Promise<void> {
   const dialog = page.getByTestId('server-setup-dialog')
   await expect(dialog).toContainText('About 2.1 GB is downloaded')
   await dialog.getByRole('button', { name: 'Choose the folder…' }).click()
-  await expect(dialog).toBeHidden()
 }
 
 /** How far the home page runs past the window: never more than nothing, whatever the install's state. */
@@ -142,12 +141,13 @@ test('a database that could not be made is tried again without downloading the s
   await expect(panel).toHaveAttribute('data-status', 'failed', { timeout: 30_000 })
   await expect(page.getByTestId('server-setup-problem')).toContainText('The database could not be made.')
   await expect(page.getByTestId('server-setup-folder')).toContainText(target)
-  // the script's output is opened over the page, which keeps its height
+  // the failure is told in the dialog; closed, the page keeps one line of it and its height
+  const dialog = page.getByTestId('server-setup-dialog')
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(panel).toContainText('The server’s install did not finish.')
   expect(await overflow(page), 'failed').toBeLessThanOrEqual(0)
-  await page.getByTestId('server-setup-problem').getByRole('button', { name: 'Details' }).click()
-  await expect(page.getByTestId('problem-dialog')).toBeVisible()
-  await page.keyboard.press('Escape')
-  await expect(page.getByTestId('problem-dialog')).toBeHidden()
+  await panel.getByRole('button', { name: 'See the install…' }).click()
+  await expect(dialog.getByText('Details')).toBeVisible()
   expect(bundleRequests()).toBe(1)
   expect(existsSync(join(target, 'setup-calls.txt'))).toBe(false)
   // what the script made before it failed is undone, so the next run starts from nothing as the real script requires
@@ -156,7 +156,7 @@ test('a database that could not be made is tried again without downloading the s
   expect(existsSync(join(target, 'mysql', 'bin', 'mysqld.exe'))).toBe(true)
 
   rmSync(join(games, 'setup-fails.txt'))
-  await panel.getByRole('button', { name: 'Try again' }).click()
+  await dialog.getByRole('button', { name: 'Try again' }).click()
   await expect(panel).toBeHidden({ timeout: 30_000 })
   await expect(page.getByTestId('install-server')).toHaveAttribute('data-found', 'true')
   expect(existsSync(join(target, 'setup-calls.txt'))).toBe(true)
