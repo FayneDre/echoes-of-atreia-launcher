@@ -287,3 +287,39 @@ export async function writeStaffTag(gameDir: string, shown: boolean): Promise<vo
     await replaceFile(overridesFile, next, hadOverrides)
   }
 }
+
+/** The key of the chat commands every staff character runs as it enters the game. */
+export const LOGIN_COMMANDS_KEY = 'gameserver.administration.login.execute_commands'
+// the server's own default, for a server whose admin.properties does not say
+const SERVER_LOGIN_COMMANDS = '//invis, //invul, //enemy none, //see'
+
+const commandsOf = (value: string): string[] =>
+  value
+    .split(',')
+    .map((command) => command.trim().replace(/\s+/g, ' '))
+    .filter((command) => command.length > 0)
+
+const sameCommands = (a: string[], b: string[]): boolean => {
+  const lower = new Set(b.map((command) => command.toLowerCase()))
+  return a.length === b.length && a.every((command) => lower.has(command.toLowerCase()))
+}
+
+/**
+ * Adds a command to the ones every staff character runs as it enters the game, or takes it out, in mygs.properties; the commands added by hand
+ * stay. The same commands as the default file has are the server's default, so the line goes away.
+ */
+export async function writeLoginCommand(gameDir: string, command: string, on: boolean): Promise<void> {
+  const { defaults, merged } = await readConfigLayers(gameDir)
+  const listed = commandsOf(merged.get(LOGIN_COMMANDS_KEY) ?? SERVER_LOGIN_COMMANDS)
+  const others = listed.filter((other) => other.toLowerCase() !== command.toLowerCase())
+  // a command already there keeps its place
+  const wanted = !on ? others : others.length < listed.length ? listed : [...listed, command]
+  const official = commandsOf(defaults.get(LOGIN_COMMANDS_KEY) ?? SERVER_LOGIN_COMMANDS)
+  const overridesFile = join(gameDir, OVERRIDES)
+  const hadOverrides = await exists(overridesFile)
+  const current = hadOverrides ? await readFile(overridesFile, 'latin1') : ''
+  const next = applyPropertyChanges(current, new Map([[LOGIN_COMMANDS_KEY, sameCommands(wanted, official) ? null : wanted.join(', ')]]), HEADER)
+  if (next !== current) {
+    await replaceFile(overridesFile, next, hadOverrides)
+  }
+}

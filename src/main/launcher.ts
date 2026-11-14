@@ -9,6 +9,7 @@ import {
   type DestinationSummary,
   type FolderKind,
   GM_API_LEVEL,
+  GM_LOGIN_COMMANDS,
   type GmMode,
   type GmState,
   type InstallState,
@@ -30,7 +31,7 @@ import { parseVersionAnswer, readInstallManifest } from './server/serverVersion'
 import { addressOf } from './accounts/accountStore'
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
-import { needsStart, readServerSettings, writeServerSettings, writeStaffTag } from './server/serverSettings'
+import { needsStart, readServerSettings, writeLoginCommand, writeServerSettings, writeStaffTag } from './server/serverSettings'
 import { isAutoCleanup, isDeveloperMode, type SettingsStore } from './settings'
 import { ownMysqlOf } from './server/ownRuntimes'
 import type { BackupService } from './backup/backupService'
@@ -657,10 +658,22 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     return parseGmState(answer) ?? { code: 'admin-failed', detail: 'unreadable game master state' }
   }
 
-  /** Switches one game master mode of a staff member's character in game, as the matching command typed in game would. */
+  /**
+   * Switches one game master mode of a staff member's character in game, as the matching command typed in game would. A mode a login can
+   * give is also kept that way for the next logins of every staff character, the running server reading it again at once.
+   */
   async setGmMode(characterId: number, mode: GmMode, on: boolean): Promise<Problem | null> {
     const answer = await this.adminAnswer(`gm-set ${characterId} ${mode} ${on ? 1 : 0}`)
-    return 'code' in answer ? answer : null
+    if ('code' in answer) {
+      return answer
+    }
+    const command = GM_LOGIN_COMMANDS[mode]
+    if (command && this.layout) {
+      await writeLoginCommand(this.layout.servers.game.dir, command, on)
+      const reloaded = await this.adminAnswer('reload-config')
+      return 'code' in reloaded ? reloaded : null
+    }
+    return null
   }
 
   /** Shows or hides the staff tag of every staff name, applied at once by a running game server (the player's own name at their next login). */

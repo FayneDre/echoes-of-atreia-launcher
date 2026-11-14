@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { applyPropertyChanges } from '../../src/main/server/properties'
-import { needsStart, readServerSettings, validValues, writeServerSettings } from '../../src/main/server/serverSettings'
+import { needsStart, readServerSettings, validValues, writeLoginCommand, writeServerSettings } from '../../src/main/server/serverSettings'
 import { en } from '../../src/renderer/src/i18n/en'
 import { fr } from '../../src/renderer/src/i18n/fr'
 import { ALL_SETTINGS, SETTING_GROUPS } from '../../src/shared/settingsCatalog'
@@ -248,6 +248,41 @@ describe('bot settings', () => {
   it('knows which settings wait for a start', () => {
     expect(needsStart(['bots.xp.solo', 'xp.solo'])).toBe(false)
     expect(needsStart(['bots.xp.solo', 'bots.broker.enable'])).toBe(true)
+  })
+})
+
+describe('writeLoginCommand', () => {
+  const key = 'gameserver.administration.login.execute_commands'
+  const line = (): string | undefined =>
+    readFileSync(overrides, 'latin1')
+      .split('\n')
+      .find((text) => text.startsWith(key))
+
+  beforeEach(() => {
+    mkdirSync(join(gameDir, 'config', 'administration'), { recursive: true })
+    writeFileSync(join(gameDir, 'config', 'administration', 'admin.properties'), `${key} = //invis, //invul, //enemy none, //see\n`)
+  })
+
+  it('takes a mode out of the login commands, and an empty list is written as one', async () => {
+    await writeLoginCommand(gameDir, '//invis', false)
+    expect(line()).toBe(`${key} = //invul, //enemy none, //see`)
+    for (const command of ['//invul', '//enemy none', '//see']) {
+      await writeLoginCommand(gameDir, command, false)
+    }
+    expect(line()).toBe(`${key} = `)
+  })
+
+  it('drops its line once the commands are the default ones again, in whatever order', async () => {
+    await writeLoginCommand(gameDir, '//invis', false)
+    await writeLoginCommand(gameDir, '//invis', true)
+    expect(line()).toBeUndefined()
+  })
+
+  it('keeps the commands added by hand, and never lists one twice', async () => {
+    writeFileSync(overrides, `${key} = //invis, //see, //speed 50\n`)
+    await writeLoginCommand(gameDir, '//see', true)
+    await writeLoginCommand(gameDir, '//invis', false)
+    expect(line()).toBe(`${key} = //see, //speed 50`)
   })
 })
 

@@ -181,8 +181,21 @@ test('offers a staff account the game master modes of its character in game, and
   await panel.getByLabel(/^Invisible/).uncheck()
   await expect(panel.getByLabel(/^Invisible/)).not.toBeChecked()
   await expect.poll(() => readFileSync(log, 'utf8')).toContain('Admin channel: invis off')
+  // kept for the next logins: the commands every staff character runs as it enters the game
+  const overrides = join(install.serverRoot, 'game-server', 'config', 'mygs.properties')
+  const loginCommands = 'gameserver.administration.login.execute_commands'
+  await expect.poll(() => readFileSync(overrides, 'latin1')).toContain(`${loginCommands} = //invul, //enemy none, //see`)
+  await expect(panel.getByLabel(/^Invisible/)).toBeEnabled()
+  await panel.getByLabel(/^Invisible/).check()
+  await expect.poll(() => readFileSync(overrides, 'latin1')).not.toContain(loginCommands)
+  await expect(panel.getByLabel(/^Invisible/)).toBeEnabled()
+  await panel.getByLabel(/^Invisible/).uncheck()
+  await expect.poll(() => readFileSync(overrides, 'latin1')).toContain(`${loginCommands} = //invul, //enemy none, //see`)
+  // a mode a login cannot give lasts until the character leaves
+  await expect(panel.getByLabel(/^No cooldowns/)).toBeEnabled()
   await panel.getByLabel(/^No cooldowns/).check()
   await expect(panel.getByLabel(/^No cooldowns/)).toBeChecked()
+  expect(readFileSync(overrides, 'latin1')).not.toContain('remove_skill_delay_all')
 
   // a mode the server refuses stays as it was, and says so
   await panel.getByLabel(/^Fly anywhere/).check()
@@ -190,7 +203,6 @@ test('offers a staff account the game master modes of its character in game, and
   await expect(panel.getByRole('alert')).toBeVisible()
 
   // the tag is a server setting, written to mygs.properties and read again at once
-  const overrides = join(install.serverRoot, 'game-server', 'config', 'mygs.properties')
   await panel.getByLabel(/^Show the »Admin« tag/).uncheck()
   await expect.poll(() => readFileSync(overrides, 'latin1')).toContain('gameserver.administration.customtags.enable = false')
   // read back from the server, which reads the file again

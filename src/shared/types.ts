@@ -261,6 +261,12 @@ export interface AccountsState {
 export const GM_MODES = ['invul', 'invis', 'neutral', 'see', 'nocooldown', 'freefly'] as const
 export type GmMode = (typeof GM_MODES)[number]
 
+/**
+ * The modes a staff character can have at every login: the server runs the chat commands of `gameserver.administration.login.execute_commands` as
+ * each staff character enters the game, and these are their commands. The other two modes are console commands, which that list cannot run.
+ */
+export const GM_LOGIN_COMMANDS: Partial<Record<GmMode, string>> = { invul: '//invul', invis: '//invis', neutral: '//enemy none', see: '//see' }
+
 /** The admin channel's level from which the game server answers `gm-state` and `gm-set`, and reads the staff tag setting. */
 export const GM_API_LEVEL = 3
 
