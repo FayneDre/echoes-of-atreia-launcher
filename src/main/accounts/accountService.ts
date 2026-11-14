@@ -70,7 +70,7 @@ export class AccountService {
     const saved = this.saved()
     // An account kept without one being active (a settings file edited by hand) makes the first one active rather than show nothing.
     const active = this.settings.current.activeAccount ?? saved[0]?.name ?? null
-    const base: AccountsState = { accounts: saved.map((entry) => entry.name), active, characters: [], selectedCharacterId: null }
+    const base: AccountsState = { accounts: saved.map((entry) => entry.name), active, characters: [], selectedCharacterId: null, staff: false }
     const entry = saved.find((candidate) => candidate.name === active)
     if (!entry) {
       return { ...base, active: null }
@@ -97,6 +97,7 @@ export class AccountService {
     return {
       ...base,
       characters,
+      staff: verified.account.accessLevel > 0,
       selectedCharacterId: characters.some((character) => character.id === selected) ? selected : null
     }
   }

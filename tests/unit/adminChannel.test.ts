@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAnswer, parseDestinations, parsePopulation } from '../../src/main/server/adminChannel'
+import { parseAnswer, parseDestinations, parseGmState, parsePopulation } from '../../src/main/server/adminChannel'
 
 describe('parseAnswer', () => {
   it('reads ok with its data lines', () => {
@@ -47,5 +47,20 @@ describe('parsePopulation', () => {
   it('takes an answer without the density or a known guard for unreadable', () => {
     expect(parsePopulation(['percent 30', 'guard open'])).toBeNull()
     expect(parsePopulation(['mode AUTO', 'percent 30', 'guard maybe'])).toBeNull()
+  })
+})
+
+describe('parseGmState', () => {
+  it('reads the tag and every mode', () => {
+    const lines = ['access 9', 'tag 0', 'invul 1', 'invis 1', 'neutral 0', 'see 1', 'nocooldown 0', 'freefly 0']
+    expect(parseGmState(lines)).toEqual({
+      tag: false,
+      modes: { invul: true, invis: true, neutral: false, see: true, nocooldown: false, freefly: false }
+    })
+  })
+
+  it('gives nothing when a mode is missing or unreadable', () => {
+    expect(parseGmState(['tag 1', 'invul 1'])).toBeNull()
+    expect(parseGmState(['tag 1', 'invul yes', 'invis 1', 'neutral 0', 'see 1', 'nocooldown 0', 'freefly 0'])).toBeNull()
   })
 })

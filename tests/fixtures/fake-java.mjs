@@ -5,7 +5,8 @@
 // thread and stays up (a handler that does not compile), slow-start opens its port
 // 20 s late (a game server still loading its data), slow-register registers 20 s late (one loading its world), no-admin makes the game
 // server ignore the admin folder (a build from before it), old-api makes it answer `version` as a server older than the API levels.
-// Otherwise the game server answers the requests of `admin/`: version (level 2), reload-config, population, destinations, and teleport, which only
+// Otherwise the game server answers the requests of `admin/`: version (level 3), reload-config, population, destinations, and teleport, gm-state and
+// gm-set, which only
 // character 101 (in game in the fake database) accepts.
 import { existsSync, mkdirSync, appendFileSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { connect, createServer } from 'node:net'
@@ -97,6 +98,9 @@ async function main() {
   if (kind === 'game') {
     setTimeout(() => log('Connected to login server'), existsSync('slow-register') ? 20_000 : 800)
     mkdirSync('admin', { recursive: true })
+    // the game master modes of character 101, the staff account's, as the server holds them while it runs: the login ones on
+    const GM_MODES = ['invul', 'invis', 'neutral', 'see', 'nocooldown', 'freefly']
+    const gmModes = new Set(['invul', 'invis', 'neutral', 'see'])
     setInterval(() => {
       if (!existsSync('no-admin')) {
         for (const name of readdirSync('admin').filter((n) => n.endsWith('.request'))) {
@@ -105,7 +109,7 @@ async function main() {
           const [verb, ...words] = command.split(/\s+/)
           let answer = 'error unknown command'
           if (verb === 'version') {
-            answer = existsSync('old-api') ? 'error unknown command version' : ['ok', 'version v0.1.0-beta.1', 'revision abc1234', 'api 2'].join(NEWLINE)
+            answer = existsSync('old-api') ? 'error unknown command version' : ['ok', 'version v0.1.0-beta.1', 'revision abc1234', 'api 3'].join(NEWLINE)
           } else if (verb === 'reload-config') {
             log('Admin channel: configuration reloaded')
             answer = 'ok'
@@ -125,6 +129,29 @@ async function main() {
               answer = 'ok'
             } else {
               answer = 'error not in game'
+            }
+          } else if (verb === 'gm-state') {
+            // the staff tag as mygs.properties sets it, read again as reload-config would
+            const overrides = existsSync(join('config', 'mygs.properties')) ? readFileSync(join('config', 'mygs.properties'), 'latin1') : ''
+            const tag = /customtags\.enable\s*=\s*false/.test(overrides) ? 0 : 1
+            answer =
+              words[0] === '101'
+                ? ['ok', 'access 9', `tag ${tag}`, ...GM_MODES.map((mode) => `${mode} ${gmModes.has(mode) ? 1 : 0}`)].join(NEWLINE)
+                : 'error not in game'
+          } else if (verb === 'gm-set') {
+            if (words[0] !== '101') {
+              answer = 'error not in game'
+            } else if (words[1] === 'freefly') {
+              // a mode the account's level does not allow: the command leaves it as it was
+              answer = 'error not allowed'
+            } else {
+              if (words[2] === '1') {
+                gmModes.add(words[1])
+              } else {
+                gmModes.delete(words[1])
+              }
+              log(`Admin channel: ${words[1]} ${words[2] === '1' ? 'on' : 'off'}`)
+              answer = 'ok'
             }
           }
           const id = name.slice(0, -'.request'.length)

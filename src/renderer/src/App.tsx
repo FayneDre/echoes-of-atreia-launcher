@@ -215,7 +215,12 @@ export function App(): React.JSX.Element {
       )}
       {state && (
         <main className="content content-single" hidden={page !== 'account'}>
-          <AccountPage accounts={accounts} gameReady={state?.servers.game.status === 'ready'} reload={reload} />
+          <AccountPage
+            accounts={accounts}
+            gameReady={state?.servers.game.status === 'ready'}
+            apiLevel={state?.serverVersion?.apiLevel ?? null}
+            reload={reload}
+          />
         </main>
       )}
       {state && (

@@ -143,3 +143,57 @@ test('teleports the character played, through the game server', async () => {
   await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped', { timeout: 30_000 })
   await app.close()
 })
+
+test('offers a staff account the game master modes of its character in game, and a player account none', async () => {
+  const { app, page } = await openAccount()
+  await signIn(page, 'player1', 'secret')
+  await page.getByTestId('character-Aeris').click()
+  const panel = page.getByTestId('admin-panel')
+  await expect(panel).toContainText('Start the servers and log in')
+
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Start the servers' }).click()
+  await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
+  await page.getByRole('button', { name: 'Account', exact: true }).click()
+
+  // what the server turns on at a staff member's login
+  await expect(panel.getByLabel(/^Invulnerable/)).toBeChecked()
+  await expect(panel.getByLabel(/^Invisible/)).toBeChecked()
+  await expect(panel.getByLabel(/^No cooldowns/)).not.toBeChecked()
+  const log = join(install.serverRoot, 'game-server', 'log', 'server_console.log')
+  await panel.getByLabel(/^Invisible/).uncheck()
+  await expect(panel.getByLabel(/^Invisible/)).not.toBeChecked()
+  await expect.poll(() => readFileSync(log, 'utf8')).toContain('Admin channel: invis off')
+  await panel.getByLabel(/^No cooldowns/).check()
+  await expect(panel.getByLabel(/^No cooldowns/)).toBeChecked()
+
+  // a mode the server refuses stays as it was, and says so
+  await panel.getByLabel(/^Fly anywhere/).check()
+  await expect(panel.getByLabel(/^Fly anywhere/)).not.toBeChecked()
+  await expect(panel.getByRole('alert')).toBeVisible()
+
+  // the tag is a server setting, written to mygs.properties and read again at once
+  const overrides = join(install.serverRoot, 'game-server', 'config', 'mygs.properties')
+  await panel.getByLabel(/^Show the »Admin« tag/).uncheck()
+  await expect.poll(() => readFileSync(overrides, 'latin1')).toContain('gameserver.administration.customtags.enable = false')
+  // read back from the server, which reads the file again
+  await expect(panel.getByLabel(/^Show the »Admin« tag/)).toBeEnabled()
+  await expect(panel.getByLabel(/^Show the »Admin« tag/)).not.toBeChecked()
+  await panel.getByLabel(/^Show the »Admin« tag/).check()
+  await expect.poll(() => readFileSync(overrides, 'latin1')).not.toContain('customtags.enable')
+  await expect(panel.getByLabel(/^Show the »Admin« tag/)).toBeEnabled()
+  await expect(panel.getByLabel(/^Show the »Admin« tag/)).toBeChecked()
+
+  // a player's account has no such panel
+  await page.getByRole('button', { name: '+ Add an account' }).click()
+  await signIn(page, 'player2', 'other')
+  await expect(page.getByTestId('character-Cyra')).toBeVisible()
+  await page.getByTestId('character-Cyra').click()
+  await expect(page.getByTestId('teleport')).toBeVisible()
+  await expect(page.getByTestId('admin-panel')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Stop the servers' }).click()
+  await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped', { timeout: 30_000 })
+  await app.close()
+})

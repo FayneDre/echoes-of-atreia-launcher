@@ -1060,6 +1060,70 @@ button.small {
   margin-top: 16px;
 }
 
+/* What can be done with the character played: the teleport, and beside it, for a staff account, its game master modes. */
+.character-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: 20px 40px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+.character-tools > .teleport {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .character-tools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.admin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-panel h4 {
+  margin: 0;
+}
+
+.admin-panel .muted {
+  margin: 0;
+}
+
+.gm-modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 24px;
+  margin-top: 4px;
+}
+
+.gm-mode {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.gm-mode input {
+  flex: none;
+  margin-top: 3px;
+}
+
+.gm-mode-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.gm-mode-hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 .teleport {
   display: flex;
   flex-direction: column;

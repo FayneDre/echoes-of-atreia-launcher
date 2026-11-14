@@ -8,6 +8,9 @@ import {
   type CleanupResult,
   type DestinationSummary,
   type FolderKind,
+  GM_API_LEVEL,
+  type GmMode,
+  type GmState,
   type InstallState,
   type LauncherState,
   type LogBatch,
@@ -22,12 +25,12 @@ import {
 import { launchClient } from './client'
 import { checkClient, clientLanguageFor, type ClientCheck } from './clientCheck'
 import { findClientNear, isClientFolder, readServerLayout, type ServerLayout } from './server/installation'
-import { adminRequest, parseDestinations, parsePopulation } from './server/adminChannel'
+import { adminRequest, parseDestinations, parseGmState, parsePopulation } from './server/adminChannel'
 import { parseVersionAnswer, readInstallManifest } from './server/serverVersion'
 import { addressOf } from './accounts/accountStore'
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
-import { needsStart, readServerSettings, writeServerSettings } from './server/serverSettings'
+import { needsStart, readServerSettings, writeServerSettings, writeStaffTag } from './server/serverSettings'
 import { isAutoCleanup, isDeveloperMode, type SettingsStore } from './settings'
 import { ownMysqlOf } from './server/ownRuntimes'
 import type { BackupService } from './backup/backupService'
@@ -637,6 +640,46 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       return null
     }
     return answer.error === 'not in game' ? { code: 'not-in-game' } : { code: 'admin-failed', detail: answer.error }
+  }
+
+  /**
+   * The game master modes of a staff member's character in game. Null when there is nothing to show rather than a fault: no game server ready,
+   * or one older than the request.
+   */
+  async getGmState(characterId: number): Promise<GmState | null | Problem> {
+    if (this.servers.game?.current.status !== 'ready' || (this.serverVersion?.apiLevel ?? 0) < GM_API_LEVEL) {
+      return null
+    }
+    const answer = await this.adminAnswer(`gm-state ${characterId}`)
+    if ('code' in answer) {
+      return answer
+    }
+    return parseGmState(answer) ?? { code: 'admin-failed', detail: 'unreadable game master state' }
+  }
+
+  /** Switches one game master mode of a staff member's character in game, as the matching command typed in game would. */
+  async setGmMode(characterId: number, mode: GmMode, on: boolean): Promise<Problem | null> {
+    const answer = await this.adminAnswer(`gm-set ${characterId} ${mode} ${on ? 1 : 0}`)
+    return 'code' in answer ? answer : null
+  }
+
+  /** Shows or hides the staff tag of every staff name, applied at once by a running game server (the player's own name at their next login). */
+  async setStaffTag(shown: boolean): Promise<Problem | null> {
+    if (!this.layout) {
+      return { code: 'game-not-ready' }
+    }
+    await writeStaffTag(this.layout.servers.game.dir, shown)
+    if (this.servers.game?.current.status === 'ready') {
+      const answer = await this.adminAnswer('reload-config')
+      return 'code' in answer ? answer : null
+    }
+    return null
+  }
+
+  /** The game server's answer, a character that is not in game told apart from a channel that failed. */
+  private async adminAnswer(command: string): Promise<string[] | Problem> {
+    const answer = await this.askGame(command)
+    return 'code' in answer && answer.detail === 'not in game' ? { code: 'not-in-game' } : answer
   }
 
   /** Asks the game server that just became ready what it is. One too old to know the request is level 0. */

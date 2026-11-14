@@ -64,6 +64,8 @@ export interface FakeAccount {
   id: number
   name: string
   password: string
+  /** The staff level, 0 (a player) when left out. */
+  accessLevel?: number
 }
 
 export interface FakeCharacter {
@@ -79,9 +81,12 @@ export interface FakeCharacter {
   deleting: boolean
 }
 
-/** Two accounts of one person, and a third the tests never sign in to. Experience 400 is level 2, 1500 level 3 in the fake table. */
+/**
+ * Two accounts of one person, the first an administrator's, and a third the tests never sign in to. Experience 400 is level 2, 1500 level 3 in the
+ * fake table.
+ */
 export const FAKE_ACCOUNTS: FakeAccount[] = [
-  { id: 1, name: 'player1', password: 'secret' },
+  { id: 1, name: 'player1', password: 'secret', accessLevel: 9 },
   { id: 2, name: 'player2', password: 'other' },
   { id: 3, name: 'stranger', password: 'x' }
 ]
@@ -105,7 +110,7 @@ export function writeFakeDatabase(install: FakeInstall, accounts: FakeAccount[] 
   writeFileSync(
     install.database,
     JSON.stringify({
-      accounts: accounts.map((account) => ({ id: account.id, name: account.name, passwordHash: hash(account.password) })),
+      accounts: accounts.map((account) => ({ id: account.id, name: account.name, passwordHash: hash(account.password), accessLevel: account.accessLevel ?? 0 })),
       characters,
       bots,
       // what the game server's database takes, as the launcher reads it from MySQL

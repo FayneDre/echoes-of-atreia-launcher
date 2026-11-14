@@ -193,8 +193,9 @@ the jar. A server without the channel never answers; the launcher gives up after
   server's deploy script writes; with neither, nothing is known and nothing is said. Below `MIN_SERVER_API_LEVEL` (`src/shared/types.ts`),
   the Account, Bots and Settings pages say which server version to install (`MIN_SERVER_VERSION`). Both are raised by a release that needs
   a newer server, and its notes say so.
-- `reload-config`: sent after a save when the game server is ready; the rates are read at each gain, so they apply at once. If it is not
-  answered, the "restart needed" banner shows as before.
+- `reload-config`: sent after a save when the game server is ready (rates apply at once); unanswered, the "restart needed" notice shows.
 - `destinations`: the server's teleport list (location, map, x y z, name); the interface offers each name once.
 - `teleport <character id> <map> <x> <y> <z>`: for the character picked on the Account page; the server refuses one that is not in game.
   It goes through the server because it holds the character in memory and would write it back over a change made in the database.
+- `gm-state <character id>`, `gm-set <character id> <mode> <0|1>` (level 3): a staff account's game master modes, switched by the commands a
+  player types, whose access levels apply. The staff tag is `gameserver.administration.customtags.enable` in mygs.properties, then `reload-config`.

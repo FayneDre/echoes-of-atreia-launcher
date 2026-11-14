@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { AccountsState, CharacterSummary, Problem } from '../../../shared/types'
 import { hasMessage, useI18n } from '../i18n'
+import { AdminPanel } from './AdminPanel'
 import { TeleportPanel } from './TeleportPanel'
 import { ProblemText } from './ProblemText'
 
@@ -87,7 +88,13 @@ function CharacterCard(props: { character: CharacterSummary; selected: boolean; 
   )
 }
 
-export function AccountPage(props: { accounts: AccountsState | null; gameReady: boolean; reload: () => Promise<void> }): React.JSX.Element {
+export function AccountPage(props: {
+  accounts: AccountsState | null
+  gameReady: boolean
+  /** The running game server's admin channel level, null before it is known. */
+  apiLevel: number | null
+  reload: () => Promise<void>
+}): React.JSX.Element {
   const { t } = useI18n()
   const [adding, setAdding] = useState(false)
   const { accounts } = props
@@ -192,7 +199,12 @@ export function AccountPage(props: { accounts: AccountsState | null; gameReady: 
                       />
                     ))}
                   </div>
-                  {selectedCharacter && <TeleportPanel character={selectedCharacter} gameReady={props.gameReady} />}
+                  {selectedCharacter && (
+                    <div className="character-tools">
+                      <TeleportPanel character={selectedCharacter} gameReady={props.gameReady} />
+                      {accounts.staff && <AdminPanel character={selectedCharacter} gameReady={props.gameReady} apiLevel={props.apiLevel} />}
+                    </div>
+                  )}
                 </>
               )}
             </>

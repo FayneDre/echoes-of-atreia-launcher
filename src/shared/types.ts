@@ -252,7 +252,22 @@ export interface AccountsState {
   characters: CharacterSummary[]
   /** The character the person plays with, on the active account. */
   selectedCharacterId: number | null
+  /** The active account is a staff one (an access level above 0): the page offers its game master modes. */
+  staff: boolean
   problem?: Problem
+}
+
+/** The game master modes the launcher switches for a staff member's character in game, by their names on the admin channel. */
+export const GM_MODES = ['invul', 'invis', 'neutral', 'see', 'nocooldown', 'freefly'] as const
+export type GmMode = (typeof GM_MODES)[number]
+
+/** The admin channel's level from which the game server answers `gm-state` and `gm-set`, and reads the staff tag setting. */
+export const GM_API_LEVEL = 3
+
+/** A staff member's character as the game server has it: its modes, and whether staff names carry their tag. */
+export interface GmState {
+  tag: boolean
+  modes: Record<GmMode, boolean>
 }
 
 export interface LogBatch {

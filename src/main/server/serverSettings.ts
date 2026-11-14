@@ -270,3 +270,20 @@ export async function writeServerSettings(gameDir: string, values: Record<string
     await replaceFile(overridesFile, next, hadOverrides)
   }
 }
+
+/** The key of whether staff names carry their tag, the server's default being yes. */
+export const STAFF_TAG_KEY = 'gameserver.administration.customtags.enable'
+
+/**
+ * Whether staff names carry their tag (»Admin« and its icon), written in mygs.properties: a tag shown is the server's default, so its line goes
+ * away. Not a setting of the settings page, which would write it back from what it read before.
+ */
+export async function writeStaffTag(gameDir: string, shown: boolean): Promise<void> {
+  const overridesFile = join(gameDir, OVERRIDES)
+  const hadOverrides = await exists(overridesFile)
+  const current = hadOverrides ? await readFile(overridesFile, 'latin1') : ''
+  const next = applyPropertyChanges(current, new Map([[STAFF_TAG_KEY, shown ? null : 'false']]), HEADER)
+  if (next !== current) {
+    await replaceFile(overridesFile, next, hadOverrides)
+  }
+}

@@ -10,6 +10,8 @@ export interface AccountRecord {
   name: string
   /** As the login server keeps it: SHA-1 of the UTF-8 password, in Base64. */
   passwordHash: string
+  /** The account's staff level (`access_level`): 0 for a player, up to 9 for an administrator. */
+  accessLevel: number
 }
 
 export interface CharacterRecord {
@@ -100,9 +102,13 @@ export class MysqlAccountStore implements AccountStore {
     if (!address) {
       throw new Error('The login server has no database.url')
     }
-    const rows = await query<RowDataPacket>(address, 'SELECT `id`, `name`, `password` FROM `account_data` WHERE `name` = ? LIMIT 1', [name])
+    const rows = await query<RowDataPacket>(address, 'SELECT `id`, `name`, `password`, `access_level` FROM `account_data` WHERE `name` = ? LIMIT 1', [
+      name
+    ])
     const row = rows[0]
-    return row ? { id: Number(row['id']), name: String(row['name']), passwordHash: String(row['password']) } : null
+    return row
+      ? { id: Number(row['id']), name: String(row['name']), passwordHash: String(row['password']), accessLevel: Number(row['access_level'] ?? 0) }
+      : null
   }
 
   async listCharacters(accountId: number): Promise<CharacterRecord[]> {
@@ -171,7 +177,7 @@ export class FileAccountStore implements AccountStore {
   constructor(private readonly file: string) {}
 
   private async read(): Promise<{
-    accounts: AccountRecord[]
+    accounts: (Omit<AccountRecord, 'accessLevel'> & { accessLevel?: number })[]
     characters: (CharacterRecord & { accountId: number })[]
     bots?: BotRecord[]
     database?: DatabaseInfo
@@ -180,7 +186,8 @@ export class FileAccountStore implements AccountStore {
   }
 
   async findAccount(name: string): Promise<AccountRecord | null> {
-    return (await this.read()).accounts.find((account) => account.name === name) ?? null
+    const account = (await this.read()).accounts.find((candidate) => candidate.name === name)
+    return account ? { ...account, accessLevel: account.accessLevel ?? 0 } : null
   }
 
   async listCharacters(accountId: number): Promise<CharacterRecord[]> {

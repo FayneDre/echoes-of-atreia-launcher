@@ -1,9 +1,21 @@
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
-import type { PopulationState } from '../../shared/types'
+import { GM_MODES, type GmState, type PopulationState } from '../../shared/types'
 
 export type AdminAnswer = { ok: true; lines: string[] } | { ok: false; error: string }
+
+/** The server's answer to `gm-state`, one `key value` line each, 1 or 0; null when a line the launcher needs is missing. */
+export function parseGmState(lines: string[]): GmState | null {
+  const values = new Map(lines.map((line) => [line.split(' ')[0]!, line.split(' ')[1]]))
+  const flag = (key: string): boolean | null => (values.get(key) === '1' ? true : values.get(key) === '0' ? false : null)
+  const tag = flag('tag')
+  const modes = Object.fromEntries(GM_MODES.map((mode) => [mode, flag(mode)]))
+  if (tag === null || Object.values(modes).some((on) => on === null)) {
+    return null
+  }
+  return { tag, modes: modes as GmState['modes'] }
+}
 
 const POLL_MS = 100
 

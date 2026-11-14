@@ -2,11 +2,14 @@ import { rm, statfs } from 'node:fs/promises'
 import { dirname, join, parse } from 'node:path'
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent, type OpenDialogOptions } from 'electron'
 import {
+  GM_MODES,
   LAUNCHER_VERSION_ARG,
   SERVER_IDS,
   isBetaVersion,
   type FolderKind,
+  type GmMode,
   type HomeInfo,
+  type Problem,
   type QuitAnswer,
   type ReportResult,
   type ServerId
@@ -229,6 +232,32 @@ function registerIpc(presence: TaskbarPresence): void {
       return { code: 'no-character' }
     }
     return Number.isInteger(destinationId) ? launcher.teleport(character, destinationId as number) : { code: 'admin-failed' }
+  })
+  // The game master modes, for the character played on a staff account only, checked against the database as the teleport is.
+  const staffCharacter = async (): Promise<number | Problem> => {
+    const state = await accounts.getState()
+    if (!state.staff) {
+      return { code: 'admin-failed', detail: 'not a staff account' }
+    }
+    return state.selectedCharacterId ?? { code: 'no-character' }
+  }
+  ipcMain.handle('admin:gm-state', async () => {
+    const character = await staffCharacter()
+    return typeof character === 'number' ? launcher.getGmState(character) : character
+  })
+  ipcMain.handle('admin:gm-set', async (_event, mode: unknown, on: unknown) => {
+    const character = await staffCharacter()
+    if (typeof character !== 'number') {
+      return character
+    }
+    return GM_MODES.includes(mode as GmMode) && typeof on === 'boolean' ? launcher.setGmMode(character, mode as GmMode, on) : { code: 'admin-failed' }
+  })
+  ipcMain.handle('admin:staff-tag', async (_event, shown: unknown) => {
+    const character = await staffCharacter()
+    if (typeof character !== 'number') {
+      return character
+    }
+    return typeof shown === 'boolean' ? launcher.setStaffTag(shown) : { code: 'admin-failed' }
   })
   ipcMain.handle('backups:list', () => backups.list())
   ipcMain.handle('backups:create', () =>

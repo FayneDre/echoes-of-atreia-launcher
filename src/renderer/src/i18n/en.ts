@@ -515,7 +515,25 @@ export const en = {
   'teleport.search': 'Search a place',
   'teleport.destinations': 'Places',
   'teleport.go': 'Teleport',
-  'teleport.done': 'Done: the character is on its way.'
+  'teleport.done': 'Done: the character is on its way.',
+  'admin.title': 'Administration — {name}',
+  'admin.needsServer': 'Start the servers and log in with the character to change its game master modes.',
+  'admin.needsNewerServer': 'These modes need server v0.1.0-beta.7 or later.',
+  'admin.intro': 'Your account is an administrator account. Each box does what the matching game master command typed in game does, and lasts until the character leaves the game. At each login the server itself turns on Invisible, Invulnerable, Left alone and See hidden.',
+  'admin.mode.invul': 'Invulnerable',
+  'admin.mode.invul.hint': 'Nothing can hurt the character.',
+  'admin.mode.invis': 'Invisible',
+  'admin.mode.invis.hint': 'Nobody sees the character, neither players nor monsters nor bots: bots cannot group with it or follow it.',
+  'admin.mode.neutral': 'Left alone',
+  'admin.mode.neutral.hint': 'Monsters and players of the other faction do not attack the character, and it cannot attack them.',
+  'admin.mode.see': 'See hidden',
+  'admin.mode.see.hint': 'The character sees what hides: assassins, rangers and invisible game masters.',
+  'admin.mode.nocooldown': 'No cooldowns',
+  'admin.mode.nocooldown.hint': 'Skills can be used again at once.',
+  'admin.mode.freefly': 'Fly anywhere',
+  'admin.mode.freefly.hint': 'The character can fly outside the flight zones.',
+  'admin.tag': 'Show the »Admin« tag',
+  'admin.tag.hint': 'The tag before the names of administrators. Others see the change at once, the character itself at its next login.'
 }
 
 export type MessageKey = keyof typeof en
