@@ -7,6 +7,31 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.9 — 14/11/2026
+
+**Proposée par le launcher** si tu as la v0.3.0-beta.8 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la main
+avec `Echoes-of-Atreia-Setup-0.3.0-beta.9.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien demande le serveur v0.1.0-beta.6.
+
+**Ce qui change**
+- **Plus de faux échec au premier démarrage** : le serveur de jeu n'est plus marqué en échec tant qu'il écrit dans son terminal (le premier
+  démarrage prépare ses cartes et ses bots pendant de longues minutes). Il ne l'est plus qu'après cinq minutes sans rien écrire.
+- **Une erreur de serveur ne casse plus l'accueil** : la ligne du serveur garde sa place, avec un bouton « Pourquoi ? » qui ouvre le
+  problème et ce que le serveur a écrit dans une fenêtre, d'où « Afficher le journal » ouvre son terminal. Un échec n'ouvre plus les
+  terminaux tout seul.
+- **L'installation du serveur tient sur une ligne** : les explications, le choix du dossier, les étapes du téléchargement, un échec et
+  « Réessayer » sont dans une fenêtre.
+- **L'accueil remplit la fenêtre** : les deux colonnes s'arrêtent sur la même ligne, et le bloc « Nouveautés » garde la même hauteur sur
+  ses deux onglets.
+- **La population des bots expliquée** : chaque mode dit ce qu'il fait sous son nom (« Selon les joueurs », « Constant », « Avec un
+  minimum »), le pourcentage est grisé quand le mode ne s'en sert pas, et « Population en ce moment » parle de bots présents et en réserve.
+- **La désinstallation se termine par une fenêtre** qui dit où la dernière sauvegarde de tes comptes et personnages est gardée. Le texte
+  de la désinstallation n'est plus coupé.
+- Les options de la fenêtre « Installation » sont régulièrement espacées.
+
+---
+
 ## v0.3.0-beta.8 — 14/11/2026
 
 **Proposée par le launcher** si tu as la v0.3.0-beta.7 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la main

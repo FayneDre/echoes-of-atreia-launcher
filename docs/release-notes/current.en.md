@@ -6,6 +6,29 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.9 — 2026-11-14
+
+**Offered by the launcher** if you have v0.3.0-beta.8: "Update" on the line at the top of the window. Otherwise install it by hand with
+`Echoes-of-Atreia-Setup-0.3.0-beta.9.exe`.
+
+**Minimum server: v0.1.0-beta.1.** The install from nothing needs server v0.1.0-beta.6.
+
+**What changes**
+- **No false failure on the first start**: the game server is no longer marked failed while it writes to its terminal (the first start
+  prepares its maps and bots for long minutes). It is only after five minutes without a line.
+- **A server error no longer breaks the home page**: the server's row keeps its place, with a "Why?" button that opens the problem and what
+  the server wrote in a window, from which "Show the log" opens its terminal. A failure no longer opens the terminals by itself.
+- **The server install fits on one line**: the explanations, the folder choice, the download steps, a failure and "Try again" are in a
+  window.
+- **The home page fills the window**: both columns end on the same line, and the "What's new" block keeps the same height on both tabs.
+- **The bot population explained**: each mode says what it does under its name ("By the players", "Constant", "With a minimum"), the
+  percent is greyed out when the mode does not use it, and "Population now" speaks of bots present and in reserve.
+- **Uninstalling ends with a window** saying where the last backup of your accounts and characters is kept. The uninstall text is no longer
+  cut.
+- The options of the Installation window are evenly spaced.
+
+---
+
 ## v0.3.0-beta.8 — 2026-11-14
 
 **Offered by the launcher** if you have v0.3.0-beta.7: "Update" on the line at the top of the window. Otherwise install it by hand with
