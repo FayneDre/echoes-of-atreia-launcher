@@ -160,6 +160,23 @@ test('offers a staff account the game master modes of its character in game, and
   await expect(panel.getByLabel(/^Invulnerable/)).toBeChecked()
   await expect(panel.getByLabel(/^Invisible/)).toBeChecked()
   await expect(panel.getByLabel(/^No cooldowns/)).not.toBeChecked()
+
+  // in French, its longest texts, the panel stays inside the page's frame and the page does not scroll
+  await page.getByRole('button', { name: 'FR', exact: true }).click()
+  await expect(panel.getByLabel(/^Sans temps de recharge/)).toBeVisible()
+  const frame = await page.locator('.account-page').boundingBox()
+  const box = await panel.boundingBox()
+  expect(box!.y + box!.height).toBeLessThanOrEqual(frame!.y + frame!.height)
+  const main = page.locator('main:has(.account-page)')
+  expect(await main.evaluate((element) => element.scrollHeight - element.clientHeight)).toBe(0)
+  // what each mode does is in a dialog
+  await panel.getByRole('button', { name: 'Ce que fait chaque mode' }).click()
+  await expect(page.getByTestId('admin-dialog')).toBeVisible()
+  await expect(page.getByTestId('admin-dialog')).toContainText('Invulnérable')
+  await page.getByTestId('admin-dialog').getByRole('button', { name: 'Fermer' }).click()
+  await expect(page.getByTestId('admin-dialog')).toBeHidden()
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
+
   const log = join(install.serverRoot, 'game-server', 'log', 'server_console.log')
   await panel.getByLabel(/^Invisible/).uncheck()
   await expect(panel.getByLabel(/^Invisible/)).not.toBeChecked()

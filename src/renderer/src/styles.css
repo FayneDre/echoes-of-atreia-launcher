@@ -840,10 +840,10 @@ button.small {
   color: var(--ok);
 }
 
+/* as tall as what it holds: the page scrolls rather than the content running out of its frame */
 .account-page {
   display: flex;
   flex-direction: column;
-  min-height: 0;
 }
 
 .playing {
@@ -1085,43 +1085,71 @@ button.small {
   gap: 8px;
 }
 
-.admin-panel h4 {
+.admin-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-head h4 {
   margin: 0;
+}
+
+.admin-head .link {
+  flex: none;
 }
 
 .admin-panel .muted {
   margin: 0;
 }
 
+/* one line a box, two columns: what each does is in the dialog */
 .gm-modes {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 24px;
+  gap: 6px 24px;
   margin-top: 4px;
 }
 
 .gm-mode {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
+  min-width: 0;
+  padding: 4px 0;
   cursor: pointer;
 }
 
 .gm-mode input {
   flex: none;
-  margin-top: 3px;
+  margin: 0;
 }
 
-.gm-mode-text {
-  display: flex;
-  flex-direction: column;
+.gm-mode-name {
   min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.gm-mode-hint {
+.admin-dialog {
+  width: min(640px, calc(100% - 48px));
+}
+
+.gm-explained {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+}
+
+.gm-explained dt {
+  font-weight: 600;
+}
+
+.gm-explained dd {
+  margin: 2px 0 0;
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 1.35;
 }
 
 .teleport {
