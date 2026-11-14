@@ -6,6 +6,23 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.10 — 2026-11-14
+
+**Offered by the launcher** if you have v0.3.0-beta.9: "Update" on the line at the top of the window. Otherwise install it by hand with
+`Echoes-of-Atreia-Setup-0.3.0-beta.10.exe`.
+
+**Minimum server: v0.1.0-beta.1.** The install from nothing needs server v0.1.0-beta.6.
+
+**What changes**
+- **MySQL is no longer shown "Ready" while it is stopped**: after a failed stop, the MySQL row stayed green and its button said "Stop"
+  instead of "Start", so a click stopped the MySQL just started, and a backup failed. Stopping a MySQL already stopped just says it is
+  stopped.
+- **"What's new" wraps**: the sentences of the notes were cut at the window's edge.
+- **The quit window, with the servers running, is clearer**: three choices each shown with what it does, the clean stop set apart, and
+  "Cancel" on its own.
+
+---
+
 ## v0.3.0-beta.9 — 2026-11-14
 
 **Offered by the launcher** if you have v0.3.0-beta.8: "Update" on the line at the top of the window. Otherwise install it by hand with

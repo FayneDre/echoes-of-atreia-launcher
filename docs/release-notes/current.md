@@ -7,6 +7,23 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.10 — 14/11/2026
+
+**Proposée par le launcher** si tu as la v0.3.0-beta.9 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la
+main avec `Echoes-of-Atreia-Setup-0.3.0-beta.10.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien demande le serveur v0.1.0-beta.6.
+
+**Ce qui change**
+- **MySQL n'est plus affiché « Prêt » quand il est arrêté** : après un arrêt raté, la ligne MySQL restait verte et son bouton disait
+  « Arrêter » au lieu de « Démarrer », si bien qu'un clic arrêtait le MySQL qu'on venait de lancer, et qu'une sauvegarde échouait.
+  Arrêter un MySQL déjà arrêté dit simplement qu'il est arrêté.
+- **« Quoi de neuf » passe à la ligne** : les phrases des notes n'étaient plus coupées au bord de la fenêtre.
+- **La fenêtre pour quitter, serveurs démarrés, est plus claire** : trois choix présentés chacun avec ce qu'il fait, l'arrêt propre mis en
+  avant, et « Annuler » à part.
+
+---
+
 ## v0.3.0-beta.9 — 14/11/2026
 
 **Proposée par le launcher** si tu as la v0.3.0-beta.8 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la main
