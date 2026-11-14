@@ -13,11 +13,19 @@ let target: string
 
 /**
  * The bundle's database script, as setup-mysql.ps1 is called: it writes the my.ini the launcher then finds, and says on which port it was
- * asked; it fails while a flag file sits beside the install, as a database that could not be made.
+ * asked. While a flag file sits beside the install it fails as the real one can, half-way: its my.ini and data folder made already, and
+ * the real one refuses to run again over them.
  */
 const FAKE_SETUP_MYSQL = `param([string]$ServerRoot, [int]$Port)
-if (Test-Path (Join-Path (Split-Path $ServerRoot -Parent) 'setup-fails.txt')) { Write-Output 'the data folder could not be made'; exit 1 }
-Set-Content (Join-Path $ServerRoot 'mysql\\my.ini') "[mysqld]\`r\`nport=$Port"
+$ini = Join-Path $ServerRoot 'mysql\\my.ini'
+if (Test-Path $ini) { Write-Output "$ini exists already"; exit 1 }
+Set-Content $ini "[mysqld]\`r\`nport=$Port"
+if (Test-Path (Join-Path (Split-Path $ServerRoot -Parent) 'setup-fails.txt')) {
+    New-Item -ItemType Directory (Join-Path $ServerRoot 'mysql\\data') | Out-Null
+    Set-Content (Join-Path $ServerRoot 'mysql\\data\\mysql.ibd') 'half made'
+    Write-Output 'the data folder could not be made'
+    exit 1
+}
 Add-Content (Join-Path $ServerRoot 'setup-calls.txt') "port=$Port"
 `
 
@@ -114,14 +122,19 @@ test('a database that could not be made is tried again without downloading the s
   await expect(page.getByTestId('server-setup-folder')).toContainText(target)
   expect(bundleRequests()).toBe(1)
   expect(existsSync(join(target, 'setup-calls.txt'))).toBe(false)
+  // what the script made before it failed is undone, so the next run starts from nothing as the real script requires
+  expect(existsSync(join(target, 'mysql', 'my.ini'))).toBe(false)
+  expect(existsSync(join(target, 'mysql', 'data'))).toBe(false)
+  expect(existsSync(join(target, 'mysql', 'bin', 'mysqld.exe'))).toBe(true)
 
   rmSync(join(games, 'setup-fails.txt'))
   await panel.getByRole('button', { name: 'Try again' }).click()
   await expect(panel).toBeHidden({ timeout: 30_000 })
   await expect(page.getByTestId('install-server')).toHaveAttribute('data-found', 'true')
   expect(existsSync(join(target, 'setup-calls.txt'))).toBe(true)
-  // taken up at the database: the files were in place
+  // taken up at the database, in the same folder: the files were in place
   expect(bundleRequests()).toBe(1)
+  expect(existsSync(join(target, 'echoes-server'))).toBe(false)
   await app.close()
 })
 

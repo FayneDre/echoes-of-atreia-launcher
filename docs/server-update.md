@@ -68,7 +68,9 @@ Java runtime (`target: runtime`) and the trimmed MySQL (`target: mysql`), each w
 
 A try that fails keeps what it downloaded and checked: a file already staged with its hash is not fetched again (maps and runtimes resume file
 by file; the bundle, 150 MB, is fetched again). "Try again" goes back to the same folder; when its files are in place and only its `my.ini` is
-missing, it starts at the database.
+missing, it starts at the database. `setup-mysql.ps1` runs only on nothing and writes `my.ini` first, so a run that fails is undone at once:
+the MySQL it started stopped (`mysqladmin shutdown` as root, with `root.cnf` or before any password), then `my.ini`, `data` and `root.cnf`
+removed; a MySQL that will not stop leaves them, and says so.
 
 ## Tests
 

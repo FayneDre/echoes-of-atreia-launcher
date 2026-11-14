@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
+import { execFile } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { readdir, statfs } from 'node:fs/promises'
+import { readdir, rm, statfs } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { dirname, join } from 'node:path'
 import type { Problem, ServerSetupState, ServerSetupStep } from '../../shared/types'
@@ -89,6 +90,39 @@ function portIsFree(port: number): Promise<boolean> {
   })
 }
 
+/** mysqladmin's shutdown of the install's MySQL, as root: with the password setup-mysql.ps1 kept, or none before it set one. */
+function shutdownMysql(folder: string, port: number): Promise<void> {
+  const rootFile = join(folder, 'mysql', 'root.cnf')
+  const account = existsSync(rootFile) ? [`--defaults-extra-file=${rootFile}`] : ['--user=root']
+  return new Promise((resolve) => {
+    execFile(join(folder, 'mysql', 'bin', 'mysqladmin.exe'), [...account, '--host=127.0.0.1', `--port=${port}`, 'shutdown'], { timeout: 30_000, windowsHide: true }, () =>
+      resolve()
+    )
+  })
+}
+
+/**
+ * What a setup-mysql.ps1 that failed half-way made, undone, so that a try again runs it on nothing, as it requires: the MySQL it started
+ * stopped, then its my.ini, data folder and root.cnf removed. That database was made a moment ago and holds no character. False when MySQL
+ * would not stop (its files are then left as they are).
+ */
+export async function undoDatabase(folder: string, port: number): Promise<boolean> {
+  if (!(await portIsFree(port))) {
+    await shutdownMysql(folder, port)
+    for (let waited = 0; !(await portIsFree(port)); waited += 500) {
+      if (waited >= 30_000) {
+        return false
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500))
+    }
+  }
+  const mysql = join(folder, 'mysql')
+  for (const name of ['my.ini', 'data', 'root.cnf']) {
+    await rm(join(mysql, name), { recursive: true, force: true, maxRetries: 5, retryDelay: 500 })
+  }
+  return true
+}
+
 /** The first port from 3307 nothing listens on, for the install's own MySQL. */
 export async function freeMysqlPort(): Promise<number | null> {
   for (let port = FIRST_PORT; port <= LAST_PORT; port++) {
@@ -107,6 +141,7 @@ export async function freeMysqlPort(): Promise<number | null> {
  */
 export class ServerSetup extends EventEmitter<{ state: [ServerSetupState] }> {
   private state: ServerSetupState = { status: 'idle' }
+  private busy = false
 
   constructor(
     private readonly launcher: Launcher,
@@ -122,9 +157,19 @@ export class ServerSetup extends EventEmitter<{ state: [ServerSetupState] }> {
 
   /** Installs into the folder chosen (or a new folder inside it); the problem when it could not. */
   async install(chosen: string): Promise<Problem | null> {
-    if (this.state.status === 'running') {
+    // taken before the first await: a second click while the folder is looked at would otherwise start a second try
+    if (this.busy) {
       return { code: 'launcher-busy' }
     }
+    this.busy = true
+    try {
+      return await this.installInto(chosen)
+    } finally {
+      this.busy = false
+    }
+  }
+
+  private async installInto(chosen: string): Promise<Problem | null> {
     const target = await serverFolderIn(chosen)
     if (!target) {
       return this.fail({ folder: chosen }, { code: 'setup-folder-not-empty', detail: join(chosen, SERVER_FOLDER_NAME) })
@@ -150,7 +195,12 @@ export class ServerSetup extends EventEmitter<{ state: [ServerSetupState] }> {
       }
       // the bundle's own script: the data folder, the accounts, the three databases and the servers' configuration; MySQL is left running
       const setup = await runServerScript(join(folder, 'tools', 'setup-mysql.ps1'), ['-ServerRoot', folder, '-Port', String(port)], SETUP_TIMEOUT_MS)
-      return setup.code === 0 ? null : { code: 'setup-database-failed', detail: tail(setup.output) }
+      if (setup.code === 0) {
+        return null
+      }
+      const undone = await undoDatabase(folder, port)
+      const left = undone ? '' : `\nMySQL still answers on port ${port}: what it made was left as it is.`
+      return { code: 'setup-database-failed', detail: tail(setup.output) + left }
     })
     if (problem) {
       return this.fail(base, problem)
