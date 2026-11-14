@@ -7,15 +7,18 @@ export const DESIGN_HEIGHT = 780
 export const TITLE_BAR_HEIGHT = 46
 /** Past this, on a very large screen, the text would be read from across the room. */
 export const MAX_SCALE = 1.6
+/** The window's smallest size (640 high) against the first one: below the first size the page shrinks to fit, down to this. */
+export const MIN_SCALE = 0.8
 
 /**
  * How much the page grows in a window of this size: as much as the side that grows the least, so the page laid out for the first size
- * fills a maximized window the same way, never less than that size and in steps of 5 % so a resize does not redraw at every pixel.
+ * fills a maximized window the same way, in steps of 5 % so a resize does not redraw at every pixel. A window smaller than the first size (a
+ * small screen, or one Windows opened smaller, as a clean-machine sandbox did on 14 November) shrinks the page instead of showing a scroll bar.
  */
 export function scaleFor(width: number, height: number): number {
   const ratio = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT)
   const stepped = Math.floor(ratio * 20) / 20
-  return Math.min(MAX_SCALE, Math.max(1, stepped))
+  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, stepped))
 }
 
 /** The page follows the window's size: maximized or full screen, the blocks grow instead of leaving empty margins around them. */

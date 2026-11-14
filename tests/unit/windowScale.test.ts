@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { DESIGN_HEIGHT, DESIGN_WIDTH, MAX_SCALE, scaleFor } from '../../src/main/windowScale'
+import { DESIGN_HEIGHT, DESIGN_WIDTH, MAX_SCALE, MIN_SCALE, scaleFor } from '../../src/main/windowScale'
 
 describe('scaleFor', () => {
-  it('keeps the page as drawn at the first size and below it', () => {
+  it('keeps the page as drawn at the first size', () => {
     expect(scaleFor(DESIGN_WIDTH, DESIGN_HEIGHT)).toBe(1)
-    expect(scaleFor(960, 640)).toBe(1)
+  })
+
+  it('shrinks the page in a smaller window, down to the smallest one', () => {
+    // the window a clean-machine sandbox opened: 20 pixels short, a scroll bar at zoom 1
+    expect(scaleFor(1160, 751)).toBe(0.95)
+    expect(scaleFor(960, 640)).toBe(MIN_SCALE)
+    expect(scaleFor(800, 500)).toBe(MIN_SCALE)
   })
 
   it('grows with the side that grows the least', () => {

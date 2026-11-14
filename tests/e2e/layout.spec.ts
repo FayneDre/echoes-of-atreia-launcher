@@ -51,7 +51,7 @@ test('lays out every page the same in every language as in French', async () => 
   await app.close()
 })
 
-test('shows the home page whole, without a scroll bar, at the first size and in a larger window', async () => {
+test('shows the home page whole, without a scroll bar, at the first size, in a smaller window and in a larger one', async () => {
   const { app, page } = await launchWith(install)
   await expect(page.getByTestId('install-summary')).toBeVisible()
   await expect(page.getByTestId('server-update')).toBeVisible()
@@ -62,6 +62,11 @@ test('shows the home page whole, without a scroll bar, at the first size and in 
       return scroller.scrollHeight - scroller.clientHeight
     })
   expect(await overflow(), 'at the first size').toBeLessThanOrEqual(0)
+  // the window a clean-machine sandbox opened, 20 pixels short: the page shrinks instead of scrolling
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.setContentSize(1160, 751))
+  await expect.poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.webContents.getZoomFactor())).toBe(0.95)
+  await page.waitForTimeout(300)
+  expect(await overflow(), 'smaller').toBeLessThanOrEqual(0)
   // a larger window zooms the page: the same layout, which must still fit
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.setContentSize(1180 * 1.25, 780 * 1.25))
   await expect.poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.webContents.getZoomFactor())).toBe(1.25)
