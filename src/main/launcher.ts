@@ -38,6 +38,16 @@ import type { BackupService } from './backup/backupService'
 import { isInside, isLauncherInstall } from './serverUpdate/installMarker'
 import { javaCommand, javaMajorVersion } from './system/java'
 
+/** A write into the server's settings, its failure (a file locked, a folder not writable) said as a problem rather than thrown at the page. */
+async function writtenOrProblem(write: () => Promise<void>): Promise<Problem | null> {
+  try {
+    await write()
+    return null
+  } catch (error) {
+    return { code: 'admin-failed', detail: error instanceof Error ? error.message : String(error) }
+  }
+}
+
 /**
  * The whole stack and what the interface sees of it. Starts in dependency order (MySQL, chat, login, game: the game server connects to the
  * other two while it starts) and stops in the reverse one, each step waiting for the one before. A stop may interrupt a start: the game
@@ -669,7 +679,11 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     }
     const command = GM_LOGIN_COMMANDS[mode]
     if (command && this.layout) {
-      await writeLoginCommand(this.layout.servers.game.dir, command, on)
+      const gameDir = this.layout.servers.game.dir
+      const failed = await writtenOrProblem(() => writeLoginCommand(gameDir, command, on))
+      if (failed) {
+        return failed
+      }
       const reloaded = await this.adminAnswer('reload-config')
       return 'code' in reloaded ? reloaded : null
     }
@@ -681,7 +695,11 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     if (!this.layout) {
       return { code: 'game-not-ready' }
     }
-    await writeStaffTag(this.layout.servers.game.dir, shown)
+    const gameDir = this.layout.servers.game.dir
+    const failed = await writtenOrProblem(() => writeStaffTag(gameDir, shown))
+    if (failed) {
+      return failed
+    }
     if (this.servers.game?.current.status === 'ready') {
       const answer = await this.adminAnswer('reload-config')
       return 'code' in answer ? answer : null

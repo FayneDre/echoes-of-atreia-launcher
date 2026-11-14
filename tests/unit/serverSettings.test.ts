@@ -1,9 +1,10 @@
+import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { applyPropertyChanges } from '../../src/main/server/properties'
-import { needsStart, readServerSettings, validValues, writeLoginCommand, writeServerSettings } from '../../src/main/server/serverSettings'
+import { needsStart, readServerSettings, validValues, writeLoginCommand, writeServerSettings, writeStaffTag } from '../../src/main/server/serverSettings'
 import { en } from '../../src/renderer/src/i18n/en'
 import { fr } from '../../src/renderer/src/i18n/fr'
 import { ALL_SETTINGS, SETTING_GROUPS } from '../../src/shared/settingsCatalog'
@@ -284,6 +285,22 @@ describe('writeLoginCommand', () => {
     await writeLoginCommand(gameDir, '//invis', false)
     expect(line()).toBe(`${key} = //see, //speed 50`)
   })
+})
+
+describe('a settings file another program holds open', () => {
+  // Java opens a file without sharing its deletion, which keeps Windows from replacing it; PowerShell's FileShare.ReadWrite does the same.
+  it.skipIf(process.platform !== 'win32')('is written once that program lets it go, within about two seconds', async () => {
+    writeFileSync(overrides, 'database.user = aion\n')
+    const holder = spawn('powershell', [
+      '-NoProfile',
+      '-Command',
+      `$f = [IO.File]::Open('${overrides}', 'Open', 'Read', 'ReadWrite'); 'open'; Start-Sleep -Milliseconds 800; $f.Close()`
+    ])
+    await new Promise<void>((resolve) => holder.stdout.on('data', (data: Buffer) => data.toString().includes('open') && resolve()))
+    await writeStaffTag(gameDir, false)
+    expect(readFileSync(overrides, 'latin1')).toContain('gameserver.administration.customtags.enable = false')
+    expect(readFileSync(overrides, 'latin1')).toContain('database.user = aion')
+  }, 15_000)
 })
 
 describe('applyPropertyChanges', () => {

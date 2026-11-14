@@ -1,4 +1,4 @@
-import { copyFile, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises'
+import { copyFile, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { ALL_SETTINGS, isAllowed, MEMBERSHIP_LEVEL, type ServerSettings, type SettingDefinition } from '../../shared/settingsCatalog'
 import { applyPropertyChanges, parseProperties, readConfigLayers } from './properties'
@@ -213,7 +213,26 @@ async function replaceFile(file: string, next: string, hadFile: boolean): Promis
   }
   const temporary = `${file}.${process.pid}.tmp`
   await writeFile(temporary, next, 'latin1')
-  await rename(temporary, file)
+  await renameOverReader(temporary, file)
+}
+
+// Windows refuses to replace a file another program holds open without sharing its deletion, as Java opens it: the game server reading its
+// settings again (a reload asked a moment before) or a virus scanner. Each holds it for a moment, so the rename is tried again for about 2 s.
+const BUSY = new Set(['EPERM', 'EBUSY', 'EACCES'])
+
+async function renameOverReader(from: string, to: string): Promise<void> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await rename(from, to)
+      return
+    } catch (error) {
+      if (attempt >= 20 || !BUSY.has((error as NodeJS.ErrnoException).code ?? '')) {
+        await rm(from, { force: true })
+        throw error
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+  }
 }
 
 async function exists(path: string): Promise<boolean> {
