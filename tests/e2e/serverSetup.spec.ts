@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { expect, test, type ElectronApplication } from '@playwright/test'
+import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
 import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
 import { ServerFeedServer } from './serverFeed'
 
@@ -24,6 +24,7 @@ if (Test-Path (Join-Path (Split-Path $ServerRoot -Parent) 'setup-fails.txt')) {
     New-Item -ItemType Directory (Join-Path $ServerRoot 'mysql\\data') | Out-Null
     Set-Content (Join-Path $ServerRoot 'mysql\\data\\mysql.ibd') 'half made'
     Write-Output 'the data folder could not be made'
+    Write-Output 'At setup-mysql.ps1:131 char:5, as PowerShell says it, on lines of their own'
     exit 1
 }
 Add-Content (Join-Path $ServerRoot 'setup-calls.txt') "port=$Port"
@@ -82,13 +83,30 @@ async function open(): ReturnType<typeof launchWith> {
 
 const bundleRequests = (): number => feed.requests.filter((path) => path.endsWith('.zip') && path.includes('aion-server-')).length
 
+/** The panel's button opens what the install takes; the folder is chosen from there. */
+async function startInstall(page: Page): Promise<void> {
+  await page.getByTestId('server-setup').getByRole('button', { name: 'Install the server…' }).click()
+  const dialog = page.getByTestId('server-setup-dialog')
+  await expect(dialog).toContainText('About 2.1 GB is downloaded')
+  await dialog.getByRole('button', { name: 'Choose the folder…' }).click()
+  await expect(dialog).toBeHidden()
+}
+
+/** How far the home page runs past the window: never more than nothing, whatever the install's state. */
+const overflow = (page: Page): Promise<number> =>
+  page.evaluate(() => {
+    const scroller = document.querySelector('.page-scroll')!
+    return scroller.scrollHeight - scroller.clientHeight
+  })
+
 test('installs the server from nothing into a folder of its own, and the launcher takes it as its server', async () => {
   const { app, page } = await open()
   const panel = page.getByTestId('server-setup')
   await expect(panel).toHaveAttribute('data-status', 'idle', { timeout: 20_000 })
   await expect(panel).toContainText('No server is installed yet')
+  expect(await overflow(page), 'offered').toBeLessThanOrEqual(0)
   await pickFolder(app, games)
-  await panel.getByRole('button', { name: 'Install the server…' }).click()
+  await startInstall(page)
 
   // done: the panel goes, the server is found where it was put
   await expect(panel).toBeHidden({ timeout: 30_000 })
@@ -119,11 +137,17 @@ test('a database that could not be made is tried again without downloading the s
   const panel = page.getByTestId('server-setup')
   await expect(panel).toHaveAttribute('data-status', 'idle', { timeout: 20_000 })
   await pickFolder(app, games)
-  await panel.getByRole('button', { name: 'Install the server…' }).click()
+  await startInstall(page)
 
   await expect(panel).toHaveAttribute('data-status', 'failed', { timeout: 30_000 })
   await expect(page.getByTestId('server-setup-problem')).toContainText('The database could not be made.')
   await expect(page.getByTestId('server-setup-folder')).toContainText(target)
+  // the script's output is opened over the page, which keeps its height
+  expect(await overflow(page), 'failed').toBeLessThanOrEqual(0)
+  await page.getByTestId('server-setup-problem').getByRole('button', { name: 'Details' }).click()
+  await expect(page.getByTestId('problem-dialog')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('problem-dialog')).toBeHidden()
   expect(bundleRequests()).toBe(1)
   expect(existsSync(join(target, 'setup-calls.txt'))).toBe(false)
   // what the script made before it failed is undone, so the next run starts from nothing as the real script requires
@@ -149,7 +173,7 @@ test('a release that carries no Java and database is not installed from', async 
   const panel = page.getByTestId('server-setup')
   await expect(panel).toHaveAttribute('data-status', 'idle', { timeout: 20_000 })
   await pickFolder(app, games)
-  await panel.getByRole('button', { name: 'Install the server…' }).click()
+  await startInstall(page)
   await expect(panel).toHaveAttribute('data-status', 'failed', { timeout: 30_000 })
   await expect(page.getByTestId('server-setup-problem')).toContainText('No server release carries what an install needs yet')
   expect(existsSync(join(target, 'game-server'))).toBe(false)
