@@ -391,6 +391,26 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     return result
   }
 
+  /**
+   * Makes a server in a folder of its own (an install from nothing), as the launcher's one activity, the same as an update: the window
+   * waits for it and nothing starts or stops across it. Once the work succeeded the folder becomes the launcher's server and is read.
+   */
+  async installServerInto(folder: string, work: () => Promise<Problem | null>): Promise<Problem | null> {
+    let result: Problem | null = { code: 'launcher-busy' }
+    await this.run('server-update', async () => {
+      if (this.anyRunning) {
+        return false
+      }
+      result = await work()
+      if (result === null) {
+        await this.settings.update((settings) => ({ ...settings, serverRoot: folder }))
+        await this.detect()
+      }
+      return result === null
+    })
+    return result
+  }
+
   /** MySQL started if it is not, for the server's SQL script; the problem when it cannot be. */
   async ensureMysql(): Promise<Problem | null> {
     if (this.mysql.current.status === 'ready') {

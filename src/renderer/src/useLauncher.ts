@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { AccountsState, HomeInfo, LauncherState, NewsState, ServerId, ServerUpdateState, UpdateState } from '../../shared/types'
+import type { AccountsState, HomeInfo, LauncherState, NewsState, ServerId, ServerSetupState, ServerUpdateState, UpdateState } from '../../shared/types'
 
 /**
  * The saved accounts and the active one's characters, read again when what they depend on changes: the server folder (found at startup, or
@@ -68,6 +68,17 @@ export function useServerUpdate(): ServerUpdateState | null {
     return unsubscribe
   }, [])
   return update
+}
+
+/** The install from nothing, as the main process last published it; null until the first answer. */
+export function useServerSetup(): ServerSetupState | null {
+  const [setup, setSetup] = useState<ServerSetupState | null>(null)
+  useEffect(() => {
+    const unsubscribe = window.launcher.onServerSetup(setSetup)
+    void window.launcher.getServerSetup().then((initial) => setSetup((current) => current ?? initial))
+    return unsubscribe
+  }, [])
+  return setup
 }
 
 /** The launcher's and the server's last releases, as the main process last read them; null until the first answer. */

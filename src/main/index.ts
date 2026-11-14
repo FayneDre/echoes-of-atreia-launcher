@@ -22,6 +22,7 @@ import { Launcher } from './launcher'
 import { NewsFeed } from './news'
 import { processMemoryMb } from './system/memory'
 import { validValues } from './server/serverSettings'
+import { ServerSetup } from './serverUpdate/serverSetup'
 import { ServerUpdater } from './serverUpdate/serverUpdater'
 import { isAutoCleanup, isDeveloperMode, SettingsStore } from './settings'
 import { createReport, issueUrl } from './report'
@@ -51,6 +52,8 @@ const backups = new BackupService(() => launcher.currentLayout)
 const updater = new LauncherUpdater()
 // A beta launcher installs the server's pre-releases too, a stable one its releases only: decided by its own version, with no setting.
 const serverUpdater = new ServerUpdater(launcher, isBetaVersion(app.getVersion()), () => isDeveloperMode(settings.current))
+// An install from nothing takes the newest release the same launcher would update to.
+const serverSetup = new ServerSetup(launcher, isBetaVersion(app.getVersion()))
 /**
  * The two repositories on this computer whose notes stand in for GitHub in the developer mode: beside the server's folder (the launcher's
  * `echoes-of-atreia-launcher`, the server's `source/aion-server-4.8`), the launcher's own when it runs from its sources, or as
@@ -340,6 +343,17 @@ function registerIpc(presence: TaskbarPresence): void {
   ipcMain.handle('server-update:install', () => serverUpdater.install())
   ipcMain.handle('server-update:cancel', () => serverUpdater.cancel())
   ipcMain.handle('server-update:undo', () => serverUpdater.undo())
+  ipcMain.handle('server-setup:get-state', () => serverSetup.current)
+  // A try again goes back to the folder of the try that failed; otherwise the person picks one (an empty one, or one a folder is made in).
+  ipcMain.handle('server-setup:install', async (event, retry: unknown) => {
+    const failed = serverSetup.current
+    if (retry === true && failed.status === 'failed' && failed.folder) {
+      return serverSetup.install(failed.folder)
+    }
+    const result = await openDialog(event, { properties: ['openDirectory', 'createDirectory', 'promptToCreate'] })
+    const folder = result.filePaths[0]
+    return !result.canceled && folder ? serverSetup.install(folder) : null
+  })
   ipcMain.handle('update:get-state', () => updater.current)
   // Not while servers start or stop, or the server's files change; closing then asks what to do with the running ones, as any close does.
   ipcMain.handle('update:install', () => {
@@ -381,6 +395,7 @@ function registerIpc(presence: TaskbarPresence): void {
   launcher.on('lines', (batch) => send('launcher:lines', batch))
   updater.on('state', (state) => send('update:state', state))
   serverUpdater.on('state', (state) => send('server-update:state', state))
+  serverSetup.on('state', (state) => send('server-setup:state', state))
   news.on('state', (state) => send('news:state', state))
   // The server folder found at start, or chosen later: its releases are looked at again.
   let serverRoot: string | null = null

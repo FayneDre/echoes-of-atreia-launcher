@@ -9,6 +9,24 @@ export interface NavmeshEntry {
   asset: string
 }
 
+/** The folders a runtime may be unpacked into, under the install: where `ownRuntimes` looks for them. */
+export const RUNTIME_TARGETS = { java: 'runtime', mysql: 'mysql' } as const
+export type RuntimeName = keyof typeof RUNTIME_TARGETS
+
+/**
+ * A runtime an install from nothing unpacks before the bundle: the Java the servers run on and the MySQL that holds their database. Like a
+ * map, it is attached only to the release that rebuilt it.
+ */
+export interface RuntimeEntry {
+  version: string
+  /** The folder under the install: `runtime` for Java, `mysql` for MySQL. */
+  target: string
+  sha256: string
+  size: number
+  release: string
+  asset: string
+}
+
 /**
  * What the server's `tools/package-release.ps1` writes: the release, the hash of every file of its bundle, the rules of the install, and the
  * navmesh. The copy attached to the release names the bundle too; the one written into the install after an update does not.
@@ -29,6 +47,8 @@ export interface ReleaseManifest {
   /** Path (forward slashes, from the install's root) to SHA-256. */
   files: Record<string, string>
   navmesh: Record<string, NavmeshEntry>
+  /** Absent from the releases made before 14 November 2026: those can update an install, not make one. */
+  runtimes?: Partial<Record<RuntimeName, RuntimeEntry>>
   bundle?: { name: string; sha256: string; size: number }
 }
 
@@ -84,6 +104,28 @@ export function parseReleaseManifest(text: string): ReleaseManifest | null {
     const { sha256, size, release, asset } = (entry ?? {}) as Record<string, unknown>
     if (!isSafePath(path) || typeof sha256 !== 'string' || !SHA256.test(sha256) || !Number.isInteger(size) || typeof release !== 'string' || typeof asset !== 'string' || !isSafePath(asset)) {
       return null
+    }
+  }
+  const runtimes = manifest['runtimes'] as Record<string, unknown> | undefined
+  if (runtimes !== undefined) {
+    if (typeof runtimes !== 'object' || runtimes === null) {
+      return null
+    }
+    for (const [name, entry] of Object.entries(runtimes)) {
+      const { version, target, sha256, size, release, asset } = (entry ?? {}) as Record<string, unknown>
+      if (
+        !(name in RUNTIME_TARGETS) ||
+        target !== RUNTIME_TARGETS[name as RuntimeName] ||
+        typeof version !== 'string' ||
+        typeof sha256 !== 'string' ||
+        !SHA256.test(sha256) ||
+        !Number.isInteger(size) ||
+        typeof release !== 'string' ||
+        typeof asset !== 'string' ||
+        !isSafePath(asset)
+      ) {
+        return null
+      }
     }
   }
   const bundle = manifest['bundle'] as Record<string, unknown> | undefined

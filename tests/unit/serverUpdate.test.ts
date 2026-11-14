@@ -1,8 +1,10 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { runtimesOf } from '../../src/main/serverUpdate/installer'
 import { isSafePath, matchesRule, parseReleaseManifest, readInstallOrigin } from '../../src/main/serverUpdate/manifest'
+import { SERVER_FOLDER_NAME, serverFolderIn } from '../../src/main/serverUpdate/serverSetup'
 import { compareVersions } from '../../src/shared/types'
 
 const HASH = 'a'.repeat(64)
@@ -83,5 +85,58 @@ describe('readInstallOrigin', () => {
     dir = await mkdtemp(join(tmpdir(), 'echoes-origin-'))
     await writeFile(join(dir, 'manifest.json'), '{ broken')
     expect(await readInstallOrigin(dir)).toEqual({ source: 'deploy', revision: null })
+  })
+})
+
+describe('the runtimes of a release', () => {
+  const java = { version: '25.0.4.1', target: 'runtime', sha256: HASH, size: 9, release: 'v0.1.0-beta.5', asset: 'runtime-java-25.0.4.1.zip' }
+  const mysql = { version: '26.7.0', target: 'mysql', sha256: HASH, size: 8, release: 'v0.1.0-beta.5', asset: 'runtime-mysql-26.7.0.zip' }
+  it('reads the Java and the MySQL an install from nothing unpacks, and a manifest made before them', () => {
+    expect(parseReleaseManifest(manifest({ runtimes: { java, mysql } }))?.runtimes?.mysql?.target).toBe('mysql')
+    expect(parseReleaseManifest(manifest())?.runtimes).toBeUndefined()
+  })
+  it('refuses a runtime unpacked anywhere but its own folder, or one it does not know', () => {
+    expect(parseReleaseManifest(manifest({ runtimes: { java: { ...java, target: 'game-server/libs' } } }))).toBeNull()
+    expect(parseReleaseManifest(manifest({ runtimes: { java: { ...java, target: 'mysql' } } }))).toBeNull()
+    expect(parseReleaseManifest(manifest({ runtimes: { java: { ...java, asset: '../x.zip' } } }))).toBeNull()
+    expect(parseReleaseManifest(manifest({ runtimes: { python: java } }))).toBeNull()
+  })
+  it('tells a release that cannot make an install', () => {
+    expect(runtimesOf(parseReleaseManifest(manifest({ runtimes: { java, mysql } }))!).map((entry) => entry.target)).toEqual(['runtime', 'mysql'])
+    expect(() => runtimesOf(parseReleaseManifest(manifest({ runtimes: { java } }))!)).toThrow()
+  })
+})
+
+describe('the folder an install from nothing goes into', () => {
+  let dir: string | null = null
+  afterEach(async () => {
+    if (dir) {
+      await rm(dir, { recursive: true, force: true })
+      dir = null
+    }
+  })
+  it('is the folder chosen when it is empty or missing, else a new one inside it', async () => {
+    dir = await mkdtemp(join(tmpdir(), 'echoes-setup-'))
+    expect(await serverFolderIn(dir)).toEqual({ folder: dir, filesInPlace: false })
+    expect(await serverFolderIn(join(dir, 'new'))).toEqual({ folder: join(dir, 'new'), filesInPlace: false })
+    await writeFile(join(dir, 'notes.txt'), 'the person’s')
+    expect(await serverFolderIn(dir)).toEqual({ folder: join(dir, SERVER_FOLDER_NAME), filesInPlace: false })
+    // a try that stopped while it put the files in place is taken up where it is
+    await mkdir(join(dir, 'update-staging'))
+    expect(await serverFolderIn(dir)).toEqual({ folder: dir, filesInPlace: false })
+    await rm(join(dir, 'update-staging'), { recursive: true })
+    await mkdir(join(dir, SERVER_FOLDER_NAME))
+    await writeFile(join(dir, SERVER_FOLDER_NAME, 'other.txt'), 'something else')
+    expect(await serverFolderIn(dir)).toBeNull()
+  })
+  it('is taken up at the database when an earlier try put the files and stopped there', async () => {
+    dir = await mkdtemp(join(tmpdir(), 'echoes-setup-'))
+    await writeFile(join(dir, 'manifest.json'), manifest())
+    await mkdir(join(dir, 'mysql', 'bin'), { recursive: true })
+    await writeFile(join(dir, 'mysql', 'bin', 'mysqld.exe'), '')
+    expect(await serverFolderIn(dir)).toEqual({ folder: dir, filesInPlace: true })
+    // made already: an install, not one to take up
+    await writeFile(join(dir, 'mysql', 'my.ini'), '[mysqld]\n')
+    expect(await serverFolderIn(dir)).toEqual({ folder: join(dir, SERVER_FOLDER_NAME), filesInPlace: false })
   })
 })

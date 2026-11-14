@@ -12,6 +12,8 @@ How a beta launcher installs the server's pre-releases, and a stable one its rel
   rules (`prune`: folders holding only what the bundle lists; `local`: files that are the person's to edit) and the navmesh: for each map file,
   its hash and the release whose assets carry it, so a map is attached only to the release that rebuilt it.
 - `navmesh-<file>.gz` for the maps rebuilt since the previous bundle, and `notes.en.md`, `notes.fr.md`.
+- `runtime-java-<version>.zip` and `runtime-mysql-<version>.zip` when their recipe moved: only an install from nothing reads them (below); an
+  update leaves the install's Java and MySQL alone. The bundle also carries `setup-mysql.ps1` and the MySQL scripts beside `apply-sql.ps1`.
 
 ## Where the install stands
 
@@ -49,8 +51,28 @@ the `prune` folders lose what the bundle no longer lists.
 "Undo the vX update" undoes the last update from its backup: what it created removed, what it replaced or removed put back, the backup then
 deleted. The database keeps what the SQL changed; the dump `apply-sql.ps1` took is in the server's `backups` folder.
 
+## An install from nothing
+
+While no server is found, the home page offers to install one (`ServerSetupPanel`, `src/main/serverUpdate/serverSetup.ts`; the server
+repository's `docs/architecture/plans/empty-machine-install-plan.md`). Only a release whose manifest has a `runtimes` section can make one: the
+Java runtime (`target: runtime`) and the trimmed MySQL (`target: mysql`), each with its hash and the release whose assets carry it, as a map.
+
+1. **The folder**: the one the person picks when it is empty (or holds the `update-staging` of a try that stopped: only the launcher makes it),
+   else a new `echoes-server` inside it; a path with a letter outside plain ASCII is refused (MySQL reads its option file in the system's code page).
+2. **The room**: three times the zips (bundle and runtimes: staged, then unpacked) plus the maps plus 512 MB, against the drive's free space.
+3. **The files**, under the activity `server-update` (the window waits for it): the runtimes downloaded, checked and unpacked, the bundle and every
+   map as an update fetches them, then moved into place with the release's manifest. No `update-backups`: there is nothing to undo.
+4. **The database**: the bundle's `tools/setup-mysql.ps1 -ServerRoot <folder> -Port <port>`, on the first port from 3307 nothing listens on. It
+   makes the data folder, the accounts, the three databases and the servers' configuration, and leaves MySQL running.
+5. The folder becomes the launcher's server (`serverRoot`) and is read again: `ownRuntimes` then finds its Java and its MySQL.
+
+A try that fails keeps what it downloaded and checked: a file already staged with its hash is not fetched again (maps and runtimes resume file
+by file; the bundle, 150 MB, is fetched again). "Try again" goes back to the same folder; when its files are in place and only its `my.ini` is
+missing, it starts at the database.
+
 ## Tests
 
 `tests/e2e/serverUpdate.spec.ts` serves releases from a local HTTP server (`ECHOES_SERVER_FEED`, `tests/e2e/serverFeed.ts`), with a fake
 `apply-sql.ps1` that records how it was called and a fake JDK (`ECHOES_FAKE_JAVA_HOME`). Every other end-to-end test points the feed at a port
-nothing listens on, so no test reaches GitHub.
+nothing listens on, so no test reaches GitHub. `tests/e2e/serverSetup.spec.ts` installs from nothing a release that carries the fake server as its
+bundle, with a fake `setup-mysql.ps1` that writes `my.ini` and fails on demand; the folder dialog is answered by the test.

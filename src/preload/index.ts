@@ -17,6 +17,7 @@ import type {
   ReportResult,
   ServerId,
   ServerSettings,
+  ServerSetupState,
   ServerUpdateState,
   SystemOption,
   SystemOptions,
@@ -89,6 +90,10 @@ const launcherApi = {
   cancelServerUpdate: (): Promise<void> => ipcRenderer.invoke('server-update:cancel'),
   undoServerUpdate: (): Promise<Problem | null> => ipcRenderer.invoke('server-update:undo'),
   onServerUpdate: (listener: (state: ServerUpdateState) => void): (() => void) => subscribe('server-update:state', listener),
+  getServerSetup: (): Promise<ServerSetupState> => ipcRenderer.invoke('server-setup:get-state'),
+  /** Asks for a folder and installs the server there; with `retry`, goes back to the folder of the try that failed. */
+  installServer: (retry = false): Promise<Problem | null> => ipcRenderer.invoke('server-setup:install', retry),
+  onServerSetup: (listener: (state: ServerSetupState) => void): (() => void) => subscribe('server-setup:state', listener),
   isFullScreen: (): Promise<boolean> => ipcRenderer.invoke('window:get-full-screen'),
   setFullScreen: (on: boolean): Promise<void> => ipcRenderer.invoke('window:set-full-screen', on),
   onFullScreen: (listener: (fullScreen: boolean) => void): (() => void) => subscribe('window:full-screen', listener),

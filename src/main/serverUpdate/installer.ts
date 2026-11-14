@@ -7,7 +7,7 @@ import { pipeline } from 'node:stream/promises'
 import { createGunzip } from 'node:zlib'
 import yauzl from 'yauzl'
 import type { ServerFeed, ServerRelease } from './feed'
-import { isSafePath, matchesRule, type ReleaseManifest } from './manifest'
+import { isSafePath, matchesRule, type ReleaseManifest, type RuntimeEntry } from './manifest'
 
 /** What an update changes, worked out before any server is stopped. */
 export interface UpdatePlan {
@@ -135,6 +135,21 @@ async function download(url: string, target: string, total: number, progress: Pr
 }
 
 /**
+ * A download that is kept: a file already there with the expected hash (a first install stopped half-way, a retry) is not fetched again, so
+ * gigabytes of maps resume file by file. What arrives with another hash is thrown away.
+ */
+async function downloadChecked(url: string, target: string, expected: string, size: number, progress: Progress, gunzip = false): Promise<void> {
+  if ((await sha256Of(target)) === expected) {
+    progress(100)
+    return
+  }
+  if ((await download(url, target, size, progress, gunzip)) !== expected) {
+    await rm(target, { force: true })
+    throw new CorruptError(`${url}: downloaded, it is not the file the manifest names`)
+  }
+}
+
+/**
  * Installs a server release over an install, as the release process plan's six steps say, the servers themselves being stopped and started
  * by the caller: the bundle downloaded and checked against two hashes before it is opened, every file unpacked checked against the manifest,
  * every file replaced or removed kept under `update-backups/` so the update can be undone, and nothing outside the bundle's list touched but
@@ -154,7 +169,8 @@ export class ServerInstaller {
   async fetchBundle(release: ServerRelease, progress: Progress): Promise<void> {
     const bundle = release.manifest.bundle!
     const staging = this.staging(release)
-    await rm(staging, { recursive: true, force: true })
+    // the bundle alone: the maps and runtimes already staged and checked are kept for a retry
+    await rm(join(staging, 'bundle'), { recursive: true, force: true })
     const zip = join(this.root, STAGING, `${release.tag}.zip`)
     const hash = await download(release.bundleUrl, zip, bundle.size, progress)
     if (hash !== bundle.sha256 || (release.bundleDigest !== null && hash !== release.bundleDigest)) {
@@ -213,12 +229,9 @@ export class ServerInstaller {
     let done = 0
     for (const [path, entry] of entries) {
       const target = join(this.staging(release), 'navmesh', toNative(path))
-      const hash = await download(this.feed.assetUrl(entry.release, entry.asset), target, entry.size, (percent) =>
-        progress(total > 0 ? Math.floor(((done + (entry.size * percent) / 100) * 100) / total) : 100)
-      , true)
-      if (hash !== entry.sha256) {
-        throw new CorruptError(`${path}: downloaded, it is not the map the manifest names`)
-      }
+      const url = this.feed.assetUrl(entry.release, entry.asset)
+      const step: Progress = (percent) => progress(total > 0 ? Math.floor(((done + (entry.size * percent) / 100) * 100) / total) : 100)
+      await downloadChecked(url, target, entry.sha256, entry.size, step, true)
       done += entry.size
     }
   }
@@ -254,6 +267,47 @@ export class ServerInstaller {
     await copyFile(join(this.root, 'manifest.json'), join(backup, 'files', 'manifest.json')).catch(() => undefined)
     for (const [path, source] of installs) {
       await move(source, join(this.root, toNative(path)))
+    }
+    const { bundle: _bundle, ...installed } = release.manifest
+    await writeFile(join(this.root, 'manifest.json'), `${JSON.stringify(installed, null, 2)}\n`)
+    await rm(join(this.root, STAGING), { recursive: true, force: true })
+  }
+
+  /**
+   * The Java and the MySQL of the release (an install from nothing), each from the release that carries it, checked against the manifest's
+   * hash, then unpacked into the staging folder. Throws when the release names no runtimes.
+   */
+  async fetchRuntimes(release: ServerRelease, progress: Progress): Promise<void> {
+    const entries = runtimesOf(release.manifest)
+    const total = entries.reduce((sum, entry) => sum + entry.size, 0)
+    let done = 0
+    for (const entry of entries) {
+      const zip = join(this.staging(release), 'runtimes', entry.asset)
+      const url = this.feed.assetUrl(entry.release, entry.asset)
+      await downloadChecked(url, zip, entry.sha256, entry.size, (percent) => progress(Math.floor(((done + (entry.size * percent) / 100) * 100) / total)))
+      const unpacked = join(this.staging(release), 'runtimes', entry.target)
+      await rm(unpacked, { recursive: true, force: true })
+      await unzipAll(zip, unpacked)
+      done += entry.size
+    }
+  }
+
+  /**
+   * Puts a release into an empty folder: the runtimes, the bundle and the maps, then the manifest. No backup and no way back, there is nothing
+   * to put back; a failure leaves the staging folder, and the next try downloads only what it lacks.
+   */
+  async installFresh(release: ServerRelease, plan: UpdatePlan): Promise<void> {
+    const staging = this.staging(release)
+    for (const entry of runtimesOf(release.manifest)) {
+      const target = join(this.root, entry.target)
+      await rm(target, { recursive: true, force: true })
+      await move(join(staging, 'runtimes', entry.target), target)
+    }
+    for (const path of plan.copy) {
+      await move(join(staging, 'bundle', toNative(path)), join(this.root, toNative(path)))
+    }
+    for (const path of plan.navmesh) {
+      await move(join(staging, 'navmesh', toNative(path)), join(this.root, toNative(path)))
     }
     const { bundle: _bundle, ...installed } = release.manifest
     await writeFile(join(this.root, 'manifest.json'), `${JSON.stringify(installed, null, 2)}\n`)
@@ -321,6 +375,52 @@ export class ServerInstaller {
 }
 
 export class CorruptError extends Error {}
+
+/** The runtimes a release names, Java first; throws when it names neither (a release made before they were attached). */
+export function runtimesOf(manifest: ReleaseManifest): RuntimeEntry[] {
+  const entries = [manifest.runtimes?.java, manifest.runtimes?.mysql].filter((entry): entry is RuntimeEntry => entry !== undefined)
+  if (entries.length !== 2) {
+    throw new Error(`${manifest.version} carries no Java and MySQL to install from`)
+  }
+  return entries
+}
+
+/** Unpacks a whole zip, a runtime's: every entry, none that would land outside the folder. */
+function unzipAll(zipPath: string, target: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    yauzl.open(zipPath, { lazyEntries: true }, (error, zip) => {
+      if (error || !zip) {
+        reject(error ?? new Error(`cannot open ${zipPath}`))
+        return
+      }
+      zip.on('error', reject)
+      zip.on('end', () => resolve())
+      zip.on('entry', (entry: yauzl.Entry) => {
+        const name = entry.fileName
+        if (name.endsWith('/')) {
+          zip.readEntry()
+          return
+        }
+        if (!isSafePath(name)) {
+          zip.close()
+          reject(new CorruptError(`${zipPath}: the entry ${name} would land outside its folder`))
+          return
+        }
+        zip.openReadStream(entry, (streamError, stream) => {
+          if (streamError || !stream) {
+            reject(streamError ?? new Error(`cannot read ${name}`))
+            return
+          }
+          const file = join(target, toNative(name))
+          mkdir(dirname(file), { recursive: true })
+            .then(() => pipeline(stream, createWriteStream(file)))
+            .then(() => zip.readEntry(), reject)
+        })
+      })
+      zip.readEntry()
+    })
+  })
+}
 
 /** Unpacks the files the manifest names, and only those: a zip entry that is not in it, or would land outside the folder, is left out. */
 function unzip(zipPath: string, target: string, manifest: ReleaseManifest): Promise<void> {

@@ -52,7 +52,10 @@ the SQL updates and an undo (milestone 6, [server-update.md](server-update.md)).
 4. **Check and repair the install** from the manifest: every file against its hash, what is missing or changed downloaded again.
 5. **Back to the previous version**: the previous bundle kept, so a beta patch that breaks something is undone in one click.
 6. **A first-launch assistant**: Java, memory and disk space checked, what can be fixed fixed in one click; the database is a portable MySQL the
-   launcher ships, unpacks and starts on its own port, nothing installed on the system (decided 8 November).
+   launcher ships, unpacks and starts on its own port, nothing installed on the system (decided 8 November). **Built, unverified** (14 November):
+   the install from nothing ([server-update.md](server-update.md)): folder, room, runtimes, bundle, maps, `setup-mysql.ps1` on a free port, maps
+   and runtimes resumed file by file. Left: a server pre-release carrying the runtimes, then a first install on a clean machine (Windows Sandbox)
+   up to a player logging in; memory checked before the first start.
 
 ## 3. Server settings
 

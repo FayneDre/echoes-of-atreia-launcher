@@ -54,6 +54,12 @@ export type ProblemCode =
   | 'update-files-failed'
   | 'update-sql-failed'
   | 'update-nothing-to-return'
+  | 'setup-no-release'
+  | 'setup-folder-not-empty'
+  | 'setup-folder-path'
+  | 'setup-disk-space'
+  | 'setup-no-port'
+  | 'setup-database-failed'
 
 /** A code the interface translates, and what the system said, shown as is. */
 export interface Problem {
@@ -345,6 +351,25 @@ export function compareVersions(a: string, b: string): number | null {
 export type ServerUpdateStatus = 'off' | 'dev' | 'developer' | 'current' | 'available' | 'preparing' | 'confirm' | 'installing' | 'failed'
 
 export type ServerUpdateStep = 'download' | 'navmesh' | 'verify' | 'stop' | 'files' | 'sql' | 'start' | 'return'
+
+/**
+ * Where an install from nothing stands. `idle`: none asked (or the last one succeeded). `running`: `step` says which part, `percent` how far.
+ * `failed`: `problem` says why; trying again downloads only what is missing.
+ */
+export type ServerSetupStatus = 'idle' | 'running' | 'failed'
+
+export type ServerSetupStep = 'release' | 'runtimes' | 'download' | 'navmesh' | 'files' | 'database'
+
+export interface ServerSetupState {
+  status: ServerSetupStatus
+  /** The folder the server goes into. */
+  folder?: string
+  /** The release being installed. */
+  version?: string
+  step?: ServerSetupStep
+  percent?: number
+  problem?: Problem
+}
 
 export interface ServerUpdateState {
   status: ServerUpdateStatus

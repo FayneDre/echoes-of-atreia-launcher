@@ -28,6 +28,21 @@ export interface FakeRelease {
   navmesh?: Record<string, { content: string; release?: string }>
   /** A bundle whose bytes are not those its manifest names. */
   corrupt?: boolean
+  /** The Java and the MySQL an install from nothing unpacks: each one's files, zipped as a release asset. */
+  runtimes?: Record<'java' | 'mysql', Record<string, string>>
+}
+
+const RUNTIME_TARGETS = { java: 'runtime', mysql: 'mysql' } as const
+
+async function zipOf(files: Record<string, string>, path: string): Promise<Buffer> {
+  mkdirSync(dirname(path), { recursive: true })
+  const zip = new yazl.ZipFile()
+  for (const [name, content] of Object.entries(files)) {
+    zip.addBuffer(Buffer.from(content), name)
+  }
+  zip.end()
+  await new Promise<void>((resolve, reject) => zip.outputStream.pipe(createWriteStream(path)).on('close', resolve).on('error', reject))
+  return readFileSync(path)
 }
 
 /**
@@ -37,6 +52,8 @@ export interface FakeRelease {
 export class ServerFeedServer {
   private server: Server | null = null
   url = ''
+  /** Every path asked for, in order: what a test reads to see what was downloaded again. */
+  readonly requests: string[] = []
   private releases: { tag_name: string; draft: boolean; prerelease: boolean; assets: { name: string; browser_download_url: string; digest: string }[] }[] = []
 
   constructor(private readonly dir: string) {
@@ -45,6 +62,7 @@ export class ServerFeedServer {
 
   async start(): Promise<void> {
     this.server = createServer((request, response) => {
+      this.requests.push((request.url ?? '/').split('?')[0]!)
       try {
         response.end(readFileSync(join(this.dir, decodeURIComponent((request.url ?? '/').split('?')[0]!.slice(1)))))
       } catch {
@@ -76,7 +94,8 @@ export class ServerFeedServer {
   }
 
   async publish(release: FakeRelease): Promise<void> {
-    const files = { ...release.files, 'tools/apply-sql.ps1': FAKE_APPLY_SQL, 'game-server/sql/update.sql': 'SELECT 1;\n' }
+    // the release's own files win: a test may give its own scripts
+    const files = { 'tools/apply-sql.ps1': FAKE_APPLY_SQL, 'game-server/sql/update.sql': 'SELECT 1;\n', ...release.files }
     const navmesh = Object.fromEntries(
       Object.entries(release.navmesh ?? {}).map(([path, { content, release: carrier }]) => [
         path,
@@ -96,6 +115,17 @@ export class ServerFeedServer {
       files: Object.fromEntries(Object.entries(files).map(([path, content]) => [path, sha256(content)])),
       navmesh
     }
+    const runtimeAssets: { name: string; browser_download_url: string; digest: string }[] = []
+    const runtimes: Record<string, unknown> = {}
+    for (const [name, runtimeFiles] of Object.entries(release.runtimes ?? {}) as ['java' | 'mysql', Record<string, string>][]) {
+      const asset = `runtime-${name}-1.0.zip`
+      const bytes = await zipOf(runtimeFiles, join(this.dir, release.tag, asset))
+      runtimeAssets.push({ name: asset, browser_download_url: `${this.url}/${release.tag}/${asset}`, digest: `sha256:${sha256(bytes)}` })
+      runtimes[name] = { version: '1.0', target: RUNTIME_TARGETS[name], sha256: sha256(bytes), size: bytes.length, release: release.tag, asset }
+    }
+    if (release.runtimes) {
+      Object.assign(manifest, { runtimes })
+    }
     const zipName = `aion-server-${release.tag}.zip`
     const zipPath = join(this.dir, release.tag, zipName)
     mkdirSync(dirname(zipPath), { recursive: true })
@@ -113,7 +143,8 @@ export class ServerFeedServer {
       { name: zipName, browser_download_url: `${this.url}/${release.tag}/${zipName}`, digest: `sha256:${bundle.sha256}` },
       this.asset(release.tag, 'manifest.json', JSON.stringify({ ...manifest, bundle })),
       this.asset(release.tag, 'notes.en.md', `What changes in server ${release.tag}`),
-      this.asset(release.tag, 'notes.fr.md', `Ce qui change dans le serveur ${release.tag}`)
+      this.asset(release.tag, 'notes.fr.md', `Ce qui change dans le serveur ${release.tag}`),
+      ...runtimeAssets
     ]
     for (const [path, { content, release: carrier }] of Object.entries(release.navmesh ?? {})) {
       if (!carrier || carrier === release.tag) {

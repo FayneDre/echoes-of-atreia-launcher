@@ -5,6 +5,7 @@ import { BotsPage } from './components/BotsPage'
 import { InstallPanel } from './components/InstallPanel'
 import { QuitDialog } from './components/QuitDialog'
 import { ReportDialog } from './components/ReportDialog'
+import { ServerSetupPanel } from './components/ServerSetupPanel'
 import { ServerUpdatePanel } from './components/ServerUpdatePanel'
 import { ServersPanel } from './components/ServersPanel'
 import { SettingsPage } from './components/SettingsPage'
@@ -12,7 +13,7 @@ import { TerminalPanel } from './components/TerminalPanel'
 import { UpdateBanner } from './components/UpdateBanner'
 import { LANGUAGES, useI18n, type MessageKey } from './i18n'
 import { MIN_SERVER_API_LEVEL, MIN_SERVER_VERSION, SERVER_IDS, isServerTooOld, type ServerId, type ServerVersion } from '../../shared/types'
-import { useAccounts, useFullScreen, useHomeInfo, useLauncherState, useNews, useServerUpdate, useUpdate } from './useLauncher'
+import { useAccounts, useFullScreen, useHomeInfo, useLauncherState, useNews, useServerSetup, useServerUpdate, useUpdate } from './useLauncher'
 import { HomeHero } from './components/HomeHero'
 import { NewsPanel } from './components/NewsPanel'
 import emblem from './assets/emblem.png'
@@ -57,6 +58,7 @@ export function App(): React.JSX.Element {
   const state = useLauncherState()
   const update = useUpdate()
   const serverUpdate = useServerUpdate()
+  const serverSetup = useServerSetup()
   const { accounts, reload } = useAccounts(state)
   const [page, setPage] = useState<Page>('home')
   const playing = accounts?.characters.find((character) => character.id === accounts.selectedCharacterId)
@@ -174,6 +176,7 @@ export function App(): React.JSX.Element {
                 <InstallPanel state={state} info={homeInfo} onOpenBackups={() => setPage('backups')} />
               </div>
               <div className="home-column">
+                <ServerSetupPanel setup={serverSetup} state={state} />
                 <ServerUpdatePanel update={serverUpdate} state={state} />
                 <NewsPanel news={news} />
               </div>

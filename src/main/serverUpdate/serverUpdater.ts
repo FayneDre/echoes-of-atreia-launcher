@@ -1,4 +1,3 @@
-import { execFile } from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import { compareVersions, type Problem, type ServerUpdateState, type ServerUpdateStep } from '../../shared/types'
 import type { Launcher } from '../launcher'
@@ -7,26 +6,12 @@ import { jdkMajorVersion } from '../system/java'
 import { ServerFeed, type ServerRelease } from './feed'
 import { CorruptError, ServerInstaller, type UpdatePlan } from './installer'
 import { readInstallOrigin, type ReleaseManifest } from './manifest'
+import { runServerScript, tail } from './powershell'
 
 const SQL_TIMEOUT_MS = 30 * 60 * 1000
 
 /** Runs the server's SQL script (`apply-sql.ps1`) with these arguments: its exit code and everything it said. */
-function runSqlScript(script: string, args: string[]): Promise<{ code: number; output: string }> {
-  return new Promise((resolve) => {
-    execFile(
-      'powershell.exe',
-      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script, ...args],
-      { timeout: SQL_TIMEOUT_MS, windowsHide: true, maxBuffer: 16 * 1024 * 1024 },
-      (error, stdout, stderr) => {
-        const code = error ? (typeof error.code === 'number' ? error.code : -1) : 0
-        resolve({ code, output: `${stdout}\n${stderr}`.trim() })
-      }
-    )
-  })
-}
-
-/** The last lines of what a script said, for a problem's detail. */
-const tail = (text: string): string => text.split(/\r?\n/).filter(Boolean).slice(-6).join('\n')
+const runSqlScript = (script: string, args: string[]): Promise<{ code: number; output: string }> => runServerScript(script, args, SQL_TIMEOUT_MS)
 
 /**
  * The server's own update, for a beta launcher the server's pre-releases too (release process plan, milestone 6). It looks for a newer release
