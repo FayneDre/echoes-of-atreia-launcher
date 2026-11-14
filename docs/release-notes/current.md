@@ -7,6 +7,26 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.12 — 15/11/2026
+
+**Proposée par le launcher** si tu as la v0.3.0-beta.11 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la
+main avec `Echoes-of-Atreia-Setup-0.3.0-beta.12.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien demande le serveur v0.1.0-beta.6 ; le panneau d'administration, un
+serveur plus récent que la v0.1.0-beta.6 ; le seuil de RAM du PC, le serveur v0.1.0-beta.8 (sans lui, ses réglages n'apparaissent pas).
+
+**Ce qui change**
+- **Compte : le panneau Administration tient dans la page** : une ligne par mode, sur deux colonnes, et ce que fait chaque mode dans une
+  fenêtre (« Ce que fait chaque mode ») ou au survol d'une case. Il débordait du cadre.
+- **Invulnérable, Invisible, Laissé tranquille et Voir les cachés sont gardés aux prochaines connexions** : le serveur les réactivait à
+  chaque connexion d'un personnage administrateur. Sans temps de recharge et Voler partout durent toujours jusqu'à la déconnexion.
+- **Bots, Population : arrêter les arrivées de bots quand la RAM du PC est pleine**, avec le seuil de ton choix (90 % par défaut) ; les
+  bots reprennent 5 points en dessous. Le cadre « Population en ce moment » affiche la RAM du PC utilisée.
+- **Un réglage du serveur s'enregistre même si le serveur relit son fichier au même moment** : Windows refusait de le remplacer, et la case
+  restait bloquée.
+
+---
+
 ## v0.3.0-beta.11 — 14/11/2026
 
 **Proposée par le launcher** si tu as la v0.3.0-beta.10 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la

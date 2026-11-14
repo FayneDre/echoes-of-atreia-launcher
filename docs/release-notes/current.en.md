@@ -6,6 +6,25 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.12 — 2026-11-15
+
+**Offered by the launcher** if you have v0.3.0-beta.11: "Update" on the line at the top of the window. Otherwise, install it by hand with
+`Echoes-of-Atreia-Setup-0.3.0-beta.12.exe`.
+
+**Minimum server: v0.1.0-beta.1.** Installing from nothing needs server v0.1.0-beta.6; the administration panel, a server newer than
+v0.1.0-beta.6; the PC RAM mark, server v0.1.0-beta.8 (without it, its settings do not show).
+
+**What changes**
+- **Account: the Administration panel fits the page**: one line a mode, in two columns, and what each mode does in a dialog ("What each
+  mode does") or in a box's tooltip. It overflowed its frame.
+- **Invulnerable, Invisible, Left alone and See hidden are kept for the next logins**: the server turned them on again at every login of an
+  administrator character. No cooldowns and Fly anywhere still last until the character leaves.
+- **Bots, Population: stop bot arrivals when the PC's RAM is full**, at the mark of your choice (90 % by default); bots come again 5 points
+  under it. The "Population now" box shows the PC RAM in use.
+- **A server setting is saved even while the server reads its file at that moment**: Windows refused to replace it, and the box stayed stuck.
+
+---
+
 ## v0.3.0-beta.11 — 2026-11-14
 
 **Offered by the launcher** if you have v0.3.0-beta.10: "Update" on the line at the top of the window. Otherwise install it by hand with
