@@ -12,6 +12,7 @@ import {
 import { formatSize } from '../format'
 import { useI18n } from '../i18n'
 import { closeOnBackdropClick } from '../dialog'
+import { useToast } from './Toasts'
 
 function FolderRow(props: {
   label: string
@@ -63,6 +64,7 @@ function OptionRow(props: {
 export function InstallPanel(props: { state: LauncherState; info: HomeInfo | null; onOpenBackups: () => void }): React.JSX.Element {
   const { state, info } = props
   const { language, t } = useI18n()
+  const notify = useToast()
   const dialog = useRef<HTMLDialogElement>(null)
   // what Windows has now, read each time the window opens: the person may have changed it there
   const [system, setSystem] = useState<SystemOptions>({ startWithWindows: null, desktopShortcut: null })
@@ -76,6 +78,18 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
     void window.launcher.setSystemOption(option, on).then(setSystem)
   }
   const { install } = state
+  const uninstall = async (): Promise<void> => {
+    if (!window.confirm(t('install.uninstallConfirm', { folder: install.serverRoot ?? '' }))) {
+      return
+    }
+    const result = await window.launcher.uninstallServer()
+    if ('code' in result) {
+      notify(`${t(`problem.${result.code}`)}${result.detail ? ` ${result.detail}` : ''}`, 'error')
+      return
+    }
+    dialog.current?.close()
+    notify(t('install.uninstalled', { folder: result.kept }), 'success')
+  }
   // The folders can only change while nothing runs: the running servers belong to the current one.
   const locked =
     state.activity !== 'idle' || SERVER_IDS.some((id) => state.servers[id].status !== 'stopped' && state.servers[id].status !== 'failed')
@@ -269,6 +283,20 @@ export function InstallPanel(props: { state: LauncherState; info: HomeInfo | nul
             onChange={(on) => void window.launcher.setDeveloperMode(on)}
           />
         </div>
+        {/* a server built from git, or found, is never the launcher's to delete: only the one it installed from nothing */}
+        {install.serverInstalledByLauncher && (
+          <>
+            <h3 className="install-options-title">{t('install.uninstallTitle')}</h3>
+            <div className="install-row install-uninstall" data-testid="install-uninstall">
+              <span className="install-value muted">
+                {state.activity === 'uninstall' ? t('install.uninstalling') : t('install.uninstallHint')}
+              </span>
+              <button type="button" className="small button-danger" disabled={state.activity !== 'idle'} onClick={() => void uninstall()}>
+                {t('install.uninstall')}
+              </button>
+            </div>
+          </>
+        )}
         <div className="dialog-actions">
           <button type="button" className="button-primary" onClick={() => dialog.current?.close()}>
             {t('action.close')}

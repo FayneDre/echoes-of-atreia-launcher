@@ -75,9 +75,22 @@ missing, it starts at the database. `setup-mysql.ps1` runs only on nothing and w
 the MySQL it started stopped (`mysqladmin shutdown` as root, with `root.cnf` or before any password), then `my.ini`, `data` and `root.cnf`
 removed; a MySQL that will not stop leaves them, and says so.
 
+## Uninstalling it
+
+The install from nothing writes `echoes-install.json` first, naming its folder (`installMarker.ts`): the only proof the launcher may delete it.
+A server built from git, found, updated or moved has none (or one naming another folder) and is never offered. `Launcher.uninstallServer`, as
+the activity `uninstall` (the window waits for it): every server stopped the usual way, MySQL started if need be, a backup `before-uninstall`
+copied to `Documents\Echoes of Atreia\backups\<date>` (outside the folder and the launcher's data), its MySQL shut down, the folder deleted,
+`serverRoot` (and a `mysqlOptionsFile` inside it) forgotten. A step that fails stops there; nothing is deleted before the backup is out.
+Two ways in: "Uninstall the server…" in the installation's window, and the launcher's own uninstaller, whose `build/installer.nsh` runs
+`Echoes of Atreia.exe --uninstall-server` before removing the launcher (never on an update or a silent uninstall): no window, a question in
+the system's language, the same work, then a message. Left: restoring a kept backup into a new install.
+
 ## Tests
 
 `tests/e2e/serverUpdate.spec.ts` serves releases from a local HTTP server (`ECHOES_SERVER_FEED`, `tests/e2e/serverFeed.ts`), with a fake
 `apply-sql.ps1` that records how it was called and a fake JDK (`ECHOES_FAKE_JAVA_HOME`). Every other end-to-end test points the feed at a port
 nothing listens on, so no test reaches GitHub. `tests/e2e/serverSetup.spec.ts` installs from nothing a release that carries the fake server as its
 bundle, with a fake `setup-mysql.ps1` that writes `my.ini` and fails on demand; the folder dialog is answered by the test.
+`tests/e2e/uninstall.spec.ts` uninstalls from the window and as the uninstaller runs it (`ECHOES_FAKE_UNINSTALL_ANSWER`, the backup kept in
+`ECHOES_KEPT_BACKUPS_DIR`); the NSIS macro itself is tried only by a real uninstall.

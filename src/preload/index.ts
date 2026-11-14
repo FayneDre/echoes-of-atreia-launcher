@@ -94,6 +94,8 @@ const launcherApi = {
   getServerSetup: (): Promise<ServerSetupState> => ipcRenderer.invoke('server-setup:get-state'),
   /** Asks for a folder and installs the server there; with `retry`, goes back to the folder of the try that failed. */
   installServer: (retry = false): Promise<Problem | null> => ipcRenderer.invoke('server-setup:install', retry),
+  /** Uninstalls a server the launcher installed: the servers stopped, a last backup kept outside its folder, the folder deleted. */
+  uninstallServer: (): Promise<{ kept: string } | Problem> => ipcRenderer.invoke('server:uninstall'),
   onServerSetup: (listener: (state: ServerSetupState) => void): (() => void) => subscribe('server-setup:state', listener),
   isFullScreen: (): Promise<boolean> => ipcRenderer.invoke('window:get-full-screen'),
   setFullScreen: (on: boolean): Promise<void> => ipcRenderer.invoke('window:set-full-screen', on),

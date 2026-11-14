@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
-import { join } from 'node:path'
+import { cp, mkdir, rm } from 'node:fs/promises'
+import { join, parse, resolve } from 'node:path'
 import {
   REQUIRED_JAVA,
   SERVER_IDS,
@@ -29,6 +30,8 @@ import { ServerProcess } from './server/serverProcess'
 import { needsStart, readServerSettings, writeServerSettings } from './server/serverSettings'
 import { isAutoCleanup, isDeveloperMode, type SettingsStore } from './settings'
 import { ownMysqlOf } from './server/ownRuntimes'
+import type { BackupService } from './backup/backupService'
+import { isInside, isLauncherInstall } from './serverUpdate/installMarker'
 import { javaCommand, javaMajorVersion } from './system/java'
 
 /**
@@ -48,7 +51,8 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     javaVersion: null,
     clientMissing: [],
     clientPacks: [],
-    clientLanguage: null
+    clientLanguage: null,
+    serverInstalledByLauncher: false
   }
   /** The interface's language, which the client's language follows until the person chooses one. */
   private interfaceLanguage: 'fr' | 'en' = 'fr'
@@ -235,6 +239,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       clientRoot,
       clientFound,
       javaVersion: await javaMajorVersion(this.layout?.root),
+      serverInstalledByLauncher: this.layout !== null && (await isLauncherInstall(serverRoot)),
       ...this.clientFacts(clientFound && clientRoot ? await checkClient(clientRoot) : null)
     }
     this.gameStatus = 'stopped'
@@ -407,6 +412,70 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
         await this.detect()
       }
       return result === null
+    })
+    return result
+  }
+
+  /**
+   * Removes a server the launcher installed from nothing, and only such one (its marker, installMarker.ts): every server stopped the usual way
+   * (the game server saves the players), a last backup of both databases copied out of the folder into `keptIn`, the install's MySQL
+   * stopped, then the folder deleted and forgotten. A step that fails stops it there: nothing is deleted without its backup kept outside.
+   */
+  async uninstallServer(backups: BackupService, keptIn: string): Promise<{ kept: string } | Problem> {
+    let result: { kept: string } | Problem = { code: 'launcher-busy' }
+    await this.run('uninstall', async () => {
+      const root = this.install.serverRoot
+      if (!this.layout || !root || !(await isLauncherInstall(root))) {
+        result = { code: 'uninstall-not-launcher-install', detail: root ?? undefined }
+        return false
+      }
+      // a folder for the backup inside the one deleted would go with it; a whole drive (an empty one installed into) is never deleted
+      if (isInside(root, keptIn) || parse(resolve(root)).root === resolve(root)) {
+        result = { code: 'uninstall-not-launcher-install', detail: keptIn }
+        return false
+      }
+      this.stopRequested = true
+      if (!(await this.stopServers())) {
+        result = { code: 'update-stop-failed' }
+        return false
+      }
+      const mysql = await this.ensureMysql()
+      if (mysql) {
+        result = mysql
+        return false
+      }
+      const backup = await backups.create('before-uninstall')
+      if ('code' in backup) {
+        result = backup
+        return false
+      }
+      const kept = join(keptIn, backup.id)
+      try {
+        await mkdir(keptIn, { recursive: true })
+        await cp(join(root, 'backups', backup.id), kept, { recursive: true, errorOnExist: true, force: false })
+      } catch (error) {
+        result = { code: 'backup-failed', detail: (error as Error).message }
+        return false
+      }
+      // its data folder is in the one deleted: a MySQL still running holds its files open
+      const stopped = await this.mysql.stop()
+      if (stopped) {
+        result = stopped
+        return false
+      }
+      try {
+        await rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 })
+      } catch (error) {
+        result = { code: 'uninstall-files-failed', detail: `${(error as Error).message}\n(${kept})` }
+        await this.detect()
+        return false
+      }
+      await this.settings.update(({ serverRoot: _removed, mysqlOptionsFile, ...settings }) => {
+        return mysqlOptionsFile && !isInside(root, mysqlOptionsFile) ? { ...settings, mysqlOptionsFile } : settings
+      })
+      await this.detect()
+      result = { kept }
+      return true
     })
     return result
   }

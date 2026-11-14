@@ -17,7 +17,7 @@ export function taskbarStatus(state: LauncherState, update: ServerUpdateState | 
   let progress: TaskbarStatus['progress'] = null
   if (update && (update.status === 'preparing' || update.status === 'installing')) {
     progress = update.percent !== undefined ? Math.min(1, Math.max(0, update.percent / 100)) : 'indeterminate'
-  } else if (state.activity === 'backup' || state.activity === 'restore' || state.activity === 'server-update') {
+  } else if (state.activity === 'backup' || state.activity === 'restore' || state.activity === 'server-update' || state.activity === 'uninstall') {
     progress = 'indeterminate'
   }
   return { phase, mark, progress }
@@ -77,6 +77,7 @@ const TEXTS: Record<TrayLanguage, Record<StackPhase | 'open' | 'play' | 'start' 
     starting: 'Démarrage des serveurs…',
     stopping: 'Arrêt des serveurs…',
     updating: 'Mise à jour du serveur…',
+    uninstalling: 'Désinstallation du serveur…',
     partial: 'Serveurs en partie démarrés',
     stopped: 'Serveurs arrêtés',
     open: 'Ouvrir le launcher',
@@ -91,6 +92,7 @@ const TEXTS: Record<TrayLanguage, Record<StackPhase | 'open' | 'play' | 'start' 
     starting: 'Starting the servers…',
     stopping: 'Stopping the servers…',
     updating: 'Updating the server…',
+    uninstalling: 'Uninstalling the server…',
     partial: 'Servers partly started',
     stopped: 'Servers stopped',
     open: 'Open the launcher',

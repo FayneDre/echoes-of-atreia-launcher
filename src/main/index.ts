@@ -354,12 +354,13 @@ function registerIpc(presence: TaskbarPresence): void {
     const folder = result.filePaths[0]
     return !result.canceled && folder ? serverSetup.install(folder) : null
   })
+  ipcMain.handle('server:uninstall', () => launcher.uninstallServer(backups, keptBackupsFolder()))
   ipcMain.handle('update:get-state', () => updater.current)
   ipcMain.handle('update:download', () => updater.download())
   // Not while servers start or stop, or the server's files change; closing then asks what to do with the running ones, as any close does.
   ipcMain.handle('update:install', () => {
     const { activity } = launcher.getState()
-    if (activity === 'starting' || activity === 'stopping' || activity === 'server-update' || !updater.askInstall()) {
+    if (activity === 'starting' || activity === 'stopping' || activity === 'server-update' || activity === 'uninstall' || !updater.askInstall()) {
       return false
     }
     mainWindow?.close()
@@ -408,6 +409,83 @@ function registerIpc(presence: TaskbarPresence): void {
   })
 }
 
+const UNINSTALL_SERVER_ARG = '--uninstall-server'
+
+/**
+ * Where the last backup of an uninstalled server is kept: outside its folder, which is deleted, and outside the launcher's own data, which
+ * its uninstaller may delete too. The end-to-end tests set ECHOES_KEPT_BACKUPS_DIR.
+ */
+function keptBackupsFolder(): string {
+  return process.env['ECHOES_KEPT_BACKUPS_DIR'] || join(app.getPath('documents'), 'Echoes of Atreia', 'backups')
+}
+
+const UNINSTALL_TEXTS = {
+  fr: {
+    question: 'Désinstaller aussi le serveur ?',
+    detail: (folder: string, kept: string) =>
+      `Le launcher a installé un serveur dans ${folder}. Il peut l’arrêter et supprimer ce dossier.\n\n` +
+      `Une sauvegarde de vos comptes et de vos personnages est gardée dans ${kept}.`,
+    yes: 'Désinstaller le serveur',
+    no: 'Le garder',
+    done: 'Le serveur est désinstallé.',
+    kept: (kept: string) => `Vos personnages sont sauvegardés dans ${kept}.`,
+    failed: 'Le serveur n’a pas été désinstallé.'
+  },
+  en: {
+    question: 'Uninstall the server too?',
+    detail: (folder: string, kept: string) =>
+      `The launcher installed a server in ${folder}. It can stop it and delete that folder.\n\n` +
+      `A backup of your accounts and characters is kept in ${kept}.`,
+    yes: 'Uninstall the server',
+    no: 'Keep it',
+    done: 'The server is uninstalled.',
+    kept: (kept: string) => `Your characters are backed up in ${kept}.`,
+    failed: 'The server was not uninstalled.'
+  }
+}
+
+/**
+ * The uninstaller's question, asked only for a server the launcher installed from nothing; the answer is the person's. The end-to-end tests
+ * answer it with ECHOES_FAKE_UNINSTALL_ANSWER (yes or no) and see no message.
+ */
+async function uninstallFromSetup(): Promise<void> {
+  await settings.load()
+  await launcher.initialize()
+  const { install } = launcher.getState()
+  if (!install.serverInstalledByLauncher || !install.serverRoot) {
+    return
+  }
+  const texts = UNINSTALL_TEXTS[app.getLocale().toLowerCase().startsWith('fr') ? 'fr' : 'en']
+  const kept = keptBackupsFolder()
+  const fake = process.env['ECHOES_FAKE_UNINSTALL_ANSWER']
+  const yes = fake
+    ? fake === 'yes'
+    : (
+        await dialog.showMessageBox({
+          type: 'question',
+          title: 'Echoes of Atreia',
+          message: texts.question,
+          detail: texts.detail(install.serverRoot, kept),
+          buttons: [texts.yes, texts.no],
+          defaultId: 0,
+          cancelId: 1,
+          noLink: true
+        })
+      ).response === 0
+  if (!yes) {
+    return
+  }
+  const result = await launcher.uninstallServer(backups, kept)
+  if (fake) {
+    return
+  }
+  if ('code' in result) {
+    dialog.showErrorBox('Echoes of Atreia', `${texts.failed}\n\n${result.code}${result.detail ? `\n${result.detail}` : ''}`)
+  } else {
+    await dialog.showMessageBox({ type: 'info', title: 'Echoes of Atreia', message: texts.done, detail: texts.kept(result.kept), noLink: true })
+  }
+}
+
 /** The window's bar in the launcher's colours (theme.css, .titlebar). */
 const TITLE_BAR_COLOUR = '#080c1a'
 const TITLE_BAR_SYMBOL = '#d8b46c'
@@ -449,7 +527,9 @@ function createWindow(): BrowserWindow {
   window.on('close', (event) => {
     // A restore stopped half-way leaves one database restored and the other not: the window waits for it to end.
     // A server update stopped half-way leaves files of two versions: the window waits for it too.
-    if (launcher.getState().activity === 'restore' || launcher.getState().activity === 'server-update') {
+    // An uninstall stopped half-way leaves a server without its MySQL, or half deleted: the window waits for it as well.
+    const { activity } = launcher.getState()
+    if (activity === 'restore' || activity === 'server-update' || activity === 'uninstall') {
       event.preventDefault()
       return
     }
@@ -476,8 +556,19 @@ function createWindow(): BrowserWindow {
   return window
 }
 
-// Two launchers would each believe they own the servers: a second one only brings the first to the front.
-if (!app.requestSingleInstanceLock()) {
+// Run by the launcher's own uninstaller (build/installer.nsh), before it removes the launcher: no window, a question, and the server removed.
+if (process.argv.includes(UNINSTALL_SERVER_ARG)) {
+  void app
+    .whenReady()
+    .then(() => uninstallFromSetup())
+    .catch((error: unknown) => dialog.showErrorBox('Echoes of Atreia', String(error)))
+    .finally(() => {
+      launcher.dispose()
+      // whatever happened: the launcher's own uninstall goes on
+      app.exit(0)
+    })
+  // Two launchers would each believe they own the servers: a second one only brings the first to the front.
+} else if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
   // the window may be in the background, closed: one is opened again

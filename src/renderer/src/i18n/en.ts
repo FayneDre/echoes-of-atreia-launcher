@@ -21,6 +21,7 @@ export const en = {
   'hero.starting': 'Starting the servers…',
   'hero.stopping': 'Stopping the servers…',
   'hero.updating': 'Updating the server…',
+  'hero.uninstalling': 'Uninstalling the server…',
   'hero.partial': 'Some servers are running',
   'hero.stopped': 'Servers stopped',
   'hero.failed': 'A server failed',
@@ -125,6 +126,8 @@ export const en = {
   'problem.setup-disk-space': 'There is not enough room on this drive. Needed:',
   'problem.setup-no-port': 'No free port was found for the database, in',
   'problem.setup-database-failed': 'The database could not be made.',
+  'problem.uninstall-not-launcher-install': 'The launcher uninstalls only a server it installed itself: nothing was deleted.',
+  'problem.uninstall-files-failed': 'Some of the server’s files could not be deleted (a program still holds them). Your backup is kept:',
 
   'nav.label': 'Pages',
   'nav.home': 'Home',
@@ -308,6 +311,7 @@ export const en = {
   'backups.remove': 'Delete',
   'backups.kind.manual': 'Backup',
   'backups.kind.before-restore': 'Before a restore',
+  'backups.kind.before-uninstall': 'Before uninstalling',
   'backups.restoreConfirm':
     'Restore the backup of {date}? The accounts and characters there now are replaced by it; they are backed up first.',
   'backups.removeConfirm': 'Delete the backup of {date}? This cannot be undone.',
@@ -412,6 +416,13 @@ export const en = {
   'report.failed': 'The report could not be created.',
   'terminal.openFolder': 'Open the folder',
   'install.options': 'Options',
+  'install.uninstallTitle': 'Uninstall',
+  'install.uninstall': 'Uninstall the server…',
+  'install.uninstallHint': 'Stops the servers, keeps a backup of your accounts and characters in your Documents, then deletes the server’s folder.',
+  'install.uninstallConfirm':
+    'Uninstall the server in {folder}?\n\nThe servers are stopped, a backup of your accounts and characters is kept in Documents\\Echoes of Atreia\\backups, then the folder is deleted.',
+  'install.uninstalling': 'Uninstalling the server…',
+  'install.uninstalled': 'The server is uninstalled. Your characters are backed up in {folder}',
   'install.startServers': 'Start the servers when the launcher opens',
   'install.startWithWindows': 'Start the launcher with Windows',
   'install.desktopShortcut': 'Shortcut on the desktop',

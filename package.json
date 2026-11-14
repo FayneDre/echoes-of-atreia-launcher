@@ -42,6 +42,7 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
+      "include": "build/installer.nsh",
       "artifactName": "Echoes-of-Atreia-Setup-${version}.${ext}"
     },
     "portable": {

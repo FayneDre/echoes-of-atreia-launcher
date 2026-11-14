@@ -106,6 +106,10 @@ test('installs the server from nothing into a folder of its own, and the launche
   expect(readFileSync(join(games, 'readme.txt'), 'utf8')).toBe('the person’s own file')
   // an install from nothing has nothing to undo
   await expect(page.getByTestId('server-update')).not.toContainText('Undo')
+  // and it is the launcher's: its marker names the folder, so the installation's window offers to uninstall it
+  expect(JSON.parse(readFileSync(join(target, 'echoes-install.json'), 'utf8'))).toMatchObject({ installedBy: 'echoes-of-atreia-launcher', folder: target })
+  await page.getByTestId('install-summary').click()
+  await expect(page.getByTestId('install-uninstall')).toBeVisible()
   await app.close()
 })
 

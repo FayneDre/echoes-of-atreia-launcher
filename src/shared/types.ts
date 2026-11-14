@@ -60,6 +60,8 @@ export type ProblemCode =
   | 'setup-disk-space'
   | 'setup-no-port'
   | 'setup-database-failed'
+  | 'uninstall-not-launcher-install'
+  | 'uninstall-files-failed'
 
 /** A code the interface translates, and what the system said, shown as is. */
 export interface Problem {
@@ -101,6 +103,8 @@ export interface InstallState {
   clientPacks: ClientLanguagePack[]
   /** The language the client starts in (`-lang:<code>`), null when no pack is complete. */
   clientLanguage: ClientLanguageCode | null
+  /** The server folder is one the launcher installed from nothing (its marker says so): the only kind it offers to uninstall. */
+  serverInstalledByLauncher: boolean
 }
 
 /**
@@ -140,7 +144,7 @@ export interface ClientLanguagePack {
  * What the launcher is doing. A stop may interrupt a start (the game server takes minutes to load), so the two are told apart; anything
  * else waits for `idle`.
  */
-export type Activity = 'detecting' | 'idle' | 'starting' | 'stopping' | 'mysql' | 'backup' | 'restore' | 'server-update'
+export type Activity = 'detecting' | 'idle' | 'starting' | 'stopping' | 'mysql' | 'backup' | 'restore' | 'server-update' | 'uninstall'
 
 export interface LauncherState {
   install: InstallState
@@ -166,7 +170,7 @@ export interface LauncherState {
 }
 
 /** Where the whole stack stands, in one word: the home's phrase, the taskbar's mark and the tray's tooltip all read it. */
-export type StackPhase = 'ready' | 'failed' | 'starting' | 'stopping' | 'updating' | 'partial' | 'stopped'
+export type StackPhase = 'ready' | 'failed' | 'starting' | 'stopping' | 'updating' | 'uninstalling' | 'partial' | 'stopped'
 
 export function stackPhase(state: LauncherState): StackPhase {
   const { servers, activity } = state
@@ -182,6 +186,9 @@ export function stackPhase(state: LauncherState): StackPhase {
   }
   if (activity === 'server-update') {
     return 'updating'
+  }
+  if (activity === 'uninstall') {
+    return 'uninstalling'
   }
   return running ? 'partial' : 'stopped'
 }
@@ -231,8 +238,8 @@ export interface BackupSummary {
   /** The folder's name, which is its date: `2026-11-04_21-30-05`. */
   id: string
   createdAt: string
-  /** Made by the person, or by the launcher just before a restore replaced what was there. */
-  kind: 'manual' | 'before-restore'
+  /** Made by the person, or by the launcher just before a restore replaced what was there, or before it uninstalled the server. */
+  kind: 'manual' | 'before-restore' | 'before-uninstall'
   databases: { name: string; bytes: number }[]
 }
 

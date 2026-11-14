@@ -8,6 +8,7 @@ import type { Problem, ServerSetupState, ServerSetupStep } from '../../shared/ty
 import type { Launcher } from '../launcher'
 import { ServerFeed, type ServerRelease } from './feed'
 import { CorruptError, ServerInstaller, runtimesOf } from './installer'
+import { writeInstallMarker } from './installMarker'
 import { readInstallOrigin } from './manifest'
 import { runServerScript, tail } from './powershell'
 
@@ -182,6 +183,8 @@ export class ServerSetup extends EventEmitter<{ state: [ServerSetupState] }> {
     let base: Omit<ServerSetupState, 'status'> = { folder }
     const step = (current: ServerSetupStep) => (percent?: number): void => this.set({ ...base, status: 'running', step: current, percent })
     const problem = await this.launcher.installServerInto(folder, async () => {
+      // first: the folder is empty or new, so it is the launcher's, and an uninstall may delete it whole (installMarker.ts)
+      await writeInstallMarker(folder)
       if (!filesInPlace) {
         const files = await this.installFiles(folder, (version) => (base = { folder, version }), step)
         if (files) {

@@ -21,6 +21,7 @@ export const fr: Record<MessageKey, string> = {
   'hero.starting': 'Démarrage des serveurs…',
   'hero.stopping': 'Arrêt des serveurs…',
   'hero.updating': 'Mise à jour du serveur…',
+  'hero.uninstalling': 'Désinstallation du serveur…',
   'hero.partial': 'Une partie des serveurs tourne',
   'hero.stopped': 'Serveurs arrêtés',
   'hero.failed': 'Un serveur est en échec',
@@ -125,6 +126,8 @@ export const fr: Record<MessageKey, string> = {
   'problem.setup-disk-space': 'Il n’y a pas assez de place sur ce disque. Il faut :',
   'problem.setup-no-port': 'Aucun port libre n’a été trouvé pour la base de données, entre',
   'problem.setup-database-failed': 'La base de données n’a pas pu être créée.',
+  'problem.uninstall-not-launcher-install': 'Le launcher ne désinstalle qu’un serveur qu’il a installé lui-même : rien n’a été supprimé.',
+  'problem.uninstall-files-failed': 'Des fichiers du serveur n’ont pas pu être supprimés (un programme les tient encore). Votre sauvegarde est gardée :',
   'footer.disclaimer': 'Projet de fan non officiel, sans lien avec NCSoft ni approuvé par NCSoft.',
 
   'nav.label': 'Pages',
@@ -309,6 +312,7 @@ export const fr: Record<MessageKey, string> = {
   'backups.remove': 'Supprimer',
   'backups.kind.manual': 'Sauvegarde',
   'backups.kind.before-restore': 'Avant une restauration',
+  'backups.kind.before-uninstall': 'Avant la désinstallation',
   'backups.restoreConfirm':
     "Restaurer la sauvegarde du {date} ? Les comptes et personnages actuels seront remplacés par elle ; ils sont sauvegardés d'abord.",
   'backups.removeConfirm': 'Supprimer la sauvegarde du {date} ? Ce sera définitif.',
@@ -414,6 +418,13 @@ export const fr: Record<MessageKey, string> = {
   'report.failed': 'Le rapport n’a pas pu être créé.',
   'terminal.openFolder': 'Ouvrir le dossier',
   'install.options': 'Options',
+  'install.uninstallTitle': 'Désinstallation',
+  'install.uninstall': 'Désinstaller le serveur…',
+  'install.uninstallHint': 'Arrête les serveurs, garde une sauvegarde de vos comptes et personnages dans vos Documents, puis supprime le dossier du serveur.',
+  'install.uninstallConfirm':
+    'Désinstaller le serveur de {folder} ?\n\nLes serveurs sont arrêtés, une sauvegarde de vos comptes et personnages est gardée dans Documents\\Echoes of Atreia\\backups, puis le dossier est supprimé.',
+  'install.uninstalling': 'Désinstallation du serveur…',
+  'install.uninstalled': 'Le serveur est désinstallé. Vos personnages sont sauvegardés dans {folder}',
   'install.startServers': 'Démarrer les serveurs à l’ouverture du launcher',
   'install.startWithWindows': 'Lancer le launcher avec Windows',
   'install.desktopShortcut': 'Raccourci sur le bureau',
