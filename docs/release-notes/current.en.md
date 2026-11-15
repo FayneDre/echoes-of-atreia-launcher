@@ -6,6 +6,20 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.13 — 2026-11-15
+
+**Offered by the launcher** if you have v0.3.0-beta.12: "Update" on the line at the top of the window. Otherwise, install it by hand with
+`Echoes-of-Atreia-Setup-0.3.0-beta.13.exe`.
+
+**Minimum server: v0.1.0-beta.1.** Installing from nothing needs server v0.1.0-beta.6; the administration panel, a server newer than
+v0.1.0-beta.6; the PC RAM mark, server v0.1.0-beta.8.
+
+**What changes**
+- **No scroll bar on the home page while no server is installed**: beside the news, the "Install the server" panel pushed the page 15 pixels
+  too far. Its sentence and its button are now on the same line.
+
+---
+
 ## v0.3.0-beta.12 — 2026-11-15
 
 **Offered by the launcher** if you have v0.3.0-beta.11: "Update" on the line at the top of the window. Otherwise, install it by hand with

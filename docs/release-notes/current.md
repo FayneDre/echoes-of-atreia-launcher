@@ -7,6 +7,20 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.13 — 15/11/2026
+
+**Proposée par le launcher** si tu as la v0.3.0-beta.12 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la
+main avec `Echoes-of-Atreia-Setup-0.3.0-beta.13.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien demande le serveur v0.1.0-beta.6 ; le panneau d'administration, un
+serveur plus récent que la v0.1.0-beta.6 ; le seuil de RAM du PC, le serveur v0.1.0-beta.8.
+
+**Ce qui change**
+- **Plus de barre de défilement sur l'accueil quand aucun serveur n'est installé** : à côté des nouveautés, le cadre « Installer le
+  serveur » poussait la page 15 pixels trop bas. Sa phrase et son bouton sont maintenant sur la même ligne.
+
+---
+
 ## v0.3.0-beta.12 — 15/11/2026
 
 **Proposée par le launcher** si tu as la v0.3.0-beta.11 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la
