@@ -1,9 +1,10 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, rmSync } from 'node:fs'
 import { createServer, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { join, resolve } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import { createFakeInstall, launchWith } from '../e2e/fakeInstall'
+import { ServerFeedServer } from '../e2e/serverFeed'
 
 /**
  * Takes the pictures of README.md into docs/images/, in English, at the size the pages are drawn for. The fake install holds made-up accounts,
@@ -14,12 +15,12 @@ import { createFakeInstall, launchWith } from '../e2e/fakeInstall'
 const repoDir = resolve(__dirname, '..', '..')
 const images = join(repoDir, 'docs', 'images')
 
-/** The newest entry of the launcher's English notes, without its heading. */
-function latestLauncherNotes(): { tag: string; notes: string } {
+/** The newest entry of the launcher's English notes, without its heading, and the day its heading gives. */
+function latestLauncherNotes(): { tag: string; date: string; notes: string } {
   const text = readFileSync(join(repoDir, 'docs', 'release-notes', 'current.en.md'), 'utf8').replace(/\r\n/g, '\n')
-  const match = /^## (v\S+)[^\n]*\n([\s\S]*?)(?=\n---|\n## |(?![\s\S]))/m.exec(text)
+  const match = /^## (v\S+)(?: \S+ (\d{4}-\d{2}-\d{2}))?[^\n]*\n([\s\S]*?)(?=\n---|\n## |(?![\s\S]))/m.exec(text)
   if (!match) throw new Error('docs/release-notes/current.en.md has no entry')
-  return { tag: match[1]!, notes: match[2]!.trim() }
+  return { tag: match[1]!, date: `${match[2] ?? '2026-11-07'}T18:00:00Z`, notes: match[3]!.trim() }
 }
 
 const SERVER_NOTES =
@@ -42,7 +43,7 @@ function startFeed(): Promise<Server> {
     })
     const path = request.url ?? ''
     if (path === '/launcher.json') {
-      response.end(JSON.stringify([release(launcher.tag, '2026-11-07T18:00:00Z')]))
+      response.end(JSON.stringify([release(launcher.tag, launcher.date)]))
     } else if (path === '/server.json') {
       response.end(JSON.stringify([release('v0.1.0-beta.4', '2026-11-08T15:00:00Z')]))
     } else if (path === '/releases.json') {
@@ -115,6 +116,37 @@ test('the README pictures', async () => {
     // the launcher keeps its connections alive: closed first, or close() waits for them
     feed.closeAllConnections()
     await new Promise((done) => feed.close(done))
+    await install.dispose()
+  }
+})
+
+test('the picture of the install from nothing', async () => {
+  // a computer with the client and no server: the home page offers to install one from the newest server release
+  const install = await createFakeInstall()
+  const feed = new ServerFeedServer(join(install.root, 'server-feed'))
+  await feed.start()
+  const news = await startFeed()
+  try {
+    await feed.publish({
+      tag: 'v0.1.0-beta.8',
+      files: { 'game-server/start.bat': 'the server' },
+      runtimes: { java: { 'bin/java.exe': 'the runtime' }, mysql: { 'bin/mysqld.exe': 'the database' } }
+    })
+    rmSync(install.serverRoot, { recursive: true, force: true })
+    const newsUrl = `http://127.0.0.1:${(news.address() as AddressInfo).port}`
+    const { app, page } = await launchWith(install, { ECHOES_NEWS_FEED: newsUrl, ECHOES_SERVER_FEED: feed.url })
+    await page.getByRole('button', { name: 'EN', exact: true }).click()
+    await expect(page.getByTestId(`news-launcher-${latestLauncherNotes().tag}`)).toBeVisible()
+    const panel = page.getByTestId('server-setup')
+    await expect(panel).toHaveAttribute('data-status', 'idle', { timeout: 20_000 })
+    await panel.getByRole('button', { name: 'Install the server…' }).click()
+    await expect(page.getByTestId('server-setup-dialog')).toContainText('About 2.1 GB is downloaded')
+    await shoot(page, 'install')
+    await app.close()
+  } finally {
+    news.closeAllConnections()
+    await new Promise((done) => news.close(done))
+    await feed.stop()
     await install.dispose()
   }
 })
