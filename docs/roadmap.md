@@ -65,8 +65,7 @@ premium rates taking effect (server v0.1.0-beta.3 makes every player account pre
 
 **Left**:
 1. **Dungeon re-entry** (`gameserver.instance.cooldown_rate`): a setting that already exists; for a player alone with bots it changes everything.
-2. **The starting level** (1, or the level 10 Ascension) once the server has it (the server's `group-options-plan.md`).
-3. **Skill learning**: postponed, its rules are still to be defined.
+2. **Skill learning**: postponed, its rules are still to be defined.
 
 ## 4. Account and backups
 
@@ -75,11 +74,10 @@ premium rates taking effect (server v0.1.0-beta.3 makes every player account pre
 
 **Left**:
 1. **Check the teleport in game.**
-2. **Bring one of my characters into my group**: a button beside each character once the server has the command (`//bot alt`); planned in the game first.
-3. **Automatic database backups**: at each clean stop or each day, kept in rotation, restored in one click.
-4. **A character sheet**: level, class, time played, last login, and experience per day, from the database.
-5. **Game accounts managed here**: created, password and membership, without touching the database.
-6. **A backup per character**: later, if at all (one character is spread over dozens of tables).
+2. **Automatic database backups**: at each clean stop or each day, kept in rotation, restored in one click.
+3. **A character sheet**: level, class, time played, last login, and experience per day, from the database.
+4. **Game accounts managed here**: created, password and membership, without touching the database.
+5. **A backup per character**: later, if at all (one character is spread over dozens of tables).
 
 ## 5. Bots page
 
