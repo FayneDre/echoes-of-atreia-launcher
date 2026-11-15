@@ -1278,6 +1278,22 @@ button.small {
   font-size: 13px;
 }
 
+.server-setup-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.server-setup-row p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.server-setup-row button {
+  flex: none;
+}
+
 .server-update-row {
   display: flex;
   align-items: center;

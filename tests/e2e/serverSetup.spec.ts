@@ -1,4 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { createServer } from 'node:http'
+import type { AddressInfo } from 'node:net'
 import { join, relative } from 'node:path'
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
 import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
@@ -178,4 +180,45 @@ test('a release that carries no Java and database is not installed from', async 
   await expect(page.getByTestId('server-setup-problem')).toContainText('No server release carries what an install needs yet')
   expect(existsSync(join(target, 'game-server'))).toBe(false)
   await app.close()
+})
+
+test('the install offered and the news side by side fit the window', async () => {
+  // the launcher's news with a long summary: beside the install panel, the column once ran 15 px past the window
+  const news = createServer((request, response) => {
+    const base = `http://127.0.0.1:${(news.address() as AddressInfo).port}`
+    if (request.url === '/launcher.json') {
+      response.end(
+        JSON.stringify([
+          {
+            tag_name: 'v0.4.0-beta.1',
+            html_url: 'https://example.invalid/v0.4.0-beta.1',
+            published_at: '2026-11-15T10:00:00Z',
+            draft: false,
+            prerelease: true,
+            body: '',
+            assets: [{ name: 'notes.en.md', browser_download_url: `${base}/notes` }]
+          }
+        ])
+      )
+    } else if (request.url === '/notes') {
+      response.end('**Offered by the launcher** with `Echoes-of-Atreia-Setup-0.4.0-beta.1.exe`.' + ' A long sentence about the launcher.'.repeat(20))
+    } else {
+      response.end('[]')
+    }
+  })
+  await new Promise<void>((resolve) => news.listen(0, '127.0.0.1', resolve))
+  try {
+    const { app, page } = await launchWith(install, {
+      ECHOES_SERVER_FEED: feed.url,
+      ECHOES_NEWS_FEED: `http://127.0.0.1:${(news.address() as AddressInfo).port}`
+    })
+    await page.getByRole('button', { name: 'EN', exact: true }).click()
+    await expect(page.getByTestId('server-setup')).toHaveAttribute('data-status', 'idle', { timeout: 20_000 })
+    await expect(page.getByTestId('news-launcher-v0.4.0-beta.1')).toBeVisible()
+    expect(await overflow(page), 'offered, with the news').toBeLessThanOrEqual(0)
+    await app.close()
+  } finally {
+    news.closeAllConnections()
+    await new Promise((resolve) => news.close(resolve))
+  }
 })

@@ -32,10 +32,11 @@ export function ServerSetupPanel({ setup, state }: Props): React.JSX.Element | n
   return (
     <section className="panel" aria-labelledby="server-setup-title" data-testid="server-setup" data-status={setup.status}>
       <h2 id="server-setup-title">{t('section.serverSetup')}</h2>
-      <p className={setup.status === 'failed' ? 'missing' : undefined} role={running ? 'status' : undefined}>
-        {t(summary)}
-      </p>
-      <div className="server-update-row">
+      {/* the sentence and its button side by side: below it, the button took the height the news need beside an install to make */}
+      <div className="server-setup-row">
+        <p className={setup.status === 'failed' ? 'missing' : undefined} role={running ? 'status' : undefined}>
+          {t(summary)}
+        </p>
         <button type="button" aria-haspopup="dialog" disabled={setup.status === 'idle' && !idle} onClick={() => dialog.current?.showModal()}>
           {t(open)}
         </button>
