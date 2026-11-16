@@ -400,6 +400,8 @@ export interface ServerSetupState {
   version?: string
   step?: ServerSetupStep
   percent?: number
+  /** The last line the database's script said, while it runs: what it is doing, in its own words. */
+  detail?: string
   problem?: Problem
 }
 

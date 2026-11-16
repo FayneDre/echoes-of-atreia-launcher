@@ -198,6 +198,7 @@ function registerIpc(presence: TaskbarPresence): void {
       launcherVersion: app.getVersion(),
       state: launcher.getState(),
       serverUpdate: serverUpdater.current,
+      serverSetup: serverSetup.current,
       character,
       botsInWorld: await botsInWorld().catch(() => null),
       language

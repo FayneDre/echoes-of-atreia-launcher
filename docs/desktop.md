@@ -54,7 +54,9 @@ same question is asked. A second launcher started while one is in the background
   the character played;
 - for each server, the last 8 MB of `log/server_console.log` (a log rolls over at 100 MB; what led to a problem is in its last minutes)
   and its `log/launcher-stderr.log`;
-- `bot-notes.txt`: every `//bot note` line (`BOT NOTE`) of the game server's current log, searched line by line through the whole file.
+- `bot-notes.txt`: every `//bot note` line (`BOT NOTE`) of the game server's current log, searched line by line through the whole file;
+- while an install from nothing runs or after it failed (no server yet): a `Server install` line in the summary, and `setup/setup.log` and
+  `setup/mysql.err` from its folder.
 
 Wherever a path names the person's profile folder (and so their Windows account), it is written `~`: a report is meant for a public
 issue. Nothing is sent. The dialog then shows the file in Explorer, or opens a new issue on the server's repository, its text in the person's

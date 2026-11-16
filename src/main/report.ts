@@ -4,9 +4,10 @@ import { homedir, release, totalmem } from 'node:os'
 import { join } from 'node:path'
 import { createInterface } from 'node:readline'
 import yazl from 'yazl'
-import { SERVER_IDS, type CharacterSummary, type LauncherState, type ServerUpdateState } from '../shared/types'
+import { SERVER_IDS, type CharacterSummary, type LauncherState, type ServerSetupState, type ServerUpdateState } from '../shared/types'
 import type { ServerLayout } from './server/installation'
 import { SERVER_REPOSITORY } from './serverUpdate/feed'
+import { SETUP_LOG } from './serverUpdate/serverSetup'
 
 /** Of each console log, the end only: a log rolls over at 100 MB, and what led to a problem is in its last minutes. */
 const LOG_TAIL_BYTES = 8 * 1024 * 1024
@@ -17,6 +18,8 @@ export interface ReportContext {
   launcherVersion: string
   state: LauncherState
   serverUpdate: ServerUpdateState | null
+  /** An install from nothing under way or failed: its folder holds the database script's log, and MySQL's. */
+  serverSetup?: ServerSetupState | null
   character: CharacterSummary | null
   botsInWorld: { elyos: number; asmodians: number } | null
   language: 'fr' | 'en'
@@ -40,6 +43,13 @@ export function reportStamp(date: Date): string {
   return `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())}_${two(date.getHours())}-${two(date.getMinutes())}-${two(date.getSeconds())}`
 }
 
+/** An install from nothing, in one line: where it stands, in which folder, and what went wrong. */
+function setupLine(setup: ServerSetupState): string {
+  const parts = [setup.status, setup.version, setup.step && `step ${setup.step}`, setup.folder && `into ${setup.folder}`, setup.detail && `last said: ${setup.detail}`]
+  const problem = setup.problem ? ` (${setup.problem.code}${setup.problem.detail ? `: ${setup.problem.detail}` : ''})` : ''
+  return `Server install: ${parts.filter(Boolean).join(', ')}${problem}`
+}
+
 /** What the report says in its first file, for whoever reads it: versions, the stack's state, the character played. */
 export function reportSummary(context: ReportContext, now: Date): string {
   const { state, character } = context
@@ -50,6 +60,7 @@ export function reportSummary(context: ReportContext, now: Date): string {
     `Launcher: ${context.launcherVersion}${state.developerMode ? ' (developer mode)' : ''}`,
     `Server: ${version ? `${version.version ?? 'unknown'}${version.revision ? ` (${version.revision})` : ''}, API level ${version.apiLevel}` : 'unknown'}`,
     `Server update: ${context.serverUpdate?.status ?? 'unknown'}${context.serverUpdate?.installed ? `, installed ${context.serverUpdate.installed}` : ''}`,
+    ...(context.serverSetup && context.serverSetup.status !== 'idle' ? [setupLine(context.serverSetup)] : []),
     `Windows: ${release()}, ${Math.round(totalmem() / 1024 ** 3)} GB of memory`,
     `Java: ${state.install.javaVersion ?? 'not found'}`,
     `Server folder: ${state.install.serverRoot ?? 'none'}${state.install.serverFound ? '' : ' (not found)'}`,
@@ -157,6 +168,19 @@ export async function createReport(layout: ServerLayout | null, folder: string, 
     const notes = await botNotes(join(layout.servers.game.dir, 'log', 'server_console.log'))
     const text = notes.length ? `${notes.join('\r\n')}\r\n` : 'No bot note in this run of the game server.\r\n'
     zip.addBuffer(Buffer.from(withoutProfile(text), 'utf8'), 'bot-notes.txt')
+  }
+  // an install from nothing that failed or never ended has no server yet: what its database script and MySQL said is all there is
+  const setupFolder = context.serverSetup?.status !== 'idle' ? context.serverSetup?.folder : undefined
+  if (setupFolder) {
+    for (const [file, name] of [
+      [join(setupFolder, SETUP_LOG), 'setup/setup.log'],
+      [join(setupFolder, 'mysql', 'data', 'mysql.err'), 'setup/mysql.err']
+    ] as const) {
+      const content = await tail(file, LOG_TAIL_BYTES)
+      if (content) {
+        zip.addBuffer(Buffer.from(withoutProfile(content.toString('utf8')), 'utf8'), name)
+      }
+    }
   }
   zip.end()
   await new Promise<void>((resolve, reject) => {

@@ -141,4 +141,24 @@ describe('the report', () => {
     expect(files.get('bot-notes.txt')).toBe('BOT NOTE #1 by Nemesis: here\r\n')
     expect(files.get('summary.txt')).toContain('Character: Nemesis')
   })
+
+  it('takes what the database script and MySQL said when an install from nothing is stuck, there being no server yet', async () => {
+    const folder = join(root, 'EchoesServer')
+    await mkdir(join(folder, 'mysql', 'data'), { recursive: true })
+    await writeFile(join(folder, 'setup.log'), 'my.ini written (3307, bind 127.0.0.1).\r\nStarting MySQL...\r\n')
+    await writeFile(join(folder, 'mysql', 'data', 'mysql.err'), '[ERROR] [MY-010131] Could not bind to port\n')
+    const stuck: ReportContext = {
+      ...context,
+      state: { ...state, install: { ...state.install, serverRoot: null, serverFound: false } },
+      serverSetup: { status: 'running', folder, version: 'v0.1.0-beta.8', step: 'database', detail: 'Starting MySQL...' }
+    }
+    const path = await createReport(null, join(root, 'reports'), stuck, new Date(2026, 10, 16, 13, 6, 56))
+    const files = await entries(path)
+    expect([...files.keys()].sort()).toEqual(['setup/mysql.err', 'setup/setup.log', 'summary.txt'])
+    expect(files.get('setup/setup.log')).toContain('Starting MySQL...')
+    expect(files.get('summary.txt')).toContain(withoutProfile(`Server install: running, v0.1.0-beta.8, step database, into ${folder}, last said: Starting MySQL...`))
+    // nothing under way: neither the line nor the files
+    const idle = await createReport(null, join(root, 'idle'), { ...stuck, serverSetup: { status: 'idle' } }, new Date(2026, 10, 16, 13, 7, 0))
+    expect([...(await entries(idle)).keys()]).toEqual(['summary.txt'])
+  })
 })

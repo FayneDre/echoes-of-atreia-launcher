@@ -13,6 +13,8 @@ import { readInstallOrigin } from './manifest'
 import { runServerScript, tail } from './powershell'
 
 const SETUP_TIMEOUT_MS = 15 * 60 * 1000
+/** In the server's folder: what the database's script said, kept for a problem report. */
+export const SETUP_LOG = 'setup.log'
 /** The folder made inside the one chosen when that one already holds something. */
 export const SERVER_FOLDER_NAME = 'echoes-server'
 /** The staging folder a try works in, removed when it ends: a folder holding it is a try to take up. */
@@ -196,8 +198,12 @@ export class ServerSetup extends EventEmitter<{ state: [ServerSetupState] }> {
       if (port === null) {
         return { code: 'setup-no-port', detail: `${FIRST_PORT}-${LAST_PORT}` }
       }
-      // the bundle's own script: the data folder, the accounts, the three databases and the servers' configuration; MySQL is left running
-      const setup = await runServerScript(join(folder, 'tools', 'setup-mysql.ps1'), ['-ServerRoot', folder, '-Port', String(port)], SETUP_TIMEOUT_MS)
+      // the bundle's own script: the data folder, the accounts, the three databases and the servers' configuration; MySQL is left running.
+      // What it says goes to setup.log as it says it (a report takes it, even from a script that never ended) and its last line is shown.
+      const setup = await runServerScript(join(folder, 'tools', 'setup-mysql.ps1'), ['-ServerRoot', folder, '-Port', String(port)], SETUP_TIMEOUT_MS, {
+        logFile: join(folder, SETUP_LOG),
+        onLine: (line) => this.set({ ...base, status: 'running', step: 'database', detail: line.trim() })
+      })
       if (setup.code === 0) {
         return null
       }

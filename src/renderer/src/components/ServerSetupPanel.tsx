@@ -70,6 +70,11 @@ export function ServerSetupPanel({ setup, state }: Props): React.JSX.Element | n
             {t(`serverSetup.step.${setup.step}` as MessageKey, { percent: setup.percent ?? 0 })}
           </p>
         )}
+        {running && setup.detail && (
+          <p className="muted" data-testid="server-setup-detail">
+            {setup.detail}
+          </p>
+        )}
 
         {setup.status === 'failed' && (
           <div data-testid="server-setup-problem">
