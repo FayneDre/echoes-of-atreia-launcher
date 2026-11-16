@@ -149,6 +149,10 @@ test('opens the terminals over the home page, whose panels keep their size and p
         return `${element.getAttribute('data-testid') ?? element.className} ${Math.round(box.width)}x${Math.round(box.height)} at ${Math.round(box.left)},${Math.round(box.top)}`
       })
     )
+  // the terminals open once a server runs: nothing stopped has a console to read
+  await page.getByRole('button', { name: 'FR', exact: true }).click()
+  await page.getByRole('button', { name: 'Démarrer les serveurs' }).click()
+  await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
   const closed = await panels()
   await page.getByTestId('terminals-toggle').click()
   await expect(page.locator('.terminal')).toBeVisible()
@@ -158,6 +162,8 @@ test('opens the terminals over the home page, whose panels keep their size and p
   const drawerTop = await page.getByTestId('terminals').evaluate((element) => element.getBoundingClientRect().top)
   const pageBottom = await page.locator('.page-scroll').evaluate((element) => element.getBoundingClientRect().bottom)
   expect(drawerTop).toBeLessThan(pageBottom)
+  await page.getByRole('button', { name: 'Arrêter les serveurs' }).click()
+  await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped', { timeout: 30_000 })
   await app.close()
 })
 

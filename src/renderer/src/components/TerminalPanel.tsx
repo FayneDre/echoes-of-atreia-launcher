@@ -9,6 +9,8 @@ const WARN_LINE = / WARN /
 
 interface Props {
   open: boolean
+  /** Every server stopped: nothing runs whose console could be read, so the bar is greyed out and the drawer stays closed. */
+  disabled: boolean
   server: ServerId
   onToggle: () => void
   onSelect: (server: ServerId) => void
@@ -18,7 +20,7 @@ interface Props {
  * The three servers' consoles, in a drawer at the foot of the home page: closed, it is one bar and the panels have the whole window; open, it
  * lies over the page's lower panels, which keep their size and place. It opens on a click and on "Show the log" next to a problem.
  */
-export function TerminalPanel({ open, server, onToggle, onSelect }: Props): React.JSX.Element {
+export function TerminalPanel({ open, disabled, server, onToggle, onSelect }: Props): React.JSX.Element {
   const { t } = useI18n()
   const all = useServerLogs(server)
   const [errorsOnly, setErrorsOnly] = useState(false)
@@ -56,6 +58,8 @@ export function TerminalPanel({ open, server, onToggle, onSelect }: Props): Reac
             className="drawer-toggle"
             aria-expanded={open}
             data-testid="terminals-toggle"
+            disabled={disabled}
+            title={disabled ? t('terminal.serversStopped') : undefined}
             onClick={onToggle}
           >
             <span className="chevron" aria-hidden="true">
@@ -70,6 +74,7 @@ export function TerminalPanel({ open, server, onToggle, onSelect }: Props): Reac
                 type="button"
                 role="tab"
                 aria-selected={server === id}
+                disabled={disabled}
                 onClick={() => {
                   onSelect(id)
                   if (!open) {

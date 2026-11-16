@@ -87,6 +87,8 @@ test('finds the installation, the client, Java and the database', async () => {
 
 test('starts the servers in order, then stops the game server through its shutdown request', async () => {
   const { app, page } = await open()
+  // every server stopped: no console to read, the terminals cannot be opened
+  await expect(page.getByTestId('terminals-toggle')).toBeDisabled()
   await startAll(page)
   await expect(status(page, 'chat')).toHaveAttribute('data-status', 'ready')
   await expect(status(page, 'login')).toHaveAttribute('data-status', 'ready')
@@ -97,6 +99,9 @@ test('starts the servers in order, then stops the game server through its shutdo
   await expect(page.getByRole('button', { name: 'Play' })).toBeEnabled()
 
   await stopAll(page)
+  // all stopped again: the drawer closes and greys out
+  await expect(page.getByTestId('terminals-toggle')).toBeDisabled()
+  await expect(page.getByRole('log')).toBeHidden()
   // Stopped by its own shutdown, the one that saves the players, and not killed.
   expect(gameLog()).toContain('Shutdown complete')
   expect(existsSync(join(install.serverRoot, 'game-server', 'shutdown.request'))).toBe(false)

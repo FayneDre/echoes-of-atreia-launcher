@@ -55,6 +55,7 @@ export const fr: Record<MessageKey, string> = {
   'news.open': 'Voir sur GitHub',
   'footer.versions': 'Launcher {launcher} · Serveur {server}',
   'terminal.search': 'Chercher dans le journal',
+  'terminal.serversStopped': 'Les serveurs sont arrêtés : démarre-les pour lire leurs terminaux.',
   'terminal.errorsOnly': 'Erreurs seulement',
   'terminal.copy': 'Copier',
   'terminal.copied': 'Copié',

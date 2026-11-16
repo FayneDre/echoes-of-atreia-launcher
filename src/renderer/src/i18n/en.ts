@@ -55,6 +55,7 @@ export const en = {
   'news.open': 'See it on GitHub',
   'footer.versions': 'Launcher {launcher} · Server {server}',
   'terminal.search': 'Search the log',
+  'terminal.serversStopped': 'The servers are stopped: start them to read their terminals.',
   'terminal.errorsOnly': 'Errors only',
   'terminal.copy': 'Copy',
   'terminal.copied': 'Copied',

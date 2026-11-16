@@ -102,6 +102,8 @@ export function App(): React.JSX.Element {
       setPage('home')
     }
   }, [state, serverFound])
+  // nothing runs, nothing to read: a failed server still counts as on, its log says why
+  const allStopped = SERVER_IDS.every((id) => state?.servers[id].status === 'stopped')
   const showLog = (id: ServerId): void => {
     setTerminal(id)
     setTerminalsOpen(true)
@@ -217,7 +219,8 @@ export function App(): React.JSX.Element {
           </div>
           {serverFound && (
             <TerminalPanel
-              open={terminalsOpen}
+              open={terminalsOpen && !allStopped}
+              disabled={allStopped}
               server={terminal}
               onToggle={() => setTerminalsOpen(!terminalsOpen)}
               onSelect={setTerminal}
