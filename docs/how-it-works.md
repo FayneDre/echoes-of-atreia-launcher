@@ -108,7 +108,7 @@ setting goes to `config/mygs.properties`, the overrides the server reads on top 
   house and its buyer turned on or off, the buyer's daily ceiling) asks for that restart whatever the reload does, and a later save does not
   take the notice away.
 - **The bot options** (`gameserver.playerbot.*`, the server's `playerbot.properties`) are groups of the same catalog with `page: 'bots'`,
-  set on the Bots page above the list: a world bot's XP as a percent of the official rate (1 at least), PvP and its temperament shares and
+  set on the Bots page's first part (its second is the list): a world bot's XP as a percent of the official rate (1 at least), PvP and its temperament shares and
   level band, the chat and its language, the broker. They add three kinds: `flag` (written `true`/`false`), `count` (a whole number in the
   definition's own bounds, with a unit) and `choice` (an index into `options`, written as the option). A server older than an option does
   not have it in its files, so it is not offered.

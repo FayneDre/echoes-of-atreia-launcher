@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { POPULATION_API_LEVEL, type BotSummary, type LauncherState, type Problem } from '../../../shared/types'
 import { hasMessage, useI18n } from '../i18n'
 import { PopulationPanel } from './PopulationPanel'
 import { ProblemText } from './ProblemText'
 
-/** A page of each faction's list, and how many more each click shows. */
-const PAGE = 20
+/** The room a bot's line takes, before one is drawn to be measured. */
+const ROW_ESTIMATE = 32
 const FACTIONS = ['ELYOS', 'ASMODIANS'] as const
 
 /** One line a bot: name, level, class, map. `inWorld` is what the database says, which only a running game server keeps true. */
@@ -49,10 +49,32 @@ export function BotsPage({ state, visible }: { state: LauncherState; visible: bo
 
   // The database keeps `online` set when a game server ends without saving (killed, crashed): only a running one is believed.
   const live = gameStatus === 'ready'
-  const [limit, setLimit] = useState(PAGE)
   const [classFilter, setClassFilter] = useState('')
   const [mapFilter, setMapFilter] = useState('')
-  useEffect(() => setLimit(PAGE), [filter, classFilter, mapFilter])
+  // Each faction's list is cut in pages of as many lines as its room holds: the page never scrolls, whatever the number of bots.
+  const [pages, setPages] = useState<Record<string, number>>({})
+  useEffect(() => setPages({}), [filter, classFilter, mapFilter])
+  const listArea = useRef<HTMLDivElement>(null)
+  const [perPage, setPerPage] = useState(1)
+  // measured before the page is drawn: never a first frame of one line a page
+  useLayoutEffect(() => {
+    const area = listArea.current
+    if (!area) {
+      return
+    }
+    const measure = (): void => {
+      const list = area.querySelector('.bot-list')
+      const gap = list ? parseFloat(getComputedStyle(list).rowGap) || 0 : 0
+      const row = area.querySelector('.bot')?.getBoundingClientRect().height ?? ROW_ESTIMATE
+      // the list's own border too: the last line must end inside the room
+      const frame = list ? list.getBoundingClientRect().height - list.clientHeight : 0
+      setPerPage(Math.max(1, Math.floor((area.clientHeight - frame + gap) / (row + gap))))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(area)
+    return () => observer.disconnect()
+  }, [bots, visible])
   const needle = filter.trim().toLowerCase()
   const classes = useMemo(() => [...new Set((bots ?? []).map((bot) => bot.playerClass))].sort(), [bots])
   const maps = useMemo(() => [...new Set((bots ?? []).flatMap((bot) => (bot.mapName ? [bot.mapName] : [])))].sort(), [bots])
@@ -113,50 +135,65 @@ export function BotsPage({ state, visible }: { state: LauncherState; visible: bo
           {t('bots.refresh')}
         </button>
       </div>
-      {/* the server's level is learnt just after it is ready: the panel asks once it is known */}
-      <PopulationPanel visible={visible} ready={live && (state.serverVersion?.apiLevel ?? 0) >= POPULATION_API_LEVEL} />
-      {bots !== null && bots.length > 0 && (
-        <div className="level-bands" aria-label={t('bots.levels')} data-testid="level-bands">
-          {bands.map(({ band, count, share }) => (
-            <div key={band} className="level-band" title={t('bots.bandTitle', { count })}>
-              <span className="level-bar" style={{ height: `${Math.round(share * 100)}%` }} />
-              <span className="level-count">{count}</span>
-              <span className="level-label">{band === 6 ? '60+' : `${Math.max(1, band * 10)}–${band * 10 + 9}`}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* side by side, the population and the levels leave the lists the most room */}
+      <div className="bots-overview">
+        {/* the server's level is learnt just after it is ready: the panel asks once it is known */}
+        <PopulationPanel visible={visible} ready={live && (state.serverVersion?.apiLevel ?? 0) >= POPULATION_API_LEVEL} />
+        {bots !== null && bots.length > 0 && (
+          <div className="level-bands" aria-label={t('bots.levels')} data-testid="level-bands">
+            {bands.map(({ band, count, share }) => (
+              <div key={band} className="level-band" title={t('bots.bandTitle', { count })}>
+                <span className="level-bar" style={{ height: `${Math.round(share * 100)}%` }} />
+                <span className="level-count">{count}</span>
+                <span className="level-label">{band === 6 ? '60+' : `${Math.max(1, band * 10)}–${band * 10 + 9}`}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <ProblemText problem={problem} />
       {bots !== null && bots.length === 0 && <p className="muted">{t('bots.none')}</p>}
       {bots !== null && bots.length > 0 && (
         <div className="factions">
-          {byFaction.map(({ race, all, matching }) => (
-            <div key={race} className="faction" data-testid={`faction-${race}`}>
-              <h3>
-                {t(`race.${race}`)}
-                <span className="muted faction-count">
-                  {live ? t('bots.summary', { count: all.length, present: all.filter((bot) => bot.inWorld).length }) : t('bots.count', { count: all.length })}
-                </span>
-              </h3>
-              {matching.length === 0 ? (
-                <p className="muted">{t('bots.noMatch')}</p>
-              ) : (
-                <ul className="bot-list">
-                  {matching.slice(0, limit).map((bot) => (
-                    <BotRow key={bot.id} bot={bot} inWorld={live && bot.inWorld} />
-                  ))}
-                </ul>
-              )}
-              {matching.length > limit && (
-                <div className="bot-more">
-                  <span className="muted">{t('bots.more', { shown: limit, total: matching.length })}</span>
-                  <button type="button" className="small" onClick={() => setLimit(limit + PAGE)}>
-                    {t('bots.showMore', { count: Math.min(PAGE, matching.length - limit) })}
+          {byFaction.map(({ race, all, matching }, index) => {
+            const last = Math.max(0, Math.ceil(matching.length / perPage) - 1)
+            const current = Math.min(pages[race] ?? 0, last)
+            const from = current * perPage
+            const turn = (to: number): void => setPages({ ...pages, [race]: to })
+            return (
+              <div key={race} className="faction" data-testid={`faction-${race}`}>
+                <h3>
+                  {t(`race.${race}`)}
+                  <span className="muted faction-count">
+                    {live ? t('bots.summary', { count: all.length, present: all.filter((bot) => bot.inWorld).length }) : t('bots.count', { count: all.length })}
+                  </span>
+                </h3>
+                {/* both columns have the same room: the first one's is measured */}
+                <div className="bot-list-area" ref={index === 0 ? listArea : undefined}>
+                  {matching.length === 0 ? (
+                    <p className="muted">{t('bots.noMatch')}</p>
+                  ) : (
+                    <ul className="bot-list">
+                      {matching.slice(from, from + perPage).map((bot) => (
+                        <BotRow key={bot.id} bot={bot} inWorld={live && bot.inWorld} />
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div className="bot-pager" data-testid={`pager-${race}`}>
+                  <button type="button" className="small" disabled={current === 0} onClick={() => turn(current - 1)}>
+                    ‹ {t('bots.previous')}
+                  </button>
+                  <span className="muted">
+                    {matching.length > 0 && t('bots.range', { from: from + 1, to: Math.min(from + perPage, matching.length), total: matching.length })}
+                  </span>
+                  <button type="button" className="small" disabled={current >= last} onClick={() => turn(current + 1)}>
+                    {t('bots.next')} ›
                   </button>
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            )
+          })}
         </div>
       )}
     </section>

@@ -62,6 +62,8 @@ export function App(): React.JSX.Element {
   const serverSetup = useServerSetup()
   const { accounts, reload } = useAccounts(state)
   const [page, setPage] = useState<Page>('home')
+  // the Bots page's two parts, one at a time: each fits the window on its own
+  const [botsTab, setBotsTab] = useState<'settings' | 'list'>('settings')
   const playing = accounts?.characters.find((character) => character.id === accounts.selectedCharacterId)
   const [terminalsOpen, setTerminalsOpenState] = useState(readTerminalsOpen)
   const [terminal, setTerminal] = useState<ServerId>('game')
@@ -234,9 +236,27 @@ export function App(): React.JSX.Element {
         </main>
       )}
       {state && (
-        <main className="content content-single" hidden={page !== 'bots'}>
-          <SettingsPage state={state} page="bots" />
-          <BotsPage state={state} visible={page === 'bots'} />
+        <main className="content content-single content-fill content-tabbed" hidden={page !== 'bots'}>
+          <div className="sub-tabs" role="tablist" aria-label={t('nav.bots')}>
+            {(['settings', 'list'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                role="tab"
+                aria-selected={botsTab === tab}
+                data-testid={`bots-tab-${tab}`}
+                onClick={() => setBotsTab(tab)}
+              >
+                {t(`bots.tab.${tab}`)}
+              </button>
+            ))}
+          </div>
+          <div className="sub-page" role="tabpanel" hidden={botsTab !== 'settings'}>
+            <SettingsPage state={state} page="bots" />
+          </div>
+          <div className="sub-page" role="tabpanel" hidden={botsTab !== 'list'}>
+            <BotsPage state={state} visible={page === 'bots' && botsTab === 'list'} />
+          </div>
         </main>
       )}
       {state && (

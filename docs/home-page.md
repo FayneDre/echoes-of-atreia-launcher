@@ -79,6 +79,10 @@ Below it, one row of one height: the character played, the pages, the languages.
 
 Every page is as wide as the home page (at most 1280 px, the same margins), the scrollbar's place kept on the right only.
 
+No page has a scroll bar at the first size, and `layout.spec.ts` goes through every page, part and settings group with 400 bots to keep it so:
+the Bots page is in two parts, one shown at a time (its settings, then the list); each faction's list is cut in pages of as many lines as its
+room holds, turned with Previous and Next; a settings group of more than eight rows (the ten officer ranks) takes two columns.
+
 Larger than 1180×780 (maximized, full screen), the whole page grows with the window instead of leaving empty margins around blocks
 drawn for the first size (`src/main/windowScale.ts`): the zoom follows the side that grows the least, in steps of 5 %, up to 160 %, and
 the title bar grows with it so Windows' buttons keep the bar's height.

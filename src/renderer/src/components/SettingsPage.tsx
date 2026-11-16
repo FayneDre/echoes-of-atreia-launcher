@@ -24,6 +24,9 @@ const settingLabel = (definition: SettingDefinition): MessageKey => `setting.${d
 
 const isSwitch = (definition: SettingDefinition): boolean => definition.kind === 'toggle' || definition.kind === 'flag'
 
+/** Past this many settings a group's table takes two columns. */
+const TWO_COLUMNS_FROM = 8
+
 /**
  * The official values of these settings for an account level: a rate takes that level's, every other setting its one official value. Every
  * player account is premium, so the page sets the premium rates, and the regular accounts' official ones are a set the players can take.
@@ -257,7 +260,8 @@ function GroupPanel(props: {
       </div>
       {hint && <p className="hint">{hint}</p>}
 
-      <div className="setting-table">
+      {/* a long group of short rows (the ten officer ranks) goes on two columns: one would run past the window */}
+      <div className={settings.length > TWO_COLUMNS_FROM ? 'setting-table setting-table-two' : 'setting-table'}>
         {globalField && (
           <div className="setting-row setting-row-all">
             <span className="setting-label">{t('settings.allOfGroup')}</span>

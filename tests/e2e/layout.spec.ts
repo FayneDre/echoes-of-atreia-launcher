@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
-import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
+import { createFakeInstall, FAKE_BOTS, launchWith, writeFakeDatabase, type FakeInstall } from './fakeInstall'
 
 let install: FakeInstall
 
@@ -158,5 +158,53 @@ test('opens the terminals over the home page, whose panels keep their size and p
   const drawerTop = await page.getByTestId('terminals').evaluate((element) => element.getBoundingClientRect().top)
   const pageBottom = await page.locator('.page-scroll').evaluate((element) => element.getBoundingClientRect().bottom)
   expect(drawerTop).toBeLessThan(pageBottom)
+  await app.close()
+})
+
+test('shows every page, every part and every settings group without a scroll bar at the first size, with many bots', async () => {
+  writeFakeDatabase(
+    install,
+    undefined,
+    undefined,
+    Array.from({ length: 400 }, (_, index) => ({ ...FAKE_BOTS[index % 3]!, id: 920000 + index, name: `Bot${index}` }))
+  )
+  const { app, page } = await launchWith(install)
+  await expect(page.getByTestId('install-summary')).toBeVisible()
+  await page.waitForTimeout(1_000)
+  // every element of the page shown that scrolls and has more than it shows
+  const scrolling = (): Promise<string[]> =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('main.content:not([hidden]), main.content:not([hidden]) *')]
+        .filter((element) => {
+          const overflow = getComputedStyle(element).overflowY
+          return (overflow === 'auto' || overflow === 'scroll') && element.scrollHeight > element.clientHeight + 1
+        })
+        .map((element) => `${element.className} ${element.scrollHeight}/${element.clientHeight}`)
+    )
+  const found: string[] = []
+  const look = async (where: string): Promise<void> => {
+    await page.waitForTimeout(300)
+    found.push(...(await scrolling()).map((element) => `${where}: ${element}`))
+  }
+  const pages = page.locator('nav.nav button')
+  for (let index = 0; index < (await pages.count()); index++) {
+    await pages.nth(index).click()
+    const name = (await pages.nth(index).textContent()) ?? ''
+    const parts = page.locator('main.content:not([hidden]) .sub-tabs button')
+    for (let part = 0; part < Math.max(1, await parts.count()); part++) {
+      if (await parts.count()) {
+        await parts.nth(part).click()
+      }
+      const groups = page.locator('main.content:not([hidden]) .sub-page:not([hidden]) .group-list button, main.content:not([hidden]) > .settings-page .group-list button')
+      if ((await groups.count()) === 0) {
+        await look(name)
+      }
+      for (let group = 0; group < (await groups.count()); group++) {
+        await groups.nth(group).click()
+        await look(`${name} / ${await groups.nth(group).textContent()}`)
+      }
+    }
+  }
+  expect(found).toEqual([])
   await app.close()
 })

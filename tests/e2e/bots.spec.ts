@@ -2,7 +2,7 @@ import { appendFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test } from '@playwright/test'
 import { save } from './save'
-import { createFakeInstall, launchWith, type FakeInstall } from './fakeInstall'
+import { createFakeInstall, FAKE_BOTS, launchWith, writeFakeDatabase, type FakeInstall } from './fakeInstall'
 
 let install: FakeInstall
 
@@ -18,6 +18,7 @@ test('lists the bots by faction, with their level, class and map, and believes "
   const { app, page } = await launchWith(install)
   await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.getByRole('button', { name: 'Bots', exact: true }).click()
+  await page.getByTestId('bots-tab-list').click()
 
   const elyos = page.getByTestId('faction-ELYOS')
   // the database says Zephyra is online, but no game server runs: what a crash or a kill leaves behind
@@ -38,6 +39,37 @@ test('lists the bots by faction, with their level, class and map, and believes "
   await expect(page.getByTestId('bot-Aldric')).toBeVisible()
   await expect(page.getByTestId('bot-Zephyra')).toHaveCount(0)
   await expect(asmodians).toContainText('No bot matches.')
+  await app.close()
+})
+
+test('shows each faction in pages of as many bots as the window holds, turned with Previous and Next', async () => {
+  const many = Array.from({ length: 300 }, (_, index) => ({
+    ...FAKE_BOTS[0]!,
+    id: 910000 + index,
+    name: `Elyos${String(index).padStart(3, '0')}`,
+    inWorld: false
+  }))
+  writeFakeDatabase(install, undefined, undefined, [...many, FAKE_BOTS[2]!])
+  const { app, page } = await launchWith(install)
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
+  await page.getByRole('button', { name: 'Bots', exact: true }).click()
+  await page.getByTestId('bots-tab-list').click()
+  const elyos = page.getByTestId('faction-ELYOS')
+  const pager = page.getByTestId('pager-ELYOS')
+  await expect(elyos).toContainText('300 bots')
+  await expect.poll(() => elyos.getByRole('listitem').count()).toBeGreaterThan(3)
+  const shown = await elyos.getByRole('listitem').count()
+  await expect(pager).toContainText(`1–${shown} of 300`)
+  // the lines shown fit their room: the last one ends above the pager
+  const lastBottom = (await elyos.getByRole('listitem').last().boundingBox())!
+  expect(lastBottom.y + lastBottom.height).toBeLessThanOrEqual((await pager.boundingBox())!.y)
+  await expect(pager.getByRole('button', { name: /Previous/ })).toBeDisabled()
+  await pager.getByRole('button', { name: /Next/ }).click()
+  await expect(pager).toContainText(`${shown + 1}–${2 * shown} of 300`)
+  // the other faction keeps its own page, and a search starts again at the first
+  await expect(page.getByTestId('pager-ASMODIANS')).toContainText('1–1 of 1')
+  await page.getByLabel('Search a bot').fill('Elyos29')
+  await expect(pager).toContainText(`1–${Math.min(shown, 10)} of 10`)
   await app.close()
 })
 
@@ -118,6 +150,7 @@ test('shows where the running server’s population stands, and nothing while no
   const { app, page } = await launchWith(install)
   await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.getByRole('button', { name: 'Bots', exact: true }).click()
+  await page.getByTestId('bots-tab-list').click()
   await expect(page.getByTestId('faction-ELYOS')).toBeVisible()
   await expect(page.getByTestId('population')).toHaveCount(0)
 
