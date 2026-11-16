@@ -3,6 +3,8 @@ import { createWriteStream } from 'node:fs'
 
 /** How long the output may still come in once the script has exited: a program it left running (MySQL) may hold its pipes for good. */
 const CLOSE_GRACE_MS = 2_000
+/** How long the kill past the time given may take before the script is given up on, killed or not. */
+const KILL_GRACE_MS = 10_000
 
 export interface ScriptOptions {
   /** The file everything the script says is written to as it says it, so that a script that never ends still leaves what it did. */
@@ -26,8 +28,10 @@ export function runServerScript(script: string, args: string[], timeoutMs: numbe
     const child = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script, ...args], { windowsHide: true })
     let output = ''
     let partial = ''
-    const take = (chunk: Buffer): void => {
-      const text = chunk.toString('utf8')
+    // decoded by the streams: a letter cut between two chunks stays whole
+    child.stdout.setEncoding('utf8')
+    child.stderr.setEncoding('utf8')
+    const take = (text: string): void => {
       output += text
       log?.write(text)
       const lines = (partial + text).split(/\r?\n/)
@@ -48,6 +52,8 @@ export function runServerScript(script: string, args: string[], timeoutMs: numbe
       if (child.pid) {
         execFile('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true }, () => undefined)
       }
+      // a kill that did not take (a protected process) must not leave the launcher waiting all the same
+      setTimeout(() => finish(-1), KILL_GRACE_MS)
     }, timeoutMs)
 
     let done = false
