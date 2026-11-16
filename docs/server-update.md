@@ -60,8 +60,13 @@ While no server is found, the home page offers to install one (`ServerSetupPanel
 repository's `docs/architecture/plans/empty-machine-install-plan.md`). Only a release whose manifest has a `runtimes` section can make one: the
 Java runtime (`target: runtime`) and the trimmed MySQL (`target: mysql`), each with its hash and the release whose assets carry it, as a map.
 
-1. **The folder**: the one the person picks when it is empty (or holds the `update-staging` of a try that stopped: only the launcher makes it),
-   else a new `echoes-server` inside it; a path with a letter outside plain ASCII is refused (MySQL reads its option file in the system's code page).
+1. **The folder**: the one the person picks when it is empty (or holds the `update-staging` of a try that stopped, or only what a try writes
+   before it downloads: the marker, `setup.log`, the probe), else a new `echoes-server` inside it; a path with a letter outside plain ASCII is
+   refused (MySQL reads its option file in the system's code page).
+   **The checks** (`preflight.ts`), before anything is downloaded: the folder takes a file, and a probe script says PowerShell runs scripts, in
+   the full language (a locked-down machine's constrained one cannot run `setup-mysql.ps1`), and lists the ports in under 10 s. Once the
+   runtimes are unpacked, before the bundle and the maps: `mysqld --version` and `java -version` start (an antivirus, a missing library).
+   A retry at the database checks the installed runtimes. The e2e tests stand them in with `ECHOES_FAKE_SETUP_CHECKS`.
 2. **The room**: three times the zips (bundle and runtimes: staged, then unpacked) plus the maps plus 512 MB, against the drive's free space.
 3. **The files**, under the activity `server-update` (the window waits for it): the runtimes downloaded, checked and unpacked, the bundle and every
    map as an update fetches them, then moved into place with the release's manifest. No `update-backups`: there is nothing to undo.

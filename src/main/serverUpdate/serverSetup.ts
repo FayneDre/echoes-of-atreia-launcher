@@ -8,13 +8,35 @@ import type { Problem, ServerSetupState, ServerSetupStep } from '../../shared/ty
 import type { Launcher } from '../launcher'
 import { ServerFeed, type ServerRelease } from './feed'
 import { CorruptError, ServerInstaller, runtimesOf } from './installer'
-import { writeInstallMarker } from './installMarker'
+import { INSTALL_MARKER, writeInstallMarker } from './installMarker'
 import { readInstallOrigin } from './manifest'
+import { PROBE_FILE, checkMachine, checkRuntimes } from './preflight'
 import { runServerScript, tail } from './powershell'
 
 const SETUP_TIMEOUT_MS = 15 * 60 * 1000
 /** In the server's folder: what the database's script said, kept for a problem report. */
 export const SETUP_LOG = 'setup.log'
+
+/** What is tried on the machine before and during an install (`preflight.ts`); stand-ins in the tests. */
+export interface SetupChecks {
+  machine: (folder: string) => Promise<Problem | null>
+  runtimes: (folders: Record<string, string>) => Promise<Problem | null>
+}
+
+/**
+ * The tests' stand-in for the checks, named by ECHOES_FAKE_SETUP_CHECKS (their runtimes are text files, which no check would start): `pass`,
+ * or the problem code one of them finds (`setup-check-runtime` the runtimes' check, any other the machine's). Unset: the real checks.
+ */
+export function fakeSetupChecks(fake: string | undefined): SetupChecks | undefined {
+  if (!fake) {
+    return undefined
+  }
+  const found = (code: string): Problem | null => (fake === code ? { code: code as Problem['code'], detail: 'a fake check' } : null)
+  return {
+    machine: async () => (fake === 'pass' || fake === 'setup-check-runtime' ? null : found(fake)),
+    runtimes: async () => found('setup-check-runtime')
+  }
+}
 /** The folder made inside the one chosen when that one already holds something. */
 export const SERVER_FOLDER_NAME = 'echoes-server'
 /** The staging folder a try works in, removed when it ends: a folder holding it is a try to take up. */
@@ -33,14 +55,18 @@ export function neededBytes(release: ServerRelease): number {
   return zips * 3 + maps + 512 * 1024 * 1024
 }
 
+/** What the launcher writes into the folder before it downloads anything: a try that stopped there left these alone. */
+const WRITTEN_FIRST = new Set([INSTALL_MARKER, SETUP_LOG, PROBE_FILE])
+
 /**
- * A folder the server may go into: one that does not exist, an empty one, or one holding a try that stopped before its end (only the launcher
- * makes `update-staging`, and the try that ends removes it): its files are compared by hash, so what is in place already stays.
+ * A folder the server may go into: one that does not exist, an empty one, one holding only what a try writes before it downloads (a check
+ * failed), or one holding a try that stopped before its end (only the launcher makes `update-staging`, and the try that ends removes it): its
+ * files are compared by hash, so what is in place already stays.
  */
 async function isFreeFolder(folder: string): Promise<boolean> {
   try {
     const names = await readdir(folder)
-    return names.length === 0 || names.includes(STAGING)
+    return names.every((name) => WRITTEN_FIRST.has(name)) || names.includes(STAGING)
   } catch {
     return true
   }
@@ -149,7 +175,8 @@ export class ServerSetup extends EventEmitter<{ state: [ServerSetupState] }> {
   constructor(
     private readonly launcher: Launcher,
     private readonly beta: boolean,
-    private readonly feed = new ServerFeed()
+    private readonly feed = new ServerFeed(),
+    private readonly checks: SetupChecks = { machine: checkMachine, runtimes: checkRuntimes }
   ) {
     super()
   }
@@ -187,7 +214,18 @@ export class ServerSetup extends EventEmitter<{ state: [ServerSetupState] }> {
     const problem = await this.launcher.installServerInto(folder, async () => {
       // first: the folder is empty or new, so it is the launcher's, and an uninstall may delete it whole (installMarker.ts)
       await writeInstallMarker(folder)
-      if (!filesInPlace) {
+      // what a locked-down machine forbids, found in seconds rather than after two gigabytes
+      step('checks')()
+      const machine = await this.checks.machine(folder)
+      if (machine) {
+        return machine
+      }
+      if (filesInPlace) {
+        const runtimes = await this.checks.runtimes({ mysql: join(folder, 'mysql'), runtime: join(folder, 'runtime') })
+        if (runtimes) {
+          return runtimes
+        }
+      } else {
         const files = await this.installFiles(folder, (version) => (base = { folder, version }), step)
         if (files) {
           return files
@@ -243,7 +281,13 @@ export class ServerSetup extends EventEmitter<{ state: [ServerSetupState] }> {
     const installer = new ServerInstaller(folder, this.feed)
     try {
       step('runtimes')(0)
-      await installer.fetchRuntimes(release, step('runtimes'))
+      const runtimes = await installer.fetchRuntimes(release, step('runtimes'))
+      // before the bundle and the maps, most of the download: MySQL and Java start on this machine
+      step('checks')()
+      const blocked = await this.checks.runtimes(runtimes)
+      if (blocked) {
+        return blocked
+      }
       step('download')(0)
       await installer.fetchBundle(release, step('download'))
       const plan = await installer.plan(release, null)

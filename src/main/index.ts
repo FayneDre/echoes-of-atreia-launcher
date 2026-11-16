@@ -24,7 +24,7 @@ import { Launcher } from './launcher'
 import { NewsFeed } from './news'
 import { processMemoryMb } from './system/memory'
 import { validValues } from './server/serverSettings'
-import { ServerSetup } from './serverUpdate/serverSetup'
+import { ServerSetup, fakeSetupChecks } from './serverUpdate/serverSetup'
 import { ServerUpdater } from './serverUpdate/serverUpdater'
 import { isAutoCleanup, isDeveloperMode, SettingsStore } from './settings'
 import { createReport, issueUrl } from './report'
@@ -55,7 +55,7 @@ const updater = new LauncherUpdater()
 // A beta launcher installs the server's pre-releases too, a stable one its releases only: decided by its own version, with no setting.
 const serverUpdater = new ServerUpdater(launcher, isBetaVersion(app.getVersion()), () => isDeveloperMode(settings.current))
 // An install from nothing takes the newest release the same launcher would update to.
-const serverSetup = new ServerSetup(launcher, isBetaVersion(app.getVersion()))
+const serverSetup = new ServerSetup(launcher, isBetaVersion(app.getVersion()), undefined, fakeSetupChecks(process.env['ECHOES_FAKE_SETUP_CHECKS']))
 /**
  * The two repositories on this computer whose notes stand in for GitHub in the developer mode: beside the server's folder (the launcher's
  * `echoes-of-atreia-launcher`, the server's `source/aion-server-4.8`), the launcher's own when it runs from its sources, or as

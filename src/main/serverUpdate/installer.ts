@@ -275,10 +275,11 @@ export class ServerInstaller {
 
   /**
    * The Java and the MySQL of the release (an install from nothing), each from the release that carries it, checked against the manifest's
-   * hash, then unpacked into the staging folder. Throws when the release names no runtimes.
+   * hash, then unpacked into the staging folder: each one's folder there, by its target. Throws when the release names no runtimes.
    */
-  async fetchRuntimes(release: ServerRelease, progress: Progress): Promise<void> {
+  async fetchRuntimes(release: ServerRelease, progress: Progress): Promise<Record<string, string>> {
     const entries = runtimesOf(release.manifest)
+    const folders: Record<string, string> = {}
     const total = entries.reduce((sum, entry) => sum + entry.size, 0)
     let done = 0
     for (const entry of entries) {
@@ -288,8 +289,10 @@ export class ServerInstaller {
       const unpacked = join(this.staging(release), 'runtimes', entry.target)
       await rm(unpacked, { recursive: true, force: true })
       await unzipAll(zip, unpacked)
+      folders[entry.target] = unpacked
       done += entry.size
     }
+    return folders
   }
 
   /**

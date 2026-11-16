@@ -77,8 +77,8 @@ async function pickFolder(app: ElectronApplication, folder: string): Promise<voi
   }, folder)
 }
 
-async function open(): ReturnType<typeof launchWith> {
-  const launched = await launchWith(install, { ECHOES_SERVER_FEED: feed.url })
+async function open(env: Record<string, string> = {}): ReturnType<typeof launchWith> {
+  const launched = await launchWith(install, { ECHOES_SERVER_FEED: feed.url, ...env })
   await launched.page.getByRole('button', { name: 'EN', exact: true }).click()
   return launched
 }
@@ -189,6 +189,30 @@ test('a release that carries no Java and database is not installed from', async 
   await expect(page.getByTestId('server-setup-problem')).toContainText('No server release carries what an install needs yet')
   expect(existsSync(join(target, 'game-server'))).toBe(false)
   await app.close()
+})
+
+test('a machine that forbids what the server needs is said before the server is downloaded', async () => {
+  // a locked-down PowerShell: found before anything is fetched
+  const first = await open({ ECHOES_FAKE_SETUP_CHECKS: 'setup-check-language' })
+  const panel = first.page.getByTestId('server-setup')
+  await expect(panel).toHaveAttribute('data-status', 'idle', { timeout: 20_000 })
+  await pickFolder(first.app, games)
+  await startInstall(first.page)
+  await expect(panel).toHaveAttribute('data-status', 'failed', { timeout: 30_000 })
+  await expect(first.page.getByTestId('server-setup-problem')).toContainText('PowerShell is restricted on this PC')
+  expect(feed.requests.filter((path) => path.endsWith('.zip'))).toEqual([])
+  await first.app.close()
+
+  // MySQL kept from starting: found once Java and MySQL are fetched, before the bundle and the maps
+  const second = await open({ ECHOES_FAKE_SETUP_CHECKS: 'setup-check-runtime' })
+  await expect(second.page.getByTestId('server-setup')).toHaveAttribute('data-status', 'idle', { timeout: 20_000 })
+  await pickFolder(second.app, games)
+  await startInstall(second.page)
+  await expect(second.page.getByTestId('server-setup')).toHaveAttribute('data-status', 'failed', { timeout: 30_000 })
+  await expect(second.page.getByTestId('server-setup-problem')).toContainText('A program of the server does not start on this PC')
+  expect(feed.requests.some((path) => path.includes('runtime-mysql'))).toBe(true)
+  expect(bundleRequests()).toBe(0)
+  await second.app.close()
 })
 
 test('the install offered and the news side by side fit the window', async () => {

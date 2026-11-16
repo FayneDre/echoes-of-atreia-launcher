@@ -124,7 +124,7 @@ test('cleans up an archived log past a month at start, says so, and can be turne
   await first.page.getByTestId('install-summary').click()
   const option = first.page.getByTestId('option-cleanup')
   await expect(option.getByRole('checkbox')).toBeChecked()
-  await expect(option).toContainText('At this start: 1 files sent to the recycle bin')
+  await expect(option).toContainText('At this start: 1 file sent to the recycle bin')
   await option.getByRole('checkbox').click()
   await expect(option.getByRole('checkbox')).not.toBeChecked()
   await first.app.close()

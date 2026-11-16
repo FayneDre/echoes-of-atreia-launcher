@@ -60,6 +60,11 @@ export type ProblemCode =
   | 'setup-disk-space'
   | 'setup-no-port'
   | 'setup-database-failed'
+  | 'setup-check-folder'
+  | 'setup-check-powershell'
+  | 'setup-check-language'
+  | 'setup-check-ports'
+  | 'setup-check-runtime'
   | 'uninstall-not-launcher-install'
   | 'uninstall-files-failed'
 
@@ -390,7 +395,7 @@ export type ServerUpdateStep = 'download' | 'navmesh' | 'verify' | 'stop' | 'fil
  */
 export type ServerSetupStatus = 'idle' | 'running' | 'failed'
 
-export type ServerSetupStep = 'release' | 'runtimes' | 'download' | 'navmesh' | 'files' | 'database'
+export type ServerSetupStep = 'checks' | 'release' | 'runtimes' | 'download' | 'navmesh' | 'files' | 'database'
 
 export interface ServerSetupState {
   status: ServerSetupStatus
