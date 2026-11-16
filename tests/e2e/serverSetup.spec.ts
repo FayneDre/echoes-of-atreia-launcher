@@ -106,12 +106,21 @@ test('installs the server from nothing into a folder of its own, and the launche
   await expect(panel).toHaveAttribute('data-status', 'idle', { timeout: 20_000 })
   await expect(panel).toContainText('No server is installed yet')
   expect(await overflow(page), 'offered').toBeLessThanOrEqual(0)
+  // no server: the home page alone, and no terminals to open
+  const pages = page.locator('nav.nav button')
+  await expect(pages.filter({ hasText: 'Home' })).toBeEnabled()
+  for (const name of ['Account', 'Server settings', 'Bots', 'Backups']) {
+    await expect(pages.filter({ hasText: name }), name).toBeDisabled()
+  }
+  await expect(page.getByTestId('terminals')).toHaveCount(0)
   await pickFolder(app, games)
   await startInstall(page)
 
-  // done: the panel goes, the server is found where it was put
+  // done: the panel goes, the server is found where it was put, and every page opens
   await expect(panel).toBeHidden({ timeout: 30_000 })
   await expect(page.getByTestId('install-server')).toHaveAttribute('data-found', 'true')
+  await expect(pages.filter({ hasText: 'Backups' })).toBeEnabled()
+  await expect(page.getByTestId('terminals')).toBeVisible()
   expect(readFileSync(join(target, 'runtime', 'bin', 'java.exe'), 'utf8')).toBe('the runtime')
   expect(readFileSync(join(target, 'mysql', 'bin', 'mysqld.exe'), 'utf8')).toBe('the database')
   expect(readFileSync(join(target, 'game-server', 'data', 'navmesh', '110010000.nav'), 'utf8')).toBe('the map of Sanctum')

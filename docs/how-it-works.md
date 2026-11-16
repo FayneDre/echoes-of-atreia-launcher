@@ -42,7 +42,7 @@ connects to the other two while it starts.
   launcher used to wait the two minutes of the port. It now reads that line in the log, ends the JVM (it holds nothing yet), and shows the
   first error the start logged.
 - What the JVM writes before its logging starts (a wrong Java, a missing class) goes to `log/launcher-stderr.log`, and a failure shows its
-  last lines, folded under "Details"; the terminals, a drawer at the foot of the home page, open by themselves on the failed server.
+  last lines, folded under "Details"; the terminals, a drawer at the foot of the home page, pick the failed server's tab.
 
 ## Stopping
 

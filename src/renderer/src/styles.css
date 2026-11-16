@@ -381,8 +381,21 @@ button.small {
   color: var(--text-muted);
 }
 
-.terminal-drawer {
+/* The dock holds the closed drawer's height in the page, always the same: the bar has a fixed height. Open, the drawer grows upward from the
+   dock's foot over the panels, which neither shrink nor move. */
+.terminal-dock {
+  --drawer-bar-height: 34px;
+  position: relative;
   flex: none;
+  height: calc(var(--drawer-bar-height) + 16px);
+}
+
+.terminal-drawer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
   padding: 8px 20px;
   border-top: 1px solid var(--border);
   background: var(--bg-raised);
@@ -390,12 +403,14 @@ button.small {
 
 .terminal-drawer.open {
   padding-bottom: 12px;
+  box-shadow: 0 -12px 28px rgb(0 0 0 / 55%);
 }
 
 .drawer-bar {
   display: flex;
   align-items: center;
   gap: 16px;
+  height: var(--drawer-bar-height);
 }
 
 .drawer-toggle {

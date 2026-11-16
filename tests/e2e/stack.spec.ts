@@ -156,6 +156,8 @@ test('gives up at once on a game server whose main thread died, says why, and st
   await problem.getByRole('button', { name: 'Show the log' }).click()
   await expect(problem.getByTestId('problem-dialog')).toBeHidden()
   await expect(page.getByRole('tab', { name: 'Game server' })).toHaveAttribute('aria-selected', 'true')
+  // the log lies over the servers' rows: read, it is closed again
+  await page.getByTestId('terminals-toggle').click()
   await page.getByTestId('restart-game').click()
   await expect(status(page, 'game')).toHaveAttribute('data-status', 'ready', { timeout: READY_TIMEOUT })
   await expect(problem).toHaveCount(0)

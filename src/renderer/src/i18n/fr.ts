@@ -143,6 +143,7 @@ export const fr: Record<MessageKey, string> = {
   'nav.account': 'Compte',
   'nav.backups': 'Sauvegardes',
   'nav.bots': 'Bots',
+  'nav.needsServer': 'Installe d’abord le serveur, depuis l’accueil.',
   'bots.title': 'Bots',
   'bots.intro': 'Les bots du serveur, par faction. Un bot est dans le monde quand le serveur de jeu tourne et que le bot est présent.',
   'bots.search': 'Chercher un bot',

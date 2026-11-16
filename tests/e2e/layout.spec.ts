@@ -136,3 +136,27 @@ test('ends both home columns on the same line, at the foot of the window, and sp
   expect(new Set(gaps).size, `gaps between the options: ${gaps.join(', ')}`).toBe(1)
   await app.close()
 })
+
+test('opens the terminals over the home page, whose panels keep their size and place', async () => {
+  const { app, page } = await launchWith(install)
+  await expect(page.getByTestId('install-summary')).toBeVisible()
+  await expect(page.getByTestId('server-update')).toBeVisible()
+  await page.waitForTimeout(1_000)
+  const panels = (): Promise<string[]> =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('.home-grid section'), document.querySelector('.page-scroll')!].map((element) => {
+        const box = element.getBoundingClientRect()
+        return `${element.getAttribute('data-testid') ?? element.className} ${Math.round(box.width)}x${Math.round(box.height)} at ${Math.round(box.left)},${Math.round(box.top)}`
+      })
+    )
+  const closed = await panels()
+  await page.getByTestId('terminals-toggle').click()
+  await expect(page.locator('.terminal')).toBeVisible()
+  await page.waitForTimeout(300)
+  expect(await panels()).toEqual(closed)
+  // and it lies over them: the drawer's top is above the foot of the page
+  const drawerTop = await page.getByTestId('terminals').evaluate((element) => element.getBoundingClientRect().top)
+  const pageBottom = await page.locator('.page-scroll').evaluate((element) => element.getBoundingClientRect().bottom)
+  expect(drawerTop).toBeLessThan(pageBottom)
+  await app.close()
+})

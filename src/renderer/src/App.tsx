@@ -93,6 +93,13 @@ export function App(): React.JSX.Element {
       // a convenience only: the drawer starts closed next time
     }
   }
+  // Without a server the other pages have nothing to show and the terminals nothing to read: home alone, until one is installed.
+  const serverFound = state?.install.serverFound ?? false
+  useEffect(() => {
+    if (state && !serverFound) {
+      setPage('home')
+    }
+  }, [state, serverFound])
   const showLog = (id: ServerId): void => {
     setTerminal(id)
     setTerminalsOpen(true)
@@ -145,6 +152,8 @@ export function App(): React.JSX.Element {
               key={entry.id}
               type="button"
               aria-current={page === entry.id ? 'page' : undefined}
+              disabled={entry.id !== 'home' && !serverFound}
+              title={entry.id !== 'home' && !serverFound ? t('nav.needsServer') : undefined}
               onClick={() => {
                 setPage(entry.id)
                 // What is in game changes while one plays: the list is read again on arrival.
@@ -204,13 +213,14 @@ export function App(): React.JSX.Element {
               </div>
             </div>
           </div>
-          <TerminalPanel
-            open={terminalsOpen}
-            serverFound={state.install.serverFound}
-            server={terminal}
-            onToggle={() => setTerminalsOpen(!terminalsOpen)}
-            onSelect={setTerminal}
-          />
+          {serverFound && (
+            <TerminalPanel
+              open={terminalsOpen}
+              server={terminal}
+              onToggle={() => setTerminalsOpen(!terminalsOpen)}
+              onSelect={setTerminal}
+            />
+          )}
         </main>
       )}
       {state && (

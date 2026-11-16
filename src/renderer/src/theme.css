@@ -316,8 +316,8 @@ button:hover:not(:disabled) {
 
 /* ---------- Terminals ---------- */
 
+/* positioned by styles.css (over the page when open): its ::before line hangs from it */
 .terminal-drawer {
-  position: relative;
   background: linear-gradient(180deg, rgb(10 15 30 / 96%), rgb(6 9 19 / 98%));
   border-top: none;
 }

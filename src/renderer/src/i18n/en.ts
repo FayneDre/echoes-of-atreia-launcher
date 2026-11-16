@@ -142,6 +142,7 @@ export const en = {
   'nav.account': 'Account',
   'nav.backups': 'Backups',
   'nav.bots': 'Bots',
+  'nav.needsServer': 'Install the server first, from the home page.',
   'bots.title': 'Bots',
   'bots.intro': 'The server’s bots, by faction. A bot is in the world while the game server runs and the bot is present.',
   'bots.search': 'Search a bot',

@@ -66,7 +66,8 @@ A tab shows a "new" badge until it has been opened with that release at its top;
 - **Server version** ([server-update.md](server-update.md)) sits above the news. The whole page fits the default window (1180×780) and a
   larger one (zoomed), with no scroll bar, MySQL run with a my.ini of a long path included (`layout.spec.ts` measures it).
 - **Terminals**: the drawer at the foot, with a search, an "errors only" filter (ERROR and WARN lines, exceptions and their causes) and a
-  copy of what the filter shows.
+  copy of what the filter shows. Open, it lies over the lower panels, which keep their size and place (`layout.spec.ts`). It is not shown
+  while no server is installed, and the other pages cannot be opened then either.
 - **The footer** gives the launcher's version and the server's, as the server answers it or as the install's manifest says.
 
 ## The window

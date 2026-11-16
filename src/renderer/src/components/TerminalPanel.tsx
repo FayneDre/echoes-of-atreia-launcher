@@ -9,18 +9,16 @@ const WARN_LINE = / WARN /
 
 interface Props {
   open: boolean
-  /** Without a server folder there is no log folder to open. */
-  serverFound: boolean
   server: ServerId
   onToggle: () => void
   onSelect: (server: ServerId) => void
 }
 
 /**
- * The three servers' consoles, in a drawer at the foot of the home page: closed, it is one bar and the panels have the whole window; it opens
- * on a click, on "Show the log" next to a problem, and by itself when a server fails.
+ * The three servers' consoles, in a drawer at the foot of the home page: closed, it is one bar and the panels have the whole window; open, it
+ * lies over the page's lower panels, which keep their size and place. It opens on a click and on "Show the log" next to a problem.
  */
-export function TerminalPanel({ open, serverFound, server, onToggle, onSelect }: Props): React.JSX.Element {
+export function TerminalPanel({ open, server, onToggle, onSelect }: Props): React.JSX.Element {
   const { t } = useI18n()
   const all = useServerLogs(server)
   const [errorsOnly, setErrorsOnly] = useState(false)
@@ -48,89 +46,91 @@ export function TerminalPanel({ open, serverFound, server, onToggle, onSelect }:
   }, [lines, open])
 
   return (
-    <section className={`terminal-drawer${open ? ' open' : ''}`} aria-labelledby="terminals-title" data-testid="terminals">
-      <div className="drawer-bar">
-        <button
-          type="button"
-          id="terminals-title"
-          className="drawer-toggle"
-          aria-expanded={open}
-          data-testid="terminals-toggle"
-          onClick={onToggle}
-        >
-          <span className="chevron" aria-hidden="true">
-            {open ? '▾' : '▸'}
-          </span>
-          {t('section.terminals')}
-        </button>
-        <div className="tabs" role="tablist">
-          {SERVER_IDS.map((id) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={server === id}
-              onClick={() => {
-                onSelect(id)
-                if (!open) {
-                  onToggle()
-                }
-              }}
-            >
-              {t(`server.${id}`)}
-            </button>
-          ))}
-        </div>
-        {open && (
-          <div className="terminal-tools">
-            <input type="search" value={query} placeholder={t('terminal.search')} aria-label={t('terminal.search')} onChange={(event) => setQuery(event.currentTarget.value)} />
-            <label className="toggle-label">
-              <input type="checkbox" checked={errorsOnly} onChange={(event) => setErrorsOnly(event.currentTarget.checked)} />
-              {t('terminal.errorsOnly')}
-            </label>
-            <button type="button" className="small" disabled={lines.length === 0} onClick={copy}>
-              {copied ? t('terminal.copied') : t('terminal.copy')}
-            </button>
-            <button
-              type="button"
-              className="small"
-              data-testid="terminal-folder"
-              disabled={!serverFound}
-              onClick={() => void window.launcher.openLogFolder(server)}
-            >
-              {t('terminal.openFolder')}
-            </button>
+    // the dock keeps the closed bar's room in the page; the drawer grows upward from it, over the panels
+    <div className="terminal-dock">
+      <section className={`terminal-drawer${open ? ' open' : ''}`} aria-labelledby="terminals-title" data-testid="terminals">
+        <div className="drawer-bar">
+          <button
+            type="button"
+            id="terminals-title"
+            className="drawer-toggle"
+            aria-expanded={open}
+            data-testid="terminals-toggle"
+            onClick={onToggle}
+          >
+            <span className="chevron" aria-hidden="true">
+              {open ? '▾' : '▸'}
+            </span>
+            {t('section.terminals')}
+          </button>
+          <div className="tabs" role="tablist">
+            {SERVER_IDS.map((id) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={server === id}
+                onClick={() => {
+                  onSelect(id)
+                  if (!open) {
+                    onToggle()
+                  }
+                }}
+              >
+                {t(`server.${id}`)}
+              </button>
+            ))}
           </div>
-        )}
-      </div>
-      <pre
-        ref={output}
-        className="terminal"
-        role="log"
-        hidden={!open}
-        aria-label={t(`server.${server}`)}
-        onScroll={(event) => {
-          const element = event.currentTarget
-          following.current = element.scrollHeight - element.scrollTop - element.clientHeight < 24
-        }}
-      >
-        {lines.length
-          ? lines.map((line, index) => {
-              const kind = ERROR_LINE.test(line) ? 'log-error' : WARN_LINE.test(line) ? 'log-warn' : undefined
-              // one text node a line, the colour on the lines that need it: copying the selection gives the log as it was
-              return kind ? (
-                <span key={index} className={kind}>
-                  {line}
-                  {'\n'}
-                </span>
-              ) : (
-                `${line}\n`
-              )
-            })
-          : all.length
-            ? t('terminal.noMatch')
-            : t('terminal.empty')}
-      </pre>
-    </section>
+          {open && (
+            <div className="terminal-tools">
+              <input type="search" value={query} placeholder={t('terminal.search')} aria-label={t('terminal.search')} onChange={(event) => setQuery(event.currentTarget.value)} />
+              <label className="toggle-label">
+                <input type="checkbox" checked={errorsOnly} onChange={(event) => setErrorsOnly(event.currentTarget.checked)} />
+                {t('terminal.errorsOnly')}
+              </label>
+              <button type="button" className="small" disabled={lines.length === 0} onClick={copy}>
+                {copied ? t('terminal.copied') : t('terminal.copy')}
+              </button>
+              <button
+                type="button"
+                className="small"
+                data-testid="terminal-folder"
+                onClick={() => void window.launcher.openLogFolder(server)}
+              >
+                {t('terminal.openFolder')}
+              </button>
+            </div>
+          )}
+        </div>
+        <pre
+          ref={output}
+          className="terminal"
+          role="log"
+          hidden={!open}
+          aria-label={t(`server.${server}`)}
+          onScroll={(event) => {
+            const element = event.currentTarget
+            following.current = element.scrollHeight - element.scrollTop - element.clientHeight < 24
+          }}
+        >
+          {lines.length
+            ? lines.map((line, index) => {
+                const kind = ERROR_LINE.test(line) ? 'log-error' : WARN_LINE.test(line) ? 'log-warn' : undefined
+                // one text node a line, the colour on the lines that need it: copying the selection gives the log as it was
+                return kind ? (
+                  <span key={index} className={kind}>
+                    {line}
+                    {'\n'}
+                  </span>
+                ) : (
+                  `${line}\n`
+                )
+              })
+            : all.length
+              ? t('terminal.noMatch')
+              : t('terminal.empty')}
+        </pre>
+      </section>
+    </div>
   )
 }
