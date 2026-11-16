@@ -7,6 +7,30 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.14 — 16/11/2026
+
+**Proposée par le launcher** si tu as la v0.3.0-beta.13 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la
+main avec `Echoes-of-Atreia-Setup-0.3.0-beta.14.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien demande le serveur v0.1.0-beta.6 ; le panneau d'administration, un
+serveur plus récent que la v0.1.0-beta.6 ; le seuil de RAM du PC, le serveur v0.1.0-beta.8.
+
+**Ce qui change**
+- **Installer le serveur : ce PC est vérifié avant le téléchargement.** Le dossier, PowerShell (bloqué ou bridé par une entreprise), la
+  liste des ports ; puis MySQL et Java, lancés juste après leur téléchargement, avant les 2 Go du serveur et des cartes. Ce qui bloque est
+  dit tout de suite, au lieu d'une installation qui reste figée.
+- **Installer le serveur : la création de la base de données dit ce qu'elle fait**, ligne par ligne sous l'étape, et l'écrit dans
+  `setup.log` du dossier du serveur. Un « Signaler un problème » fait pendant ou après l'installation emporte ce journal et celui de MySQL.
+  Au bout de 15 minutes, l'installation s'arrête au lieu d'attendre sans fin.
+- **Sans serveur installé**, seul l'accueil s'ouvre, et les terminaux n'apparaissent pas.
+- **Les terminaux s'ouvrent par-dessus l'accueil**, sans déformer ses cadres, et restent grisés tant que tous les serveurs sont arrêtés.
+- **Aucune barre de défilement** : la page Bots a deux onglets, « Réglages des bots » et « Liste des bots » ; chaque faction se lit par pages
+  (« Précédents », « Suivants ») d'autant de bots que la fenêtre en tient ; la perte quotidienne des points d'honneur est sur deux colonnes.
+- **Nouveautés** : la version que tu as porte la marque « installée ».
+- « 1 bot », « 1 fichier » au singulier ; la valeur officielle d'un réglage tient sur une ligne.
+
+---
+
 ## v0.3.0-beta.13 — 15/11/2026
 
 **Proposée par le launcher** si tu as la v0.3.0-beta.12 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la
@@ -118,50 +142,3 @@ démarre pas sur un Windows neuf).
   installé toi-même n'est jamais proposé, ni un serveur installé avec une version précédente du launcher.
 - **Plus de barre de défilement dans une petite fenêtre** : quand la fenêtre est plus petite que sa taille de départ (un petit écran, ou
   Windows qui l'ouvre un peu plus petite), la page rétrécit avec elle.
-
----
-
-## v0.3.0-beta.7 — 14/11/2026
-
-**Arrive toute seule si tu as une v0.3.0-beta installée avec l'installateur** (c'est la dernière fois : à partir de celle-ci, une mise à jour
-est proposée, jamais installée sans toi). Sinon, installe-la à la main avec `Echoes-of-Atreia-Setup-0.3.0-beta.7.exe`.
-
-**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien demande le serveur v0.1.0-beta.5.
-
-**Ce qui change**
-- **Les mises à jour se font quand tu le décides** : une nouvelle version du launcher est proposée sur une ligne en haut de la fenêtre, avec
-  « Quoi de neuf », « Mettre à jour » et « Plus tard ». Rien n'est téléchargé avant « Mettre à jour », rien n'est installé avant
-  « Redémarrer et installer », et fermer le launcher n'installe plus rien. Un téléchargement raté le dit et propose « Réessayer ».
-- **« Quoi de neuf » s'ouvre dans une fenêtre**, pour le launcher comme pour le serveur : la page ne bouge plus.
-- **L'accueil tient dans la fenêtre** sans barre de défilement :
-  - la base de données (MySQL) tient sur une ligne comme les serveurs ; la façon dont elle est lancée (ton my.ini ou le service Windows) s'ouvre
-    avec le bouton « … » à côté de son nom ;
-  - sans service ni my.ini, « Démarrer avec mon my.ini… » est sur la ligne elle-même ;
-  - les Nouveautés et l'Installation ne s'étirent plus avec du vide.
-- **Une fenêtre ne se ferme plus** quand on clique dans sa marge ; seulement à côté.
-
----
-
-## v0.3.0-beta.6 — 14/11/2026
-
-**Arrive toute seule si tu as une v0.3.0-beta installée avec l'installateur.** Sinon, installe-la à la main avec
-`Echoes-of-Atreia-Setup-0.3.0-beta.6.exe`.
-
-**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien, la densité des bots et la population du serveur demandent le serveur
-v0.1.0-beta.5.
-
-**Ce qui change**
-- **Installer le serveur à partir de rien** : sur un ordinateur qui n'a que le client du jeu, l'accueil propose « Installer le serveur ». Tu
-  choisis un dossier (vide, ou un dossier `echoes-server` y est créé) ; le launcher vérifie la place sur le disque, télécharge et vérifie le
-  serveur, son Java, sa base de données MySQL et les cartes des bots (environ 2,1 Go), crée la base sur un port libre et prend ce dossier comme
-  serveur. Rien n'est installé dans Windows. Un téléchargement interrompu reprend où il en était ; si la base n'a pas pu être créée,
-  « Réessayer » reprend à cette étape.
-- **Le Java et le MySQL de l'installation** : un serveur qui porte les siens (dossiers `runtime` et `mysql`) démarre avec eux, et les
-  sauvegardes utilisent ses outils ; sinon rien ne change.
-- **La densité des bots** sur la page Bots : le mode et le pourcentage, et la population du serveur en cours (les bots éveillés sur ceux
-  voulus, les endormis, et si le serveur retient les arrivées faute de mémoire ou de calcul de trajets).
-- **La mémoire du serveur de jeu adaptée à l'ordinateur** : 1 Go sous 6 Go de mémoire, 1,5 Go sous 10 Go, 2 Go sous 14 Go, la valeur du
-  serveur au-delà.
-
-**Configuration requise** : Windows et le client Aion 4.8. Un JDK 25 et MySQL seulement pour un serveur installé autrement que par le
-launcher.

@@ -6,6 +6,30 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.14 — 2026-11-16
+
+**Offered by the launcher** if you have v0.3.0-beta.13: "Update" on the line at the top of the window. Otherwise, install it by hand with
+`Echoes-of-Atreia-Setup-0.3.0-beta.14.exe`.
+
+**Minimum server: v0.1.0-beta.1.** Installing from nothing needs server v0.1.0-beta.6; the administration panel, a server newer than
+v0.1.0-beta.6; the PC RAM mark, server v0.1.0-beta.8.
+
+**What changes**
+- **Installing the server: this PC is checked before the download.** The folder, PowerShell (blocked or restricted by a company), the port
+  listing; then MySQL and Java, started right after their download, before the 2 GB of the server and the maps. What blocks is said at once,
+  instead of an install that hangs.
+- **Installing the server: making the database says what it does**, line by line under the step, and writes it to `setup.log` in the
+  server's folder. A "Report a problem" made during or after the install takes that log and MySQL's. After 15 minutes the install stops
+  instead of waiting forever.
+- **With no server installed**, only the home page opens, and the terminals do not show.
+- **The terminals open over the home page**, without resizing its panels, and stay greyed out while every server is stopped.
+- **No scroll bar**: the Bots page has two tabs, "Bot settings" and "Bot list"; each faction reads in pages ("Previous", "Next") of as many
+  bots as the window holds; the daily loss of honour points is on two columns.
+- **News**: the version you have is marked "installed".
+- "1 bot", "1 file" in the singular; a setting's official value stays on one line.
+
+---
+
 ## v0.3.0-beta.13 — 2026-11-15
 
 **Offered by the launcher** if you have v0.3.0-beta.12: "Update" on the line at the top of the window. Otherwise, install it by hand with
@@ -114,48 +138,3 @@ Windows).
   installed by an earlier launcher.
 - **No scroll bar in a small window**: when the window is smaller than its first size (a small screen, or Windows opening it a little
   smaller), the page shrinks with it.
-
----
-
-## v0.3.0-beta.7 — 2026-11-14
-
-**It arrives by itself if you have a v0.3.0 beta installed with the installer** (for the last time: from this one on, an update is offered,
-never installed without you). Otherwise install it by hand with `Echoes-of-Atreia-Setup-0.3.0-beta.7.exe`.
-
-**Minimum server: v0.1.0-beta.1.** The install from nothing needs server v0.1.0-beta.5.
-
-**What changes**
-- **Updates happen when you decide**: a new launcher version is offered on one line at the top of the window, with "What's new", "Update"
-  and "Later". Nothing is downloaded before "Update", nothing installed before "Restart and install", and closing the launcher no longer
-  installs anything. A download that fails says so and offers "Try again".
-- **"What's new" opens in a window**, for the launcher and the server alike: the page no longer moves.
-- **The home page fits the window** with no scroll bar:
-  - the database (MySQL) takes one line like the servers; how it is run (your my.ini or the Windows service) opens from the "…" button
-    beside its name;
-  - with neither a service nor a my.ini, "Start with my own my.ini…" is on the row itself;
-  - What's new and Installation are no longer stretched with empty room.
-- **A window no longer closes** on a click in its margin; only on a click beside it.
-
----
-
-## v0.3.0-beta.6 — 2026-11-14
-
-**It arrives by itself if you have a v0.3.0 beta installed with the installer.** Otherwise install it by hand with
-`Echoes-of-Atreia-Setup-0.3.0-beta.6.exe`.
-
-**Minimum server: v0.1.0-beta.1.** The install from nothing, the bot density and the server's population need server v0.1.0-beta.5.
-
-**What changes**
-- **Install the server from nothing**: on a computer that has nothing but the game client, the home page offers "Install the server". You
-  pick a folder (an empty one, or one an `echoes-server` folder is made in); the launcher checks the room on the drive, downloads and checks the
-  server, its Java, its MySQL database and the bots' maps (about 2.1 GB), makes the database on a free port and takes that folder as its server.
-  Nothing is installed on Windows. A download that stops is taken up where it was; if the database could not be made, "Try again" starts at
-  that step.
-- **The install's own Java and MySQL**: a server that carries its own (`runtime` and `mysql` folders) is started with them, and the backups use
-  its tools; otherwise nothing changes.
-- **The bot density** on the Bots page: the mode and the percentage, and the running server's population (the bots awake out of those wanted,
-  those asleep, and whether the server holds arrivals for want of memory or of route planning).
-- **The game server's memory fitted to the computer**: 1 GB under 6 GB of memory, 1.5 GB under 10 GB, 2 GB under 14 GB, the server's own value
-  above.
-
-**System requirements**: Windows and the Aion 4.8 client. A JDK 25 and MySQL only for a server installed some other way than by the launcher.
