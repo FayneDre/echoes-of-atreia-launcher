@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { en, type MessageKey } from './en'
+import { formatMessage } from './format'
 import { fr } from './fr'
 
 export type { MessageKey }
@@ -18,7 +19,7 @@ const STORAGE_KEY = 'language'
 interface I18nContextValue {
   language: Language
   setLanguage: (language: Language) => void
-  /** The text of a key, with each `{name}` replaced by its value. */
+  /** The text of a key, with each `{name}` replaced by its value and each `{name|one|other}` by the word for that number (`format.ts`). */
   t: (key: MessageKey, values?: Record<string, string | number>) => string
 }
 
@@ -61,8 +62,7 @@ export function LanguageProvider({ children }: { children: ReactNode }): React.J
     }
   }
 
-  const t = (key: MessageKey, values?: Record<string, string | number>): string =>
-    dictionaries[language][key].replace(/\{(\w+)\}/g, (placeholder, name: string) => String(values?.[name] ?? placeholder))
+  const t = (key: MessageKey, values?: Record<string, string | number>): string => formatMessage(dictionaries[language][key], language, values)
 
   return <I18nContext.Provider value={{ language, setLanguage, t }}>{children}</I18nContext.Provider>
 }

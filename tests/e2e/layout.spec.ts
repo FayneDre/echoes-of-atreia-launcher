@@ -214,3 +214,19 @@ test('shows every page, every part and every settings group without a scroll bar
   expect(found).toEqual([])
   await app.close()
 })
+
+test('writes each official value on one line, the longest choice in French included', async () => {
+  const { app, page } = await launchWith(install)
+  await page.getByRole('button', { name: 'FR', exact: true }).click()
+  await page.getByRole('button', { name: 'Bots', exact: true }).click()
+  const official = page.getByTestId('group-botDensity').locator('.official').first()
+  await expect(official).toHaveText('officiel Selon les joueurs')
+  // one box a line of text
+  const lines = await official.evaluate((element) => {
+    const range = document.createRange()
+    range.selectNodeContents(element)
+    return new Set([...range.getClientRects()].map((box) => Math.round(box.top))).size
+  })
+  expect(lines).toBe(1)
+  await app.close()
+})

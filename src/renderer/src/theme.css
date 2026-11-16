@@ -481,6 +481,12 @@ button:hover:not(:disabled) {
   color: var(--aether);
 }
 
+/* the release this machine runs: said, not offered */
+.tag-installed {
+  background: rgb(118 214 150 / 14%);
+  color: var(--ok);
+}
+
 .character.selected {
   border-color: var(--gold);
   box-shadow:

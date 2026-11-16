@@ -30,7 +30,7 @@ test('lists the bots by faction, with their level, class and map, and believes "
   await expect(elyos.getByRole('listitem').first()).toContainText('Zephyra')
 
   const asmodians = page.getByTestId('faction-ASMODIANS')
-  await expect(asmodians).toContainText('1 bots')
+  await expect(asmodians).toContainText(/1 bot(?!s)/)
   await expect(asmodians.getByTestId('bot-Brakka')).toContainText('Ishalgen')
   // A bot is under its own faction only.
   await expect(asmodians.getByTestId('bot-Zephyra')).toHaveCount(0)

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { NewsItem, NewsSource, NewsState } from '../../../shared/types'
 import { useI18n } from '../i18n'
+import { isInstalled, type InstalledVersions } from '../installedRelease'
 import { Markdown } from './Markdown'
 import { closeOnBackdropClick } from '../dialog'
 
@@ -63,7 +64,17 @@ const dateOf = (item: NewsItem, language: string): string | null =>
  * The whole notes of a tab's releases, over the page: the versions on the left, the notes of the one picked on the right. Closed by its
  * button, Escape or a click beside it.
  */
-function NotesDialog({ items, first, onClose }: { items: NewsItem[]; first: number; onClose: () => void }): React.JSX.Element {
+function NotesDialog({
+  items,
+  first,
+  installed,
+  onClose
+}: {
+  items: NewsItem[]
+  first: number
+  installed: InstalledVersions
+  onClose: () => void
+}): React.JSX.Element {
   const { language, t } = useI18n()
   const dialog = useRef<HTMLDialogElement>(null)
   const [picked, setPicked] = useState(first)
@@ -90,6 +101,7 @@ function NotesDialog({ items, first, onClose }: { items: NewsItem[]; first: numb
             {items.map((entry, index) => (
               <button key={entry.tag} type="button" aria-current={index === picked ? 'true' : undefined} onClick={() => setPicked(index)}>
                 <span className="news-tag">{entry.tag}</span>
+                {isInstalled(entry, installed) && <span className="tag tag-installed">{t('news.installed')}</span>}
                 <span className="news-date">{dateOf(entry, language)}</span>
               </button>
             ))}
@@ -116,7 +128,7 @@ function NotesDialog({ items, first, onClose }: { items: NewsItem[]; first: numb
  * language, so the panel keeps its height however many releases come out. The whole notes, and the releases before, open in a dialog. A
  * tab whose newest release has not been opened yet says "new".
  */
-export function NewsPanel({ news }: { news: NewsState | null }): React.JSX.Element {
+export function NewsPanel({ news, installed }: { news: NewsState | null; installed: InstalledVersions }): React.JSX.Element {
   const { language, t } = useI18n()
   const [source, setSource] = useState<NewsSource>('launcher')
   const [seen, setSeen] = useState(readSeen)
@@ -164,6 +176,11 @@ export function NewsPanel({ news }: { news: NewsState | null }): React.JSX.Eleme
           <div className="news-head">
             <span className="news-tag">{latest.tag}</span>
             {latest.prerelease && <span className="tag tag-manual">{t('news.prerelease')}</span>}
+            {isInstalled(latest, installed) && (
+              <span className="tag tag-installed" data-testid="news-installed">
+                {t('news.installed')}
+              </span>
+            )}
             <span className="news-date">{dateOf(latest, language)}</span>
           </div>
           {/* the room the column leaves, even when the summary is shorter or missing: switching tabs moves nothing */}
@@ -182,7 +199,7 @@ export function NewsPanel({ news }: { news: NewsState | null }): React.JSX.Eleme
           </div>
         </article>
       )}
-      {reading !== null && items.length > 0 && <NotesDialog items={items} first={reading} onClose={() => setReading(null)} />}
+      {reading !== null && items.length > 0 && <NotesDialog items={items} first={reading} installed={installed} onClose={() => setReading(null)} />}
     </section>
   )
 }

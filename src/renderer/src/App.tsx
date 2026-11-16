@@ -213,7 +213,7 @@ export function App(): React.JSX.Element {
               <div className="home-column">
                 <ServerSetupPanel setup={serverSetup} state={state} />
                 <ServerUpdatePanel update={serverUpdate} state={state} />
-                <NewsPanel news={news} />
+                <NewsPanel news={news} installed={{ launcher: window.launcher.version, server: serverUpdate?.installed }} />
               </div>
             </div>
           </div>
