@@ -375,7 +375,8 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
 
   /**
    * Stops the game server first: it saves the players and needs the login server and the database until it is done. Interrupts a start
-   * under way: each server gives up its start at its next step.
+   * under way: each server gives up its start at its next step. False when a server would not stop, or when the automatic backup that
+   * followed failed: a quit waiting on it keeps the window, so the failure is seen.
    */
   stopAll(): Promise<boolean> {
     if (this.activity === 'stopping') {
@@ -383,13 +384,13 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
     }
     this.stopRequested = true
     // a stop with no game server ready has saved nothing new (a start cancelled, a server that failed): no backup of it, which would
-    // push a backup worth keeping out of the five
+    // push a backup worth keeping out of the rotation
     const gameWasUp = this.servers.game?.current.status === 'ready'
     return this.run('stopping', () => this.stopServers(), this.activity === 'starting').then(async (stopped) => {
       // its own activity, after the stop: the window says a backup runs, and a quit that asked for the stop waits for it
       if (stopped && gameWasUp && this.afterCleanStop && isAutoBackup(this.settings.current)) {
         const work = this.afterCleanStop
-        await this.run('backup', async () => {
+        return this.run('backup', async () => {
           const problem = await work()
           return problem ? this.fail(problem) : true
         })

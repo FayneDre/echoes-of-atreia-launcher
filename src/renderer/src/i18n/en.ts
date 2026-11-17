@@ -352,7 +352,8 @@ export const en = {
   'backups.remove': 'Delete',
   'backups.kind.manual': 'Backup',
   'backups.kind.auto': 'Automatic',
-  'backups.auto': 'Back up at each stop of the servers (the last 5 kept)',
+  'backups.auto': 'Back up at each stop',
+  'backups.autoHint': 'After each stop of the servers. Kept: the last 5, and the last of each of the 7 latest days played.',
   'backups.kind.before-restore': 'Before a restore',
   'backups.kind.before-uninstall': 'Before uninstalling',
   'backups.restoreConfirm':

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 // The service reaches Electron only through modules it imports for other purposes; none of it runs here.
 vi.mock('electron', () => ({ app: { getPath: () => '' }, safeStorage: {} }))
 
-const { backupIdFor, dumpOptionsFrom, optionValue } = await import('../../src/main/backup/backupService')
+const { backupIdFor, backupsToPrune, dumpOptionsFrom, optionValue } = await import('../../src/main/backup/backupService')
 
 describe('backups', () => {
   it('names a backup by its local date and time, so the folders sort as they read', () => {
@@ -18,6 +18,14 @@ describe('backups', () => {
     // MySQL 8.0 has GTIDs but no masking policies; MariaDB has neither.
     expect(dumpOptionsFrom('--set-gtid-purged[=name]\n')).toEqual(['--set-gtid-purged=OFF'])
     expect(dumpOptionsFrom('mysqldump  Ver 10.19 Distrib 10.11.6-MariaDB\n')).toEqual([])
+  })
+
+  it('rotates: keeps the newest few, and the newest of each of the latest days that have one, however far apart', () => {
+    const ids = ['2026-11-01_20-00-00', '2026-11-01_22-00-00', '2026-11-05_21-00-00', '2026-11-10_19-00-00', '2026-11-10_20-00-00', '2026-11-10_21-00-00', '2026-11-10_22-00-00', '2026-11-10_23-00-00']
+    // five stops on the 10th: the newest two kept, and the last of each latest day; the 1st is the third day that has one, past two
+    expect(backupsToPrune(ids, 2, 2)).toEqual(['2026-11-10_21-00-00', '2026-11-10_20-00-00', '2026-11-10_19-00-00', '2026-11-01_22-00-00', '2026-11-01_20-00-00'])
+    expect(backupsToPrune(ids, 2, 3)).toEqual(['2026-11-10_21-00-00', '2026-11-10_20-00-00', '2026-11-10_19-00-00', '2026-11-01_20-00-00'])
+    expect(backupsToPrune(ids.slice(0, 3), 5, 7)).toEqual([])
   })
 
   it('quotes a password for a MySQL option file, whatever it holds', () => {

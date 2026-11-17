@@ -144,8 +144,10 @@ not offered). `mysql` reads one back. Both come from the folder of the MySQL ser
 - **A backup can be made while the servers run** (`--single-transaction` reads one instant without locking them out; what the game server
   has not saved yet is not in it). **A restore needs them stopped** — a running game server would write its characters back over the
   restored ones — and first backs up what is there (kind `before-restore`), so a restore can itself be undone.
-- **After each stop that stopped a game server**, MySQL still up, a backup of kind `auto` (`Launcher.setAfterCleanStop`, its own `backup`
-  activity, which a quit asking for the stop waits for); the newest five of that kind are kept, no other kind is ever pruned. Option on by default.
+- **After each stop of a game server that was ready**, MySQL still up, a backup of kind `auto` (`Launcher.setAfterCleanStop`, its own `backup`
+  activity, which a quit asking for the stop waits for); of that kind the newest five are kept and the newest of each of the seven latest days that have one
+  (`backupsToPrune`: five stops in one evening no longer take every backup from before it), no other kind is ever pruned. Option on by
+  default. A failed one keeps a quit's window open, the problem shown; asked again, the quit closes.
 - A backup's id is its folder name, checked against the date pattern before anything is read or removed.
 - The end-to-end tests play both tools with `tests/fixtures/mysql-tools/` (`ECHOES_FAKE_MYSQL_TOOLS`).
 

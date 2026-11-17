@@ -80,6 +80,26 @@ function dumpOptions(dump: Tool): Promise<string[]> {
   })
 }
 
+/**
+ * Of these backup ids, the ones past the newest `keep` that are not the newest of one of the `days` latest days having a backup: what
+ * rotation removes. Five stops in one evening would otherwise take every backup from before it; the latest days that have one, not the
+ * calendar's, so a week away from the game still finds its last evenings.
+ */
+export function backupsToPrune(ids: string[], keep: number, days: number): string[] {
+  const newestFirst = [...ids].sort((a, b) => b.localeCompare(a))
+  const kept = new Set(newestFirst.slice(0, keep))
+  const daysSeen = new Set<string>()
+  for (const id of newestFirst) {
+    // the id starts with its local date: 2026-11-04_21-30-05
+    const day = id.slice(0, 10)
+    if (!daysSeen.has(day) && daysSeen.size < days) {
+      daysSeen.add(day)
+      kept.add(id)
+    }
+  }
+  return newestFirst.filter((id) => !kept.has(id))
+}
+
 /** The local date and time as a folder name: sorts as it reads. */
 export function backupIdFor(date: Date): string {
   const pad = (value: number): string => String(value).padStart(2, '0')
@@ -235,11 +255,14 @@ export class BackupService {
     return null
   }
 
-  /** Removes the backups of this kind past the newest `keep`; the others (the person's own, the safety copies) are never touched. */
-  async prune(kind: BackupSummary['kind'], keep: number): Promise<void> {
-    const old = (await this.list()).filter((backup) => backup.kind === kind).slice(keep)
-    for (const backup of old) {
-      await this.remove(backup.id)
+  /**
+   * Removes the backups of this kind but the newest `keep` and the newest of each of the `days` latest days that have one; the others (the
+   * person's own, the safety copies) are never touched.
+   */
+  async prune(kind: BackupSummary['kind'], keep: number, days: number): Promise<void> {
+    const ids = (await this.list()).filter((backup) => backup.kind === kind).map((backup) => backup.id)
+    for (const id of backupsToPrune(ids, keep, days)) {
+      await this.remove(id)
     }
   }
 

@@ -78,7 +78,7 @@ The server divided by zero on "none" (fixed there the same day).
 
 **Left**:
 1. **Check the teleport in game.**
-2. **Automatic database backups**: built on 17 November, unverified on a real install: after each clean stop, the newest five kept, an
+2. **Automatic database backups**: built on 17 November, unverified on a real install: after each clean stop, the newest five and one a day over seven days kept, an
    option on the Backups page; restored like any other.
 3. **A character sheet**: level, class, time played, last login, and experience per day, from the database.
 4. **Game accounts managed here**: created, password and membership, without touching the database.

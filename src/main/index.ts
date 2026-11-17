@@ -51,15 +51,16 @@ const settings = new SettingsStore()
 const launcher = new Launcher(settings)
 const accounts = new AccountService(settings, () => launcher.currentLayout)
 const backups = new BackupService(() => launcher.currentLayout)
-/** The automatic backups kept, the newest: each holds both databases, so a few are enough to go back past a bad evening. */
+/** The automatic backups kept: the newest few, and the newest of each of the last days played, to go back past a bad evening. */
 const AUTO_BACKUPS_KEPT = 5
+const AUTO_BACKUP_DAYS = 7
 // after each clean stop, MySQL still running: what the game server saved on its way out is in it
 launcher.setAfterCleanStop(async () => {
   const result = await backups.create('auto')
   if ('code' in result) {
     return result
   }
-  await backups.prune('auto', AUTO_BACKUPS_KEPT)
+  await backups.prune('auto', AUTO_BACKUPS_KEPT, AUTO_BACKUP_DAYS)
   return null
 })
 const updater = new LauncherUpdater()
@@ -427,7 +428,8 @@ function registerIpc(presence: TaskbarPresence): void {
       return
     }
     if (answer === 'stop' && !(await launcher.stopAll())) {
-      // A server would not stop: the window stays, and its status says why.
+      // A server would not stop, or the backup after it failed: the window stays, and its status says why. Closed again with
+      // every server stopped, it closes without asking.
       launcher.setQuitRequested(false)
       updater.cancelInstall()
       return

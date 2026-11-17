@@ -149,26 +149,56 @@ async function startThenStop(page: Page): Promise<void> {
   await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped', { timeout: 30_000 })
 }
 
-test('backs up after each clean stop, keeps the newest five of these, and never touches the person’s own', async () => {
+test('backs up after each clean stop, keeps the newest five and one a day over seven days, and never touches the person’s own', async () => {
   writeBackup('2026-01-01_10-00-00', 'manual')
-  for (let day = 1; day <= 5; day++) {
+  for (let day = 1; day <= 9; day++) {
     writeBackup(`2026-01-0${day}_12-00-00`, 'auto')
   }
+  writeBackup('2026-01-09_10-00-00', 'auto')
   const { app, page } = await openBackups()
   await expect(page.getByTestId('option-auto-backup')).toBeChecked()
   await startThenStop(page)
   // the stop is followed by the backup, as its own activity
   await expect.poll(() => readdirSync(backupsDir()).filter((id) => !id.startsWith('2026-01-')).length, { timeout: 30_000 }).toBe(1)
   await expect(page.getByRole('button', { name: 'Start the servers' })).toBeEnabled({ timeout: 30_000 })
-  const ids = readdirSync(backupsDir()).sort()
-  expect(ids).toContain('2026-01-01_10-00-00')
-  expect(ids).not.toContain('2026-01-01_12-00-00')
-  expect(ids.filter((id) => id.endsWith('_12-00-00'))).toHaveLength(4)
-  const [made] = ids.filter((id) => !id.startsWith('2026-01-'))
+  // the newest five: today's, both of the 9th, the 8th, the 7th; then the newest of each day down to the 4th, the seventh day; the
+  // manual one of the 1st untouched
+  const old = readdirSync(backupsDir()).filter((id) => id.startsWith('2026-01-')).sort()
+  expect(old).toEqual([
+    '2026-01-01_10-00-00',
+    '2026-01-04_12-00-00',
+    '2026-01-05_12-00-00',
+    '2026-01-06_12-00-00',
+    '2026-01-07_12-00-00',
+    '2026-01-08_12-00-00',
+    '2026-01-09_10-00-00',
+    '2026-01-09_12-00-00'
+  ])
+  const [made] = readdirSync(backupsDir()).filter((id) => !id.startsWith('2026-01-'))
   expect(readFileSync(join(backupsDir(), made!, 'aion_gs.sql'), 'utf8')).toContain('characters v1')
   await page.getByRole('button', { name: 'Backups', exact: true }).click()
   await expect(page.getByTestId(`backup-${made}`)).toContainText('Automatic')
   await app.close()
+})
+
+test('keeps the window of a quit whose backup failed, says why, and closes when asked again', async () => {
+  const { app, page } = await openBackups()
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Start the servers' }).click()
+  await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
+  rmSync(join(install.root, 'mysql-data', 'aion_gs.sql'))
+
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.close())
+  await page.getByRole('dialog').getByRole('button', { name: 'Stop them and quit' }).click()
+  await expect(page.getByRole('alert')).toContainText("Unknown database 'aion_gs'", { timeout: 30_000 })
+  await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped')
+  await expect(page.getByRole('dialog')).toBeHidden()
+
+  const launcher = app.process()
+  const closed = new Promise<void>((resolve) => (launcher.exitCode !== null ? resolve() : launcher.once('exit', () => resolve())))
+  // no server left running: the window closes without asking again (MySQL is not asked about)
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.close())
+  await closed
 })
 
 test('makes no backup at a stop once the option is off', async () => {

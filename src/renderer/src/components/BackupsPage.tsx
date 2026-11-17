@@ -68,7 +68,7 @@ export function BackupsPage({ state, visible }: { state: LauncherState; visible:
         <button type="button" onClick={() => void window.launcher.openBackupFolder()}>
           {t('backups.openFolder')}
         </button>
-        <label className="backup-auto">
+        <label className="backup-auto" title={t('backups.autoHint')}>
           <input
             type="checkbox"
             checked={state.autoBackup}
