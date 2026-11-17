@@ -201,6 +201,8 @@ export async function createFakeInstall(options: { mysqlUp?: boolean } = {}): Pr
     GP_LOSS.map(([rank, points]) => `gameserver.topranking.gp_loss.${rank} = ${points}\n`).join('')
   )
   write(join(serverRoot, 'game-server', 'config', 'main', 'gameserver.properties'), 'gameserver.character.creation.mode = 0\n')
+  write(join(serverRoot, 'game-server', 'config', 'main', 'instance.properties'), 'gameserver.instance.cooldown_rate = 1\n')
+  write(join(serverRoot, 'game-server', 'config', 'main', 'membership.properties'), 'gameserver.instances.cooldown = 10\n')
   // The bot options, as the server's playerbot.properties ships them.
   write(
     join(serverRoot, 'game-server', 'config', 'main', 'playerbot.properties'),

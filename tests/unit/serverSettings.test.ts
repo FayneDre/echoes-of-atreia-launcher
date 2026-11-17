@@ -162,6 +162,21 @@ describe('server settings', () => {
     expect(readFileSync(ratesPath())).toEqual(rates)
   })
 
+  it('shortens the dungeon re-entry for every account and bot, and takes both lines away at the official value', async () => {
+    writeFileSync(join(gameDir, 'config', 'main', 'instance.properties'), 'gameserver.instance.cooldown_rate = 1\n')
+    writeFileSync(join(gameDir, 'config', 'main', 'membership.properties'), 'gameserver.instances.cooldown = 10\n')
+    const settings = await readServerSettings(gameDir)
+    expect(settings.official['instance.cooldown']).toBe(0)
+    // "None" is the last option, written 0: the server reads it as no wait at all
+    await writeServerSettings(gameDir, { 'instance.cooldown': 5 })
+    expect(read()).toMatch(/^gameserver\.instance\.cooldown_rate = 0$/m)
+    // the server applies the rate from this membership up, 10 by default: nobody's
+    expect(read()).toMatch(/^gameserver\.instances\.cooldown = 0$/m)
+    expect((await readServerSettings(gameDir)).values['instance.cooldown']).toBe(5)
+    await writeServerSettings(gameDir, { 'instance.cooldown': 0 })
+    expect(read()).not.toContain('cooldown')
+  })
+
   it('creates the overrides file when there is none, and does not back up what did not exist', async () => {
     await writeServerSettings(gameDir, { bothFactions: 1 })
     expect(read()).toContain('# Set from the Echoes of Atreia launcher')

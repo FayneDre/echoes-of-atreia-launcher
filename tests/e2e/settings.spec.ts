@@ -155,6 +155,18 @@ test('sets the chances of success in percent, and the factions', async () => {
   await app.close()
 })
 
+test('shortens the dungeon re-entry for the players and the bots alike', async () => {
+  const { app, page } = await openSettings()
+  await select(page, 'Dungeons')
+  const field = page.getByLabel('Dungeons — Time before entering a dungeon again')
+  await expect(field.locator('option:checked')).toHaveText('Official')
+  await field.selectOption({ label: 'None: enter as often as you like' })
+  await save(page)
+  expect(overrides()).toMatch(/^gameserver\.instance\.cooldown_rate = 0$/m)
+  expect(overrides()).toMatch(/^gameserver\.instances\.cooldown = 0$/m)
+  await app.close()
+})
+
 test('goes back to the official values, which leaves nothing of them in mygs.properties', async () => {
   const { app, page } = await openSettings()
   await select(page, 'Abyss Points (AP)')

@@ -199,6 +199,9 @@ export function settingChanges(
       continue
     }
     changes.set(definition.key, value === base ? null : formatValue(definition, value))
+    if (definition.alsoSets) {
+      changes.set(definition.alsoSets.key, value === base ? null : definition.alsoSets.value)
+    }
   }
   for (const [key, levels] of rates) {
     changes.set(key, rateLine(levels, values, defaults, merged))

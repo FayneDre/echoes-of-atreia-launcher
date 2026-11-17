@@ -206,6 +206,7 @@ export const en = {
   'group.arena': 'PvP arena rewards',
   'group.chances': 'Chances of success',
   'group.account': 'Accounts',
+  'group.dungeons': 'Dungeons',
   'group.botDensity': 'Population',
   'group.botXp': 'Experience',
   'group.botPvp': 'PvP',
@@ -219,6 +220,7 @@ export const en = {
   'hint.gpLoss':
     'Every day at noon, each Abyss officer rank loses Glory Points. The group’s field is a share of the official loss: 100 % is official, 0 % turns it off.',
   'hint.chances': 'In percent, for each attempt.',
+  'hint.dungeons': 'For you and the bots of your group. A wait already started keeps its length; the next entry follows the setting.',
   'hint.botDensity':
     'How many bots fill the hunting grounds of each map. Villages and capitals do not change: they are always full. When the computer’s RAM goes past the mark chosen below, or the server runs short of memory, it stops bringing bots in; those already there stay.',
   'hint.botXp':
@@ -269,6 +271,13 @@ export const en = {
   'setting.enchantment_stone.amplified_chances': 'Enchanting an amplified item',
   'setting.tampering_chances': 'Tempering',
   'setting.bothFactions': 'Characters of both factions on one account',
+  'setting.instance.cooldown': 'Time before entering a dungeon again',
+  'option.instance.cooldown.1': 'Official',
+  'option.instance.cooldown.2': 'Halved',
+  'option.instance.cooldown.3': 'Divided by 3',
+  'option.instance.cooldown.5': 'Divided by 5',
+  'option.instance.cooldown.10': 'Divided by 10',
+  'option.instance.cooldown.0': 'None: enter as often as you like',
   'setting.bots.density.mode': 'Hunting grounds filled',
   'option.bots.density.mode.AUTO': 'By the players',
   'option.bots.density.mode.FIXED': 'Constant',

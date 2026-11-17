@@ -38,6 +38,8 @@ export interface SettingDefinition {
   membership?: Membership
   /** Left unused while another setting of its group holds that option (a switch's are `on` and `off`): shown greyed out, its value kept. */
   unusedWhen?: { setting: string; option: string }
+  /** Another key written with it while it is away from its official value (removed with it): what makes the server apply it. */
+  alsoSets?: { key: string; value: string }
 }
 
 /** Where a group is set: the server settings page, or the bots page. */
@@ -113,6 +115,22 @@ export const SETTING_GROUPS: SettingGroup[] = [
     id: 'account',
     globalField: 'none',
     settings: [{ id: 'bothFactions', key: 'gameserver.character.creation.mode', kind: 'toggle' }]
+  },
+  // The time before a dungeon can be entered again, divided by the rate (0: none). The server applies the rate to the accounts from the
+  // membership `gameserver.instances.cooldown` up, 10 by default, so to nobody: it is written as 0 with it, every account and every bot
+  // included, which have none; a bot of the group left waiting at the door would make the rate useless to a player alone with bots.
+  {
+    id: 'dungeons',
+    globalField: 'none',
+    settings: [
+      {
+        id: 'instance.cooldown',
+        key: 'gameserver.instance.cooldown_rate',
+        kind: 'choice',
+        options: ['1', '2', '3', '5', '10', '0'],
+        alsoSets: { key: 'gameserver.instances.cooldown', value: '0' }
+      }
+    ]
   },
   // How many bots the world holds, read at each review of the population (30 s): a reload applies it within half a minute. The server's
   // population guard stops the arrivals when the machine runs short, whatever is set here; the machine's memory is the one mark the page sets
