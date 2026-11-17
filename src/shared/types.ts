@@ -175,7 +175,7 @@ export interface LauncherState {
 }
 
 /** Where the whole stack stands, in one word: the home's phrase, the taskbar's mark and the tray's tooltip all read it. */
-export type StackPhase = 'ready' | 'failed' | 'starting' | 'stopping' | 'updating' | 'uninstalling' | 'partial' | 'stopped'
+export type StackPhase = 'ready' | 'failed' | 'starting' | 'stopping' | 'installing' | 'updating' | 'uninstalling' | 'partial' | 'stopped'
 
 export function stackPhase(state: LauncherState): StackPhase {
   const { servers, activity } = state
@@ -190,7 +190,8 @@ export function stackPhase(state: LauncherState): StackPhase {
     return activity
   }
   if (activity === 'server-update') {
-    return 'updating'
+    // the same activity makes a server from nothing: there is no server yet to update
+    return state.install.serverFound ? 'updating' : 'installing'
   }
   if (activity === 'uninstall') {
     return 'uninstalling'
@@ -395,7 +396,7 @@ export type ServerUpdateStep = 'download' | 'navmesh' | 'verify' | 'stop' | 'fil
  */
 export type ServerSetupStatus = 'idle' | 'running' | 'failed'
 
-export type ServerSetupStep = 'checks' | 'release' | 'runtimes' | 'download' | 'navmesh' | 'files' | 'database'
+export type ServerSetupStep = 'checks' | 'release' | 'runtimes' | 'download' | 'navmesh' | 'files' | 'database' | 'undo'
 
 export interface ServerSetupState {
   status: ServerSetupStatus

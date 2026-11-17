@@ -1,5 +1,6 @@
 import { execFile, spawn } from 'node:child_process'
 import { createWriteStream } from 'node:fs'
+import { basename } from 'node:path'
 
 /** How long the output may still come in once the script has exited: a program it left running (MySQL) may hold its pipes for good. */
 const CLOSE_GRACE_MS = 2_000
@@ -9,8 +10,15 @@ const KILL_GRACE_MS = 10_000
 export interface ScriptOptions {
   /** The file everything the script says is written to as it says it, so that a script that never ends still leaves what it did. */
   logFile?: string
-  /** Each line the script says, as it says it. */
+  /** Each line the script says on its output, as it says it: its progress. What it says on its error stream is never one. */
   onLine?: (line: string) => void
+}
+
+/** What a script said: `output` everything in the order said, `errors` its error stream alone (where PowerShell writes a failure). */
+export interface ScriptResult {
+  code: number
+  output: string
+  errors: string
 }
 
 /**
@@ -18,7 +26,7 @@ export interface ScriptOptions {
  * the time given, the script and every program it started are killed: killing PowerShell alone left its children holding the output open,
  * and the launcher waiting on them. Done when the script exits, whatever still holds its output.
  */
-export function runServerScript(script: string, args: string[], timeoutMs: number, options: ScriptOptions = {}): Promise<{ code: number; output: string }> {
+export function runServerScript(script: string, args: string[], timeoutMs: number, options: ScriptOptions = {}): Promise<ScriptResult> {
   return new Promise((resolve) => {
     const log = options.logFile ? createWriteStream(options.logFile, { flags: 'a' }) : null
     log?.on('error', () => {
@@ -27,6 +35,7 @@ export function runServerScript(script: string, args: string[], timeoutMs: numbe
     log?.write(`---- ${new Date().toISOString()} ${script} ${args.join(' ')}\r\n`)
     const child = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script, ...args], { windowsHide: true })
     let output = ''
+    let errors = ''
     let partial = ''
     // decoded by the streams: a letter cut between two chunks stays whole
     child.stdout.setEncoding('utf8')
@@ -42,8 +51,14 @@ export function runServerScript(script: string, args: string[], timeoutMs: numbe
         }
       }
     }
+    // an error record shown as the step under way read as progress (the tester's "+ FullyQualifiedErrorId" under "Making the database")
+    const takeError = (text: string): void => {
+      output += text
+      errors += text
+      log?.write(text)
+    }
     child.stdout.on('data', take)
-    child.stderr.on('data', take)
+    child.stderr.on('data', takeError)
 
     let timedOut = false
     const timer = setTimeout(() => {
@@ -64,9 +79,9 @@ export function runServerScript(script: string, args: string[], timeoutMs: numbe
       done = true
       clearTimeout(timer)
       child.stdout.removeListener('data', take)
-      child.stderr.removeListener('data', take)
+      child.stderr.removeListener('data', takeError)
       log?.end(`\r\n---- exit ${code}\r\n`)
-      resolve({ code, output: output.trim() })
+      resolve({ code, output: output.trim(), errors: errors.trim() })
     }
     child.on('error', (error) => {
       output += `\n${error.message}`
@@ -81,3 +96,34 @@ export function runServerScript(script: string, args: string[], timeoutMs: numbe
 
 /** The last lines of what a script said, for a problem's detail. */
 export const tail = (text: string): string => text.split(/\r?\n/).filter(Boolean).slice(-6).join('\n')
+
+/** Where Windows PowerShell says an error happened, in English or in French ("Au caractère", its accent read wrong from an older script). */
+const ERROR_AT = /^(?:At|Au caract.{1,2}re)\s+(.+?):(\d+)\s*(?:char:|:)\s*\d+/
+
+/** A line of an error record's tail (`+ CategoryInfo`, `+ ~~~~`): it says nothing to a player. */
+const recordLine = (line: string): boolean => line.trimStart().startsWith('+')
+
+/**
+ * Why a script failed, for a problem's detail: the message of the last error PowerShell wrote and the script and line it came from
+ * ("Remove-Item : An object at the specified path… (apply-sql.ps1:286)"), not the last lines of its record. Without an error record, the
+ * last lines the script said.
+ */
+export function scriptFailure(result: ScriptResult): string {
+  const lines = result.errors.split(/\r?\n/).filter((line) => line.trim())
+  let at = lines.length - 1
+  while (at >= 0 && !ERROR_AT.test(lines[at])) {
+    at--
+  }
+  if (at < 0) {
+    const messages = lines.filter((line) => !recordLine(line))
+    return messages.length ? messages.slice(-6).join('\n') : tail(result.output) || `exit ${result.code}`
+  }
+  // the message runs from the end of the record before it to the place
+  let start = at
+  while (start > 0 && !recordLine(lines[start - 1])) {
+    start--
+  }
+  const [, file, line] = ERROR_AT.exec(lines[at]) ?? []
+  const message = lines.slice(start, at).map((text) => text.trim()).join('\n') || tail(result.output)
+  return `${message} (${basename(file)}:${line})`
+}

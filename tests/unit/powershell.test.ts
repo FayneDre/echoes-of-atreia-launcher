@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { runServerScript } from '../../src/main/serverUpdate/powershell'
+import { runServerScript, scriptFailure } from '../../src/main/serverUpdate/powershell'
 
 /** Whether a process of this id still runs. */
 function running(pid: number): boolean {
@@ -61,4 +61,53 @@ describe('a server script run by the launcher', () => {
     const child = Number((await readFile(join(root, 'child.pid'), 'utf8')).trim())
     await expect.poll(() => running(child), { timeout: 5_000 }).toBe(false)
   }, 40_000)
+
+  it('keeps its errors out of its progress, and says why it failed in one line: the message and where', async () => {
+    const script = join(root, 'fails.ps1')
+    await writeFile(script, `$ErrorActionPreference = 'Stop'\r\nWrite-Host 'Making the database...'\r\nRemove-Item 'Z:\\nowhere\\file.cnf'\r\n`)
+    const lines: string[] = []
+    const result = await runServerScript(script, [], 30_000, { onLine: (line) => lines.push(line) })
+    expect(result.code).toBe(1)
+    expect(lines).toEqual(['Making the database...'])
+    expect(result.errors).toContain('FullyQualifiedErrorId')
+    expect(scriptFailure(result)).toMatch(/^Remove-Item : .+\(fails\.ps1:3\)$/)
+  }, 40_000)
+})
+
+describe('why a script failed', () => {
+  it('is the message of the error record and its place, not its last lines', () => {
+    // as the tester's setup.log has it, accents lost
+    const errors = [
+      "Remove-Item : Un objet n'existe pas   l'emplacement sp cifi  C:\\Users\\ABCDEF~1.XYZ.",
+      'Au caract re C:\\EoaServer\\tools\\apply-sql.ps1:286 : 5',
+      '+     Remove-Item $cnf, $work -ErrorAction SilentlyContinue',
+      '+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~',
+      '    + CategoryInfo          : InvalidArgument : (:) [Remove-Item], PSArgumentException',
+      '    + FullyQualifiedErrorId : Argument,Microsoft.PowerShell.Commands.RemoveItemCommand'
+    ].join('\r\n')
+    expect(scriptFailure({ code: 1, output: 'Created aion_gs: 63 table(s)\n' + errors, errors })).toBe(
+      "Remove-Item : Un objet n'existe pas   l'emplacement sp cifi  C:\\Users\\ABCDEF~1.XYZ. (apply-sql.ps1:286)"
+    )
+  })
+
+  it('keeps every line of a thrown message, and takes the last record when there are several', () => {
+    const errors = [
+      'first : an earlier error',
+      'At C:\\server\\tools\\setup-mysql.ps1:10 char:5',
+      '+ x',
+      '    + FullyQualifiedErrorId : One',
+      'A statement failed:',
+      'ALTER TABLE x',
+      'At C:\\server\\tools\\apply-sql.ps1:279 char:13',
+      '+             throw ("A statement failed..."',
+      '    + FullyQualifiedErrorId : Two'
+    ].join('\n')
+    expect(scriptFailure({ code: 1, output: errors, errors })).toBe('A statement failed:\nALTER TABLE x (apply-sql.ps1:279)')
+  })
+
+  it('without an error record, is what it said last', () => {
+    expect(scriptFailure({ code: 1, output: 'one\ntwo', errors: '' })).toBe('one\ntwo')
+    expect(scriptFailure({ code: 1, output: '', errors: 'mysqld: cannot bind' })).toBe('mysqld: cannot bind')
+    expect(scriptFailure({ code: -1, output: '', errors: '' })).toBe('exit -1')
+  })
 })

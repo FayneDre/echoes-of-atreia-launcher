@@ -16,7 +16,7 @@ let target: string
 /**
  * The bundle's database script, as setup-mysql.ps1 is called: it writes the my.ini the launcher then finds, and says on which port it was
  * asked. While a flag file sits beside the install it fails as the real one can, half-way: its my.ini and data folder made already, and
- * the real one refuses to run again over them.
+ * the real one refuses to run again over them; its progress on its output, its failure a PowerShell error record.
  */
 const FAKE_SETUP_MYSQL = `param([string]$ServerRoot, [int]$Port)
 $ini = Join-Path $ServerRoot 'mysql\\my.ini'
@@ -25,9 +25,8 @@ Set-Content $ini "[mysqld]\`r\`nport=$Port"
 if (Test-Path (Join-Path (Split-Path $ServerRoot -Parent) 'setup-fails.txt')) {
     New-Item -ItemType Directory (Join-Path $ServerRoot 'mysql\\data') | Out-Null
     Set-Content (Join-Path $ServerRoot 'mysql\\data\\mysql.ibd') 'half made'
-    Write-Output 'the data folder could not be made'
-    Write-Output 'At setup-mysql.ps1:131 char:5, as PowerShell says it, on lines of their own'
-    exit 1
+    Write-Host 'Making the data folder...'
+    throw 'the data folder could not be made'
 }
 Add-Content (Join-Path $ServerRoot 'setup-calls.txt') "port=$Port"
 `
@@ -158,7 +157,11 @@ test('a database that could not be made is tried again without downloading the s
   await expect(panel).toContainText('The server’s install did not finish.')
   expect(await overflow(page), 'failed').toBeLessThanOrEqual(0)
   await panel.getByRole('button', { name: 'See the install…' }).click()
-  await expect(dialog.getByRole('button', { name: 'Details' })).toBeVisible()
+  // why, in one line: the error's message and where the script said it, not the last lines of PowerShell's record; and the whole log
+  await expect(page.getByTestId('server-setup-problem')).toContainText(/the data folder could not be made \(setup-mysql\.ps1:\d+\)/)
+  await expect(page.getByTestId('server-setup-problem')).not.toContainText('FullyQualifiedErrorId')
+  await expect(dialog.getByRole('button', { name: 'Show the log' })).toBeVisible()
+  expect(readFileSync(join(target, 'setup.log'), 'utf8')).toContain('FullyQualifiedErrorId')
   expect(bundleRequests()).toBe(1)
   expect(existsSync(join(target, 'setup-calls.txt'))).toBe(false)
   // what the script made before it failed is undone, so the next run starts from nothing as the real script requires

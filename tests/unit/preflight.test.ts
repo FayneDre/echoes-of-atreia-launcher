@@ -21,7 +21,7 @@ describe('the checks before an install from nothing', () => {
     expect(await readdir(folder)).toEqual([])
   }, 60_000)
 
-  const answering = (output: string, code = 0) => async () => ({ code, output })
+  const answering = (output: string, code = 0) => async () => ({ code, output, errors: '' })
 
   it('say a constrained language first, though the rest of the probe failed because of it', async () => {
     expect(await checkMachine(root, answering('language=ConstrainedLanguage\nCannot invoke method', 1))).toEqual({

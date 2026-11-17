@@ -24,7 +24,7 @@ import { Launcher } from './launcher'
 import { NewsFeed } from './news'
 import { processMemoryMb } from './system/memory'
 import { validValues } from './server/serverSettings'
-import { ServerSetup, fakeSetupChecks } from './serverUpdate/serverSetup'
+import { SETUP_LOG, ServerSetup, fakeSetupChecks } from './serverUpdate/serverSetup'
 import { ServerUpdater } from './serverUpdate/serverUpdater'
 import { isAutoCleanup, isDeveloperMode, SettingsStore } from './settings'
 import { createReport, issueUrl } from './report'
@@ -380,6 +380,13 @@ function registerIpc(presence: TaskbarPresence): void {
     const result = await openDialog(event, { properties: ['openDirectory', 'createDirectory', 'promptToCreate'] })
     const folder = result.filePaths[0]
     return !result.canceled && folder ? serverSetup.install(folder) : null
+  })
+  // what the database's script said, in the folder of the try: the path is the launcher's own, never one the window gives
+  ipcMain.handle('server-setup:open-log', async () => {
+    const folder = serverSetup.current.folder
+    if (folder) {
+      await shell.openPath(join(folder, SETUP_LOG))
+    }
   })
   ipcMain.handle('server:uninstall', () => launcher.uninstallServer(backups, keptBackupsFolder()))
   ipcMain.handle('update:get-state', () => updater.current)

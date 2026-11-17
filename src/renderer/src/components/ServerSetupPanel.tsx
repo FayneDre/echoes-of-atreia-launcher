@@ -78,7 +78,10 @@ export function ServerSetupPanel({ setup, state }: Props): React.JSX.Element | n
 
         {setup.status === 'failed' && (
           <div data-testid="server-setup-problem">
-            <ProblemText problem={setup.problem} />
+            <ProblemText
+              problem={setup.problem}
+              onShowLog={setup.problem?.code === 'setup-database-failed' ? () => void window.launcher.openSetupLog() : undefined}
+            />
           </div>
         )}
 

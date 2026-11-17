@@ -38,6 +38,13 @@ describe('taskbarStatus', () => {
     expect(taskbarStatus(stateWith(['ready', 'stopped', 'stopped']), null)).toMatchObject({ phase: 'partial', mark: 'busy' })
   })
 
+  it('says the server is installed, not updated, while the folder it goes into is no server yet', () => {
+    const updating = stateWith(['stopped', 'stopped', 'stopped'], 'server-update')
+    expect(taskbarStatus(updating, null).phase).toBe('updating')
+    const installing = { ...updating, install: { ...updating.install, serverRoot: null, serverFound: false } }
+    expect(taskbarStatus(installing, null).phase).toBe('installing')
+  })
+
   it('fills the progress bar with a server update, and moves it without a share for a backup or a restore', () => {
     const update: ServerUpdateState = { status: 'preparing', installed: 'v0.1.0', step: 'download', percent: 42 }
     expect(taskbarStatus(stateWith(['stopped', 'stopped', 'stopped']), update).progress).toBe(0.42)

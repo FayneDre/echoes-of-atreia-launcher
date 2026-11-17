@@ -97,6 +97,8 @@ const launcherApi = {
   getServerSetup: (): Promise<ServerSetupState> => ipcRenderer.invoke('server-setup:get-state'),
   /** Asks for a folder and installs the server there; with `retry`, goes back to the folder of the try that failed. */
   installServer: (retry = false): Promise<Problem | null> => ipcRenderer.invoke('server-setup:install', retry),
+  /** Opens what the database's script said during the last try (`setup.log` in its folder). */
+  openSetupLog: (): Promise<void> => ipcRenderer.invoke('server-setup:open-log'),
   /** Uninstalls a server the launcher installed: the servers stopped, a last backup kept outside its folder, the folder deleted. */
   uninstallServer: (): Promise<{ kept: string } | Problem> => ipcRenderer.invoke('server:uninstall'),
   onServerSetup: (listener: (state: ServerSetupState) => void): (() => void) => subscribe('server-setup:state', listener),

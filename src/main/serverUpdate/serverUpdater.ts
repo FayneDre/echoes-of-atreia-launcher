@@ -6,12 +6,12 @@ import { jdkMajorVersion } from '../system/java'
 import { ServerFeed, type ServerRelease } from './feed'
 import { CorruptError, ServerInstaller, type UpdatePlan } from './installer'
 import { readInstallOrigin, type ReleaseManifest } from './manifest'
-import { runServerScript, tail } from './powershell'
+import { runServerScript, scriptFailure, type ScriptResult } from './powershell'
 
 const SQL_TIMEOUT_MS = 30 * 60 * 1000
 
 /** Runs the server's SQL script (`apply-sql.ps1`) with these arguments: its exit code and everything it said. */
-const runSqlScript = (script: string, args: string[]): Promise<{ code: number; output: string }> => runServerScript(script, args, SQL_TIMEOUT_MS)
+const runSqlScript = (script: string, args: string[]): Promise<ScriptResult> => runServerScript(script, args, SQL_TIMEOUT_MS)
 
 /**
  * The server's own update, for a beta launcher the server's pre-releases too (release process plan, milestone 6). It looks for a newer release
@@ -128,7 +128,7 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
       const staged = installer.stagedSqlScript(release)
       const look = await runSqlScript(staged.script, [...(await this.sqlArgs()), '-SqlFile', staged.sql])
       if (look.code !== 0) {
-        this.fail(base, { code: 'update-sql-failed', detail: tail(look.output) })
+        this.fail(base, { code: 'update-sql-failed', detail: scriptFailure(look) })
         return
       }
       this.plan = plan
@@ -165,7 +165,7 @@ export class ServerUpdater extends EventEmitter<{ state: [ServerUpdateState] }> 
         return mysql
       }
       const sql = await runSqlScript(installer.sqlScript(), [...(await this.sqlArgs()), '-Apply', ...(confirmed.markApplied ? ['-MarkApplied'] : [])])
-      return sql.code === 0 ? null : { code: 'update-sql-failed', detail: tail(sql.output) }
+      return sql.code === 0 ? null : { code: 'update-sql-failed', detail: scriptFailure(sql) }
     }, step)
     this.plan = null
     if (problem) {

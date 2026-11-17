@@ -11,7 +11,7 @@ import { CorruptError, ServerInstaller, runtimesOf } from './installer'
 import { INSTALL_MARKER, writeInstallMarker } from './installMarker'
 import { readInstallOrigin } from './manifest'
 import { PROBE_FILE, checkMachine, checkRuntimes } from './preflight'
-import { runServerScript, tail } from './powershell'
+import { runServerScript, scriptFailure } from './powershell'
 
 const SETUP_TIMEOUT_MS = 15 * 60 * 1000
 /** In the server's folder: what the database's script said, kept for a problem report. */
@@ -237,7 +237,8 @@ export class ServerSetup extends EventEmitter<{ state: [ServerSetupState] }> {
         return { code: 'setup-no-port', detail: `${FIRST_PORT}-${LAST_PORT}` }
       }
       // the bundle's own script: the data folder, the accounts, the three databases and the servers' configuration; MySQL is left running.
-      // What it says goes to setup.log as it says it (a report takes it, even from a script that never ended) and its last line is shown.
+      // What it says goes to setup.log as it says it (a report takes it, even from a script that never ended) and its last line of progress
+      // is shown; its errors are not progress, they make the problem's detail.
       const setup = await runServerScript(join(folder, 'tools', 'setup-mysql.ps1'), ['-ServerRoot', folder, '-Port', String(port)], SETUP_TIMEOUT_MS, {
         logFile: join(folder, SETUP_LOG),
         onLine: (line) => this.set({ ...base, status: 'running', step: 'database', detail: line.trim() })
@@ -245,9 +246,11 @@ export class ServerSetup extends EventEmitter<{ state: [ServerSetupState] }> {
       if (setup.code === 0) {
         return null
       }
+      // the undo takes seconds (MySQL stopped, its files removed): said, so the last line of progress does not look like it goes on
+      this.set({ ...base, status: 'running', step: 'undo' })
       const undone = await undoDatabase(folder, port)
       const left = undone ? '' : `\nMySQL still answers on port ${port}: what it made was left as it is.`
-      return { code: 'setup-database-failed', detail: tail(setup.output) + left }
+      return { code: 'setup-database-failed', detail: scriptFailure(setup) + left }
     })
     if (problem) {
       return this.fail(base, problem)

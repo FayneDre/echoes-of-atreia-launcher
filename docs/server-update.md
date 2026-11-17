@@ -72,9 +72,12 @@ Java runtime (`target: runtime`) and the trimmed MySQL (`target: mysql`), each w
    map as an update fetches them, then moved into place with the release's manifest. No `update-backups`: there is nothing to undo.
 4. **The database**: the bundle's `tools/setup-mysql.ps1 -ServerRoot <folder> -Port <port>`, on the first port from 3307 nothing listens on. It
    makes the data folder, the accounts, the three databases and the servers' configuration, and leaves MySQL running. What it says is written
-   to `<folder>/setup.log` as it says it, its last line is shown under the step, and a report made meanwhile takes that log and
-   `mysql/data/mysql.err` (`powershell.ts`). Past 15 minutes the script and every program it started are killed (`taskkill /T`); it is done
-   when it exits, whatever still holds its output.
+   to `<folder>/setup.log` as it says it, its last line of progress (its output, never its error stream) is shown under the step, and a
+   report made meanwhile takes that log and `mysql/data/mysql.err` (`powershell.ts`). Past 15 minutes the script and every program it
+   started are killed (`taskkill /T`); it is done when it exits, whatever still holds its output. When it fails, "undoing" is shown while
+   MySQL is stopped and its files removed, then the problem: the message of PowerShell's last error record and the script and line it came
+   from (`scriptFailure`, also used for a failed SQL update), with "Show the log" opening `setup.log`. The scripts write UTF-8 when read by
+   a program, so a French error keeps its accents.
 5. The folder becomes the launcher's server (`serverRoot`) and is read again: `ownRuntimes` then finds its Java and its MySQL.
 
 A try that fails keeps what it downloaded and checked: a file already staged with its hash is not fetched again (maps and runtimes resume file
