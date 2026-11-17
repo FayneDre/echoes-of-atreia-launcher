@@ -382,8 +382,9 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       return Promise.resolve(false)
     }
     this.stopRequested = true
-    // a stop with no game server up has saved nothing new: no backup of it
-    const gameWasUp = (this.servers.game?.current.status ?? 'stopped') !== 'stopped'
+    // a stop with no game server ready has saved nothing new (a start cancelled, a server that failed): no backup of it, which would
+    // push a backup worth keeping out of the five
+    const gameWasUp = this.servers.game?.current.status === 'ready'
     return this.run('stopping', () => this.stopServers(), this.activity === 'starting').then(async (stopped) => {
       // its own activity, after the stop: the window says a backup runs, and a quit that asked for the stop waits for it
       if (stopped && gameWasUp && this.afterCleanStop && isAutoBackup(this.settings.current)) {
