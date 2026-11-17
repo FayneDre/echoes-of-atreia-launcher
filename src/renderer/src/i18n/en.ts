@@ -351,6 +351,8 @@ export const en = {
   'backups.restore': 'Restore',
   'backups.remove': 'Delete',
   'backups.kind.manual': 'Backup',
+  'backups.kind.auto': 'Automatic',
+  'backups.auto': 'Back up at each stop of the servers (the last 5 kept)',
   'backups.kind.before-restore': 'Before a restore',
   'backups.kind.before-uninstall': 'Before uninstalling',
   'backups.restoreConfirm':

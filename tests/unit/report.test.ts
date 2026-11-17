@@ -22,6 +22,7 @@ const state: LauncherState = {
   developerMode: false,
   startServersOnLaunch: false,
   autoCleanup: true,
+  autoBackup: true,
   lastCleanup: null
 }
 

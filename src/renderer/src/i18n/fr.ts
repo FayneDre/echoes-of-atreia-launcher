@@ -354,6 +354,8 @@ export const fr: Record<MessageKey, string> = {
   'backups.restore': 'Restaurer',
   'backups.remove': 'Supprimer',
   'backups.kind.manual': 'Sauvegarde',
+  'backups.kind.auto': 'Automatique',
+  'backups.auto': 'Sauvegarder à chaque arrêt des serveurs (les 5 dernières gardées)',
   'backups.kind.before-restore': 'Avant une restauration',
   'backups.kind.before-uninstall': 'Avant la désinstallation',
   'backups.restoreConfirm':

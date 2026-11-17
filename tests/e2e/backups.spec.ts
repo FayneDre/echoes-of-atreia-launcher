@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
@@ -130,6 +130,55 @@ test('restores nothing from a backup whose description names a file outside it',
   await expect(page.getByRole('alert')).toContainText('is not a dump file name')
   // Refused before anything was touched: no safety backup either.
   expect(readdirSync(backupsDir())).toEqual([id])
+  await app.close()
+})
+
+/** A backup as the launcher writes it, made at this date: its folder and its description. */
+function writeBackup(id: string, kind: string): void {
+  const dir = join(backupsDir(), id)
+  mkdirSync(dir, { recursive: true })
+  writeFileSync(join(dir, 'aion_gs.sql'), '-- old\n')
+  writeFileSync(join(dir, 'backup.json'), JSON.stringify({ createdAt: new Date(2026, 0, 1).toISOString(), kind, databases: [{ name: 'aion_gs', file: 'aion_gs.sql', bytes: 7 }] }))
+}
+
+async function startThenStop(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Home' }).click()
+  await page.getByRole('button', { name: 'Start the servers' }).click()
+  await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
+  await page.getByRole('button', { name: 'Stop the servers' }).click()
+  await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped', { timeout: 30_000 })
+}
+
+test('backs up after each clean stop, keeps the newest five of these, and never touches the person’s own', async () => {
+  writeBackup('2026-01-01_10-00-00', 'manual')
+  for (let day = 1; day <= 5; day++) {
+    writeBackup(`2026-01-0${day}_12-00-00`, 'auto')
+  }
+  const { app, page } = await openBackups()
+  await expect(page.getByTestId('option-auto-backup')).toBeChecked()
+  await startThenStop(page)
+  // the stop is followed by the backup, as its own activity
+  await expect.poll(() => readdirSync(backupsDir()).filter((id) => !id.startsWith('2026-01-')).length, { timeout: 30_000 }).toBe(1)
+  await expect(page.getByRole('button', { name: 'Start the servers' })).toBeEnabled({ timeout: 30_000 })
+  const ids = readdirSync(backupsDir()).sort()
+  expect(ids).toContain('2026-01-01_10-00-00')
+  expect(ids).not.toContain('2026-01-01_12-00-00')
+  expect(ids.filter((id) => id.endsWith('_12-00-00'))).toHaveLength(4)
+  const [made] = ids.filter((id) => !id.startsWith('2026-01-'))
+  expect(readFileSync(join(backupsDir(), made!, 'aion_gs.sql'), 'utf8')).toContain('characters v1')
+  await page.getByRole('button', { name: 'Backups', exact: true }).click()
+  await expect(page.getByTestId(`backup-${made}`)).toContainText('Automatic')
+  await app.close()
+})
+
+test('makes no backup at a stop once the option is off', async () => {
+  const { app, page } = await openBackups()
+  // the box follows the launcher's state, set a moment after the click
+  await page.getByTestId('option-auto-backup').click()
+  await expect(page.getByTestId('option-auto-backup')).not.toBeChecked()
+  await startThenStop(page)
+  await expect(page.getByRole('button', { name: 'Start the servers' })).toBeEnabled({ timeout: 30_000 })
+  expect(existsSync(backupsDir()) ? readdirSync(backupsDir()) : []).toEqual([])
   await app.close()
 })
 

@@ -32,7 +32,7 @@ import { addressOf } from './accounts/accountStore'
 import { MysqlControl } from './server/mysql'
 import { ServerProcess } from './server/serverProcess'
 import { needsStart, readServerSettings, writeLoginCommand, writeServerSettings, writeStaffTag } from './server/serverSettings'
-import { isAutoCleanup, isDeveloperMode, type SettingsStore } from './settings'
+import { isAutoBackup, isAutoCleanup, isDeveloperMode, type SettingsStore } from './settings'
 import { ownMysqlOf } from './server/ownRuntimes'
 import type { BackupService } from './backup/backupService'
 import { isInside, isLauncherInstall } from './serverUpdate/installMarker'
@@ -79,6 +79,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   private problem: Problem | undefined
   private serverVersion: ServerVersion | null = null
   private lastCleanup: CleanupResult | null = null
+  private afterCleanStop: (() => Promise<Problem | null>) | null = null
   /** The game server's last status, so its version is asked once when it becomes ready, not at every state it publishes. */
   private gameStatus: ServerState['status'] = 'stopped'
 
@@ -107,6 +108,7 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       developerMode: isDeveloperMode(this.settings.current),
       startServersOnLaunch: this.settings.current.startServersOnLaunch === true,
       autoCleanup: isAutoCleanup(this.settings.current),
+      autoBackup: isAutoBackup(this.settings.current),
       lastCleanup: this.lastCleanup
     }
   }
@@ -176,6 +178,17 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   async setAutoCleanup(on: boolean): Promise<void> {
     await this.settings.update((settings) => ({ ...settings, autoCleanup: on }))
     this.publish()
+  }
+
+  /** Whether the databases are backed up after each clean stop of the servers, kept in the settings. */
+  async setAutoBackup(on: boolean): Promise<void> {
+    await this.settings.update((settings) => ({ ...settings, autoBackup: on }))
+    this.publish()
+  }
+
+  /** What is done after a stop that stopped a game server cleanly, MySQL still running: the automatic backup. */
+  setAfterCleanStop(work: () => Promise<Problem | null>): void {
+    this.afterCleanStop = work
   }
 
   /** What the start's cleanup removed, told to the window. */
@@ -369,7 +382,19 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
       return Promise.resolve(false)
     }
     this.stopRequested = true
-    return this.run('stopping', () => this.stopServers(), this.activity === 'starting')
+    // a stop with no game server up has saved nothing new: no backup of it
+    const gameWasUp = (this.servers.game?.current.status ?? 'stopped') !== 'stopped'
+    return this.run('stopping', () => this.stopServers(), this.activity === 'starting').then(async (stopped) => {
+      // its own activity, after the stop: the window says a backup runs, and a quit that asked for the stop waits for it
+      if (stopped && gameWasUp && this.afterCleanStop && isAutoBackup(this.settings.current)) {
+        const work = this.afterCleanStop
+        await this.run('backup', async () => {
+          const problem = await work()
+          return problem ? this.fail(problem) : true
+        })
+      }
+      return stopped
+    })
   }
 
   private async stopServers(): Promise<boolean> {

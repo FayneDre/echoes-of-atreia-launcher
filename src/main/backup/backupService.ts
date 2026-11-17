@@ -235,6 +235,14 @@ export class BackupService {
     return null
   }
 
+  /** Removes the backups of this kind past the newest `keep`; the others (the person's own, the safety copies) are never touched. */
+  async prune(kind: BackupSummary['kind'], keep: number): Promise<void> {
+    const old = (await this.list()).filter((backup) => backup.kind === kind).slice(keep)
+    for (const backup of old) {
+      await this.remove(backup.id)
+    }
+  }
+
   async remove(id: string): Promise<void> {
     const layout = this.layout()
     if (layout && BACKUP_ID.test(id)) {

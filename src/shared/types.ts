@@ -170,6 +170,8 @@ export interface LauncherState {
   startServersOnLaunch: boolean
   /** Old archived logs and reports are removed at each start. */
   autoCleanup: boolean
+  /** The databases are backed up after each clean stop of the servers, the newest few of these kept. */
+  autoBackup: boolean
   /** What the cleanup removed at this start, once it has run. */
   lastCleanup: CleanupResult | null
 }
@@ -244,8 +246,11 @@ export interface BackupSummary {
   /** The folder's name, which is its date: `2026-11-04_21-30-05`. */
   id: string
   createdAt: string
-  /** Made by the person, or by the launcher just before a restore replaced what was there, or before it uninstalled the server. */
-  kind: 'manual' | 'before-restore' | 'before-uninstall'
+  /**
+   * Made by the person, by the launcher after a clean stop of the servers (`auto`, the newest few kept), or just before a restore replaced
+   * what was there, or before it uninstalled the server.
+   */
+  kind: 'manual' | 'auto' | 'before-restore' | 'before-uninstall'
   databases: { name: string; bytes: number }[]
 }
 

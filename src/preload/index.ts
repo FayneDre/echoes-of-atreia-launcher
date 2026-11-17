@@ -40,6 +40,7 @@ const launcherApi = {
   setLanguage: (language: 'fr' | 'en'): Promise<void> => ipcRenderer.invoke('launcher:set-language', language),
   setStartServersOnLaunch: (on: boolean): Promise<void> => ipcRenderer.invoke('settings:set-start-servers', on),
   setAutoCleanup: (on: boolean): Promise<void> => ipcRenderer.invoke('settings:set-auto-cleanup', on),
+  setAutoBackup: (on: boolean): Promise<void> => ipcRenderer.invoke('settings:set-auto-backup', on),
   checkClient: (): Promise<void> => ipcRenderer.invoke('client:check'),
   setClientLanguage: (code: string): Promise<void> => ipcRenderer.invoke('client:set-language', code),
   getSystemOptions: (): Promise<SystemOptions> => ipcRenderer.invoke('system:get-options'),

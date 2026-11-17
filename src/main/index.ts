@@ -51,6 +51,17 @@ const settings = new SettingsStore()
 const launcher = new Launcher(settings)
 const accounts = new AccountService(settings, () => launcher.currentLayout)
 const backups = new BackupService(() => launcher.currentLayout)
+/** The automatic backups kept, the newest: each holds both databases, so a few are enough to go back past a bad evening. */
+const AUTO_BACKUPS_KEPT = 5
+// after each clean stop, MySQL still running: what the game server saved on its way out is in it
+launcher.setAfterCleanStop(async () => {
+  const result = await backups.create('auto')
+  if ('code' in result) {
+    return result
+  }
+  await backups.prune('auto', AUTO_BACKUPS_KEPT)
+  return null
+})
 const updater = new LauncherUpdater()
 // A beta launcher installs the server's pre-releases too, a stable one its releases only: decided by its own version, with no setting.
 const serverUpdater = new ServerUpdater(launcher, isBetaVersion(app.getVersion()), () => isDeveloperMode(settings.current))
@@ -316,6 +327,11 @@ function registerIpc(presence: TaskbarPresence): void {
   ipcMain.handle('settings:set-auto-cleanup', async (_event, on: unknown) => {
     if (typeof on === 'boolean') {
       await launcher.setAutoCleanup(on)
+    }
+  })
+  ipcMain.handle('settings:set-auto-backup', async (_event, on: unknown) => {
+    if (typeof on === 'boolean') {
+      await launcher.setAutoBackup(on)
     }
   })
   ipcMain.handle('client:check', () => launcher.checkClient())

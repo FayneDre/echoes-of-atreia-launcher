@@ -68,6 +68,15 @@ export function BackupsPage({ state, visible }: { state: LauncherState; visible:
         <button type="button" onClick={() => void window.launcher.openBackupFolder()}>
           {t('backups.openFolder')}
         </button>
+        <label className="backup-auto">
+          <input
+            type="checkbox"
+            checked={state.autoBackup}
+            data-testid="option-auto-backup"
+            onChange={(event) => void window.launcher.setAutoBackup(event.currentTarget.checked)}
+          />
+          {t('backups.auto')}
+        </label>
         <span className="save-state" role="status">
           {state.activity === 'backup' && t('backups.creating')}
           {state.activity === 'restore' && t('backups.restoring')}

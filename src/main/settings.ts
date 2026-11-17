@@ -23,6 +23,8 @@ export interface Settings {
   startServersOnLaunch?: boolean
   /** Old archived logs and reports go to the recycle bin at each start; unset, on except in the developer mode. */
   autoCleanup?: boolean
+  /** The databases backed up after each clean stop of the servers; unset, on. */
+  autoBackup?: boolean
   /** The client's language as the person chose it (a code of `L10N`); unset, the interface's own when its pack is there. */
   clientLanguage?: string
 }
@@ -41,6 +43,11 @@ export function isDeveloperMode(settings: Settings): boolean {
  */
 export function isAutoCleanup(settings: Settings): boolean {
   return settings.autoCleanup ?? !isDeveloperMode(settings)
+}
+
+/** Whether the databases are backed up after each clean stop of the servers: as the person set it, else on. */
+export function isAutoBackup(settings: Settings): boolean {
+  return settings.autoBackup ?? true
 }
 
 function settingsFile(): string {

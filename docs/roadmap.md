@@ -14,7 +14,7 @@ server v0.1.0-beta.3).
 |---|---|---|---|
 | 1 | Play: servers and client | validated; the client's check and game language built 7 November | check in game that `-lang:FRA` starts French |
 | 2 | Distribution and updates | installer and v0.2.0 validated; self-update and server bundles built, unverified | a tester's install going to a pre-release and back |
-| 3 | Server settings | rates validated in game (premium, 7 November) | dungeon re-entry |
+| 3 | Server settings | rates validated in game (premium, 7 November); dungeon re-entry built, unverified | check the dungeon re-entry in game |
 | 4 | Account and backups | validated (sign-in, characters, backup, restore) | check the teleport in game |
 | 5 | Bots page | list validated; settings and curve built, unverified | check the bot settings in game |
 | 6 | Desktop and window | published in v0.3.0-beta.4 and beta.5 | tests that fail under load |
@@ -63,8 +63,12 @@ the SQL updates and an undo (milestone 6, [server-update.md](server-update.md)).
 required"; saved settings applied at once through the admin channel when the server runs (`reload-config`). Validated in game on 7 November: the
 premium rates taking effect (server v0.1.0-beta.3 makes every player account premium).
 
+Built on 17 November, unverified in game: **dungeon re-entry** (`gameserver.instance.cooldown_rate`, official to none), written with
+`gameserver.instances.cooldown = 0`: the server applied the rate from membership 10 up, so to nobody, and the bots of the group need it too.
+The server divided by zero on "none" (fixed there the same day).
+
 **Left**:
-1. **Dungeon re-entry** (`gameserver.instance.cooldown_rate`): a setting that already exists; for a player alone with bots it changes everything.
+1. **Check the dungeon re-entry in game**: a dungeon left, entered again at once with "none", alone and with a bot of the group.
 2. **Skill learning**: postponed, its rules are still to be defined.
 
 ## 4. Account and backups
@@ -74,7 +78,8 @@ premium rates taking effect (server v0.1.0-beta.3 makes every player account pre
 
 **Left**:
 1. **Check the teleport in game.**
-2. **Automatic database backups**: at each clean stop or each day, kept in rotation, restored in one click.
+2. **Automatic database backups**: built on 17 November, unverified on a real install: after each clean stop, the newest five kept, an
+   option on the Backups page; restored like any other.
 3. **A character sheet**: level, class, time played, last login, and experience per day, from the database.
 4. **Game accounts managed here**: created, password and membership, without touching the database.
 5. **A backup per character**: later, if at all (one character is spread over dozens of tables).

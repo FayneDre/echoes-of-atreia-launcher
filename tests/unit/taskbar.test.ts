@@ -21,6 +21,7 @@ function stateWith(statuses: [ServerStatus, ServerStatus, ServerStatus], activit
     developerMode: false,
     startServersOnLaunch: false,
     autoCleanup: true,
+    autoBackup: true,
     lastCleanup: null
   }
 }
