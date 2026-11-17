@@ -6,6 +6,28 @@ release whose entry is missing from either file. When this file nears 200 lines,
 
 ---
 
+## v0.3.0-beta.15 — 2026-11-17
+
+**Offered by the launcher** if you have v0.3.0-beta.14: "Update" on the line at the top of the window. Otherwise, install it by hand with
+`Echoes-of-Atreia-Setup-0.3.0-beta.15.exe`.
+
+**Minimum server: v0.1.0-beta.1.** Installing from nothing needs server v0.1.0-beta.6; the administration panel, a server newer than
+v0.1.0-beta.6; the PC RAM mark, server v0.1.0-beta.8; the "None" dungeon cooldown, server v0.1.0-beta.9.
+
+**What changes**
+- **Installing the server: a failure says why, in one line**: the error's message and where in the script, for example
+  "Remove-Item : … (apply-sql.ps1:286)", with its accents, and a "Show the log" button that opens `setup.log`. Error lines no longer show
+  as the step under way, and while the install undoes what it made, the window says so.
+- **The home page says "Installing the server…"** during an install from nothing, no longer "Updating".
+- **Dungeons: the time before entering one again** is set on the Server settings page: official, divided by 2, 3, 5 or 10, or "None: enter
+  as often as you like". It applies to you and to the bots of your group. A wait already started keeps its length; the next entry follows
+  the setting.
+- **Automatic database backup** after each stop of the servers, when the game server was running. Kept: the last 5, and the last of each
+  of the 7 latest days played; your own backups are never deleted. A box on the Backups page turns it off; it is ticked by default. If it
+  fails as you quit, the window stays open and says why; closing it again quits.
+
+---
+
 ## v0.3.0-beta.14 — 2026-11-16
 
 **Offered by the launcher** if you have v0.3.0-beta.13: "Update" on the line at the top of the window. Otherwise, install it by hand with

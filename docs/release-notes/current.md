@@ -7,6 +7,30 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.15 — 17/11/2026
+
+**Proposée par le launcher** si tu as la v0.3.0-beta.14 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la
+main avec `Echoes-of-Atreia-Setup-0.3.0-beta.15.exe`.
+
+**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien demande le serveur v0.1.0-beta.6 ; le panneau d'administration, un
+serveur plus récent que la v0.1.0-beta.6 ; le seuil de RAM du PC, le serveur v0.1.0-beta.8 ; le délai « Aucun » des donjons, le serveur
+v0.1.0-beta.9.
+
+**Ce qui change**
+- **Installer le serveur : un échec dit pourquoi, en une ligne** : le message de l'erreur et l'endroit du script, par exemple
+  « Remove-Item : … (apply-sql.ps1:286) », avec ses accents, et un bouton « Voir le journal » qui ouvre `setup.log`. Les lignes d'erreur
+  ne s'affichent plus comme l'étape en cours, et pendant que l'installation défait ce qu'elle a fait, la fenêtre le dit.
+- **L'accueil dit « Installation du serveur… »** pendant une installation à partir de rien, et non plus « Mise à jour ».
+- **Donjons : le délai avant d'y retourner** se règle dans les Réglages du serveur : officiel, divisé par 2, 3, 5 ou 10, ou « Aucun :
+  autant d'entrées que tu veux ». Il vaut pour toi et pour les bots de ton groupe. Un délai déjà commencé garde sa durée ; l'entrée suivante
+  suit le réglage.
+- **Sauvegarde automatique des bases de données** après chaque arrêt des serveurs, quand le serveur de jeu tournait. Gardées : les 5
+  dernières, et la dernière de chacun des 7 derniers jours de jeu ; tes propres sauvegardes ne sont jamais effacées. Une case de la page
+  Sauvegardes la coupe ; elle est cochée par défaut. Si elle échoue au moment de quitter, la fenêtre reste ouverte et dit pourquoi ; la
+  refermer quitte.
+
+---
+
 ## v0.3.0-beta.14 — 16/11/2026
 
 **Proposée par le launcher** si tu as la v0.3.0-beta.13 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la
