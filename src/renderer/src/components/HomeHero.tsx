@@ -93,7 +93,7 @@ export function HomeHero({ state, accounts, info, onReloadInfo }: Props): React.
           </button>
         </div>
       </div>
-      <ProblemText problem={state.problem} />
+      <ProblemText problem={state.problem} modal />
 
       <dl className="hero-facts">
         <div className={character ? `fact fact-${character.race.toLowerCase()}` : 'fact'}>

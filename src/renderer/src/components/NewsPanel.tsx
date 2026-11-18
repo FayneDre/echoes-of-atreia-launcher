@@ -18,7 +18,7 @@ function useSummaryLines(): React.RefCallback<HTMLDivElement> {
     }
     const fit = (): void => {
       const line = parseFloat(getComputedStyle(element).lineHeight)
-      const lines = line > 0 ? Math.max(3, Math.floor(element.clientHeight / line)) : 3
+      const lines = line > 0 ? Math.max(1, Math.floor(element.clientHeight / line)) : 3
       element.style.setProperty('--summary-lines', String(lines))
     }
     observer.current = new ResizeObserver(fit)

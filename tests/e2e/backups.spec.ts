@@ -190,9 +190,12 @@ test('keeps the window of a quit whose backup failed, says why, and closes when 
 
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.close())
   await page.getByRole('dialog').getByRole('button', { name: 'Stop them and quit' }).click()
-  await expect(page.getByRole('alert')).toContainText("Unknown database 'aion_gs'", { timeout: 30_000 })
+  // the quit's window gives way to the reason, in a dialog over the page
+  const reason = page.getByTestId('problem-dialog')
+  await expect(reason).toContainText("Unknown database 'aion_gs'", { timeout: 30_000 })
   await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped')
-  await expect(page.getByRole('dialog')).toBeHidden()
+  await expect(page.locator('.quit-dialog')).toBeHidden()
+  await reason.getByRole('button', { name: 'Close' }).click()
 
   const launcher = app.process()
   const closed = new Promise<void>((resolve) => (launcher.exitCode !== null ? resolve() : launcher.once('exit', () => resolve())))

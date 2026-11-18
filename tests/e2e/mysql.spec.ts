@@ -63,6 +63,10 @@ test('says why MySQL would not shut down, and leaves it running', async () => {
   await mysqlRow(page).getByRole('button', { name: 'Stop', exact: true }).click()
   await expect(mysqlRow(page).getByRole('alert')).toContainText('SHUTDOWN privilege')
   await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'ready')
+  // the banner's dialog says it too, over the page
+  const refusal = page.getByTestId('problem-dialog').filter({ visible: true })
+  await expect(refusal).toContainText('SHUTDOWN privilege')
+  await refusal.getByRole('button', { name: 'Close' }).click()
 
   rmSync(refuse)
   await mysqlRow(page).getByRole('button', { name: 'Stop', exact: true }).click()
@@ -84,5 +88,34 @@ test('says MySQL is stopped when it went away behind the launcher, and never sho
   await mysqlRow(page).getByRole('button', { name: 'Stop', exact: true }).click()
   await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'stopped', { timeout: 20_000 })
   await expect(mysqlRow(page).getByRole('alert')).toHaveCount(0)
+  await app.close()
+})
+
+test('shows a refused action of the banner in a dialog, never as a line that grows the page', async () => {
+  // the whole stack started and stopped
+  test.setTimeout(90_000)
+  const { app, page } = await launchWith(install)
+  await page.getByRole('button', { name: 'EN', exact: true }).click()
+  await page.getByRole('button', { name: 'Start the servers' }).click()
+  await expect(page.getByTestId('status-game')).toHaveAttribute('data-status', 'ready', { timeout: 30_000 })
+  const hero = page.getByTestId('hero')
+  const height = (await hero.boundingBox())!.height
+  await mysqlRow(page).getByRole('button', { name: 'Stop', exact: true }).click()
+  const dialog = page.getByTestId('problem-dialog')
+  await expect(dialog).toBeVisible()
+  await expect(dialog).toContainText('Stop the servers before MySQL')
+  expect((await hero.boundingBox())!.height).toBe(height)
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(dialog).toBeHidden()
+  // the same refusal again is shown again
+  await mysqlRow(page).getByRole('button', { name: 'Stop', exact: true }).click()
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await page.getByRole('button', { name: 'Stop the servers' }).click()
+  await expect(page.getByTestId('status-chat')).toHaveAttribute('data-status', 'stopped', { timeout: 30_000 })
+  // the servers stopped, MySQL stops: nothing refused any more
+  await mysqlRow(page).getByRole('button', { name: 'Stop', exact: true }).click()
+  await expect(mysqlStatus(page)).toHaveAttribute('data-status', 'stopped', { timeout: 20_000 })
+  await expect(page.getByTestId('problem-dialog')).toBeHidden()
   await app.close()
 })

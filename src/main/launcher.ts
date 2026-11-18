@@ -586,6 +586,9 @@ export class Launcher extends EventEmitter<{ state: [LauncherState]; lines: [Log
   }
 
   async play(): Promise<boolean> {
+    // a refusal of the click before goes: the same one again is a new one, which the page shows again
+    this.problem = undefined
+    this.publish()
     if (!this.install.clientFound || !this.install.clientRoot || !this.layout) {
       this.problem = { code: 'client-missing' }
       this.publish()

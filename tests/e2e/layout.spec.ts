@@ -230,3 +230,47 @@ test('writes each official value on one line, the longest choice in French inclu
   expect(lines).toBe(1)
   await app.close()
 })
+
+test('keeps the home page whole when a panel holds more than the fakes give: the news summary gives up lines', async () => {
+  // the tester's screen: "Installed" and "It is the newest release" on two lines, the news with three, one bar too many; four lines more: what the old layout could not take
+  const { app, page } = await launchWith(install)
+  await expect(page.getByTestId('install-summary')).toBeVisible()
+  await expect(page.getByTestId('server-update')).toBeVisible()
+  await page.waitForTimeout(1_000)
+  await page.getByTestId('server-update').evaluate((panel) => {
+    for (let line = 0; line < 4; line++) {
+      panel.append(Object.assign(document.createElement('p'), { textContent: 'One more line than the fakes give.' }))
+    }
+  })
+  await page.waitForTimeout(300)
+  const overflow = await page.evaluate(() => {
+    const scroller = document.querySelector('.page-scroll')!
+    return scroller.scrollHeight - scroller.clientHeight
+  })
+  expect(overflow).toBeLessThanOrEqual(0)
+  await app.close()
+})
+
+test('spreads the pages over the whole width of a maximized window', async () => {
+  const { app, page } = await launchWith(install)
+  await expect(page.getByTestId('install-summary')).toBeVisible()
+  // a 1080p screen maximized: wider than the first size in proportion, the zoom follows the height
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.setContentSize(1920, 1032))
+  await expect.poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.webContents.getZoomFactor())).toBe(1.3)
+  await page.waitForTimeout(300)
+  const margins = (selector: string) =>
+    page.evaluate((selector) => {
+      const element = document.querySelector(`main.content:not([hidden]) ${selector}`)!
+      const box = element.getBoundingClientRect()
+      return [Math.round(box.left), Math.round(window.innerWidth - box.right)]
+    }, selector)
+  for (const [left, right] of [await margins('.home-grid')]) {
+    expect(left, 'home, left').toBeLessThanOrEqual(24)
+    expect(right, 'home, right').toBeLessThanOrEqual(40)
+  }
+  await page.getByRole('button', { name: /^(Bots)$/ }).click()
+  const [left, right] = await margins('section')
+  expect(left, 'bots, left').toBeLessThanOrEqual(24)
+  expect(right, 'bots, right').toBeLessThanOrEqual(40)
+  await app.close()
+})

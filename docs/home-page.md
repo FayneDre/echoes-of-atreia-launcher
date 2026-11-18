@@ -5,7 +5,9 @@ What is true of the code today: what the home page shows, where each piece comes
 ## The banner
 
 `src/renderer/src/components/HomeHero.tsx`. One phrase for where the stack stands (stopped, starting with how many servers are ready,
-ready with the time since, stopping, a server failed), the Start, Stop and Play buttons, the problem of the last action, and four facts:
+ready with the time since, stopping, a server failed), the Start, Stop and Play buttons, and four facts. The problem of the last action
+(MySQL stopped while the servers run, Play refused) opens in a dialog when it comes, never as a line: a line grew the banner and gave the
+page a scroll bar (the tester's report). The same refusal again opens it again: an action clears the problem before it runs.
 
 - **Character**: the one played on the active account (Account page).
 - **Bots in the world**, per faction: the `players` rows of the bot accounts flagged online. **Only while the game server is ready**: the
@@ -27,7 +29,7 @@ once, at the launcher's start (the start is what shows what changed, never a tim
 and `/server.json`).
 
 A tab shows its newest release alone, with its summary (the first paragraph of its notes, above their headings and lists, cut to
-three lines), so the panel stays small however many releases come out. The panel takes its own height, not the other column's, and keeps
+the lines its room holds), so the panel stays small however many releases come out. The panel takes its own height, not the other column's, and keeps
 no room for lines a summary does not have: the links follow the summary and the panel ends under them (the tester found a stretched panel
 mostly empty). "Read the notes"
 opens the whole notes in a dialog (a native `<dialog>`: Escape, its button or a click beside it closes it); "Previous versions (n)"
@@ -77,7 +79,12 @@ the title and the tagline: Windows still draws the minimise, maximise and close 
 Below it, one row of one height: the character played, the pages, the languages. Nothing in either wraps down to the minimum width (960). A short message after an action
 (saved, backup made) is a toast in a corner for four seconds; the same message again replaces the one shown.
 
-Every page is as wide as the home page (at most 1280 px, the same margins), the scrollbar's place kept on the right only.
+Every page is as wide as the window, with the same margins, the scrollbar's place kept on the right only: a cap of 1280 px left wide
+margins on a maximized 1080p window, where the zoom follows the height (the tester's report; `layout.spec.ts` measures it at 1920×1032).
+
+The home grid takes the room the window gives, never its content's: when a panel holds more than the fakes give (the server version on two
+lines, a server update offered), the news summary gives up lines, down to one, rather than the page growing a scroll bar. The fakes' news
+feed is unreachable, which hid the real case; `layout.spec.ts` adds four lines to the version panel to keep it.
 
 No page has a scroll bar at the first size, and `layout.spec.ts` goes through every page, part and settings group with 400 bots to keep it so:
 the Bots page is in two parts, one shown at a time (its settings, then the list); each faction's list is cut in pages of as many lines as its

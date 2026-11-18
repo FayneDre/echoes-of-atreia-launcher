@@ -181,8 +181,6 @@ button.small {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: 16px;
-  max-width: 1280px;
-  margin: 0 auto;
 }
 
 .home-wide {
@@ -1377,4 +1375,9 @@ button.secondary {
 
 .install-client-note.muted {
   color: var(--text-muted);
+}
+
+/* the home banner's problem: its dialog alone, nothing on the page */
+.problem-modal {
+  margin: 0;
 }

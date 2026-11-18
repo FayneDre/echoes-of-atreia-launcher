@@ -295,14 +295,26 @@ button:hover:not(:disabled) {
   flex-direction: column;
 }
 
+/* The grid takes the room the window gives, never its content's: when a panel grows (a server update offered, two lines where the fakes
+   have one), the news summary gives up lines rather than the page growing a scroll bar, at every window size. */
 .content-home .home-grid {
-  flex: 1 0 auto;
+  flex: 1 1 0;
+  min-height: 0;
   width: 100%;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.home-column {
+  min-height: 0;
 }
 
 .home-column > .panel:last-child {
-  flex: 1 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.install-panel {
+  flex-shrink: 0;
 }
 
 .install-panel {
@@ -516,9 +528,10 @@ button:hover:not(:disabled) {
   padding-bottom: 12px;
 }
 
-/* every page as wide as the home page: same width, same margins, the scrollbar's place kept on the right only */
+/* every page as wide as the home page, the window's whole width (a cap of 1280 px left margins on a maximized window): same margins, the
+   scrollbar's place kept on the right only */
 .content-single {
-  grid-template-columns: minmax(0, 1280px);
+  grid-template-columns: minmax(0, 1fr);
   scrollbar-gutter: stable;
 }
 
@@ -1007,13 +1020,14 @@ button.link:hover:not(:disabled) {
    height from one tab to the other; whole lines only, as many as fit, three at least */
 .news-latest {
   display: flex;
-  flex: 1 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
   flex-direction: column;
 }
 
 .news-summary {
-  flex: 1 0 calc(3 * 1.55em);
-  min-height: calc(3 * 1.55em);
+  flex: 1 1 calc(3 * 1.55em);
+  min-height: 1.55em;
   height: 0;
   margin-top: 6px;
   overflow: hidden;
