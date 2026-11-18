@@ -7,6 +7,21 @@ that has everything, not one per feature. When this file nears 200 lines, the ol
 
 ---
 
+## v0.3.0-beta.16 — 2026-11-18
+
+**Install**: "Update" at the top of the window, otherwise `Echoes-of-Atreia-Setup-0.3.0-beta.16.exe`.
+
+**Minimum server: v0.1.0-beta.1**; everything below with v0.1.0-beta.9.
+
+**What changes**
+- **The home page takes the whole width** of a maximized window, and every page with it: no more empty margins at 1080p.
+- **No scroll bar on the home page** when a panel grows: the news summary gives up lines instead.
+- **A refusal opens in a dialog** instead of a red line in the banner: stopping MySQL while the servers run, Play refused, a backup that
+  fails on quitting.
+- **Shorter release notes**: how to install it and the server it needs, one line each.
+
+---
+
 ## v0.3.0-beta.15 — 2026-11-17
 
 **Install**: "Update" at the top of the window, otherwise `Echoes-of-Atreia-Setup-0.3.0-beta.15.exe`.

@@ -9,6 +9,21 @@ When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, 
 
 ---
 
+## v0.3.0-beta.16 — 18/11/2026
+
+**Installer** : « Mettre à jour » en haut de la fenêtre, sinon `Echoes-of-Atreia-Setup-0.3.0-beta.16.exe`.
+
+**Serveur minimum : v0.1.0-beta.1** ; tout ce qui suit avec la v0.1.0-beta.9.
+
+**Ce qui change**
+- **L'accueil prend toute la largeur** de la fenêtre agrandie, et toutes les pages avec lui : plus de marges vides en 1080p.
+- **Plus d'ascenseur sur l'accueil** quand un panneau grandit : le résumé des nouveautés perd des lignes à la place.
+- **Un refus s'ouvre dans une fenêtre** au lieu d'une ligne rouge dans le bandeau : arrêter MySQL pendant que les serveurs tournent,
+  « Jouer » refusé, une sauvegarde qui échoue en quittant.
+- **Notes de version plus courtes** : comment l'installer et le serveur qu'il faut, une ligne chacun.
+
+---
+
 ## v0.3.0-beta.15 — 17/11/2026
 
 **Installer** : « Mettre à jour » en haut de la fenêtre, sinon `Echoes-of-Atreia-Setup-0.3.0-beta.15.exe`.
