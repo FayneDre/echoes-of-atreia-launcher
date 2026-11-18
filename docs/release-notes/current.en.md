@@ -2,17 +2,16 @@
 
 The English twin of [current.md](current.md): the same entries, headed by the same version tags, in the same order, written from the French
 one in the same pass. Each entry names the lowest server version it works with ("Minimum server: ..."), and `tools/release.ps1` refuses a
-release whose entry is missing from either file. When this file nears 200 lines, the oldest entries move to `<year>-<month>.en.md`.
+release whose entry is missing from either file. How to install it and the server it needs take one line each, no more: the server version
+that has everything, not one per feature. When this file nears 200 lines, the oldest entries move to `<year>-<month>.en.md`.
 
 ---
 
 ## v0.3.0-beta.15 — 2026-11-17
 
-**Offered by the launcher** if you have v0.3.0-beta.14: "Update" on the line at the top of the window. Otherwise, install it by hand with
-`Echoes-of-Atreia-Setup-0.3.0-beta.15.exe`.
+**Install**: "Update" at the top of the window, otherwise `Echoes-of-Atreia-Setup-0.3.0-beta.15.exe`.
 
-**Minimum server: v0.1.0-beta.1.** Installing from nothing needs server v0.1.0-beta.6; the administration panel, a server newer than
-v0.1.0-beta.6; the PC RAM mark, server v0.1.0-beta.8; the "None" dungeon cooldown, server v0.1.0-beta.9.
+**Minimum server: v0.1.0-beta.1**; everything below with v0.1.0-beta.9.
 
 **What changes**
 - **Installing the server: a failure says why, in one line**: the error's message and where in the script, for example

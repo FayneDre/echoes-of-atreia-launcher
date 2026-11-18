@@ -2,19 +2,18 @@
 
 The launcher's release notes in French; [current.en.md](current.en.md) holds the same entries in English, headed by the same version tags, in
 the same order, written in the same pass. Newest first. Each entry names the lowest server version it works with ("Serveur minimum : ..."),
-and `tools/release.ps1` refuses a release without both entries. The releases made before (v0.1.0, v0.2.0) have their notes on GitHub only.
+and `tools/release.ps1` refuses a release without both entries. How to install it and the server it needs take one line each, no more
+(the tester found two paragraphs of server versions in the update dialog too long): the server version that has everything, not one per
+feature. The releases made before (v0.1.0, v0.2.0) have their notes on GitHub only.
 When this file nears 200 lines, the oldest entries move to `<year>-<month>.md`, and their English ones to `<year>-<month>.en.md`.
 
 ---
 
 ## v0.3.0-beta.15 — 17/11/2026
 
-**Proposée par le launcher** si tu as la v0.3.0-beta.14 : « Mettre à jour » sur la ligne en haut de la fenêtre. Sinon, installe-la à la
-main avec `Echoes-of-Atreia-Setup-0.3.0-beta.15.exe`.
+**Installer** : « Mettre à jour » en haut de la fenêtre, sinon `Echoes-of-Atreia-Setup-0.3.0-beta.15.exe`.
 
-**Serveur minimum : v0.1.0-beta.1.** L'installation à partir de rien demande le serveur v0.1.0-beta.6 ; le panneau d'administration, un
-serveur plus récent que la v0.1.0-beta.6 ; le seuil de RAM du PC, le serveur v0.1.0-beta.8 ; le délai « Aucun » des donjons, le serveur
-v0.1.0-beta.9.
+**Serveur minimum : v0.1.0-beta.1** ; tout ce qui suit avec la v0.1.0-beta.9.
 
 **Ce qui change**
 - **Installer le serveur : un échec dit pourquoi, en une ligne** : le message de l'erreur et l'endroit du script, par exemple
